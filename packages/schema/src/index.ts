@@ -21,4 +21,5 @@ export * from "./content/posts";
 export * from "./serialize";
 export * from "./registry";
 export * from "./engine";
+export * from "./package-json";
 export * from "./module-paths";

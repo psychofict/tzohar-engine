@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -14,10 +13,9 @@
     "module-paths": "node scripts/gen-module-paths.mjs",
     "module-paths:check": "node scripts/gen-module-paths.mjs --check",
     "check-messages": "node scripts/check-messages.mjs",
-    "hooks:install": "git config core.hooksPath .githooks",
-    "quota": "node scripts/vercel-quota.mjs",
     "test:bibtex": "npx --yes tsx scripts/bibtex.test.ts",
-    "test:tex": "npx --yes tsx scripts/tex.test.ts"
+    "test:tex": "npx --yes tsx scripts/tex.test.ts",
+    "test:package-json": "npx --yes tsx scripts/package-json.test.ts"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
