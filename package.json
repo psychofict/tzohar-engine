@@ -1,0 +1,52 @@
+{
+  "name": "tzohar-sites",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "new-site": "node scripts/new-site.mjs",
+    "generate-blur": "node scripts/generate-blur.mjs",
+    "shots": "node scripts/shots.mjs",
+    "module-paths": "node scripts/gen-module-paths.mjs",
+    "module-paths:check": "node scripts/gen-module-paths.mjs --check",
+    "check-messages": "node scripts/check-messages.mjs",
+    "hooks:install": "git config core.hooksPath .githooks",
+    "quota": "node scripts/vercel-quota.mjs",
+    "test:bibtex": "npx --yes tsx scripts/bibtex.test.ts",
+    "test:tex": "npx --yes tsx scripts/tex.test.ts"
+  },
+  "dependencies": {
+    "@react-pdf/renderer": "^4.5.1",
+    "@vercel/analytics": "^2.0.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.34.3",
+    "lucide-react": "^0.575.0",
+    "next": "16.1.6",
+    "next-intl": "^4.8.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "resend": "^6.9.2",
+    "stripe": "^22.3.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/d3-geo": "^3.1.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/react-simple-maps": "^3.0.6",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "playwright": "^1.59.1",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "license": "Apache-2.0"
+}

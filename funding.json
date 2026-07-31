@@ -1,0 +1,77 @@
+{
+  "$schema": "https://fundingjson.org/schema/v1.1.0.json",
+  "version": "v1.1.0",
+  "entity": {
+    "type": "organisation",
+    "role": "owner",
+    "name": "Ebenworks Systems (Private) Limited",
+    "email": "hello@ebenworks.co",
+    "description": "A small software company building tools for people who need to be findable and credible on the open web \u2014 researchers, public figures and independent professionals.",
+    "webpageUrl": {
+      "url": "https://ebenworks.co"
+    }
+  },
+  "projects": [
+    {
+      "guid": "tzohar-sites",
+      "name": "Tzohar Sites",
+      "description": "A framework for bespoke personal and academic websites. Pages are composed from typed section blocks rather than templates, so a site is data a person owns rather than a layout they rent. Built for researchers and public figures: publication lists with ORCID and BibTeX import, citation export, lab and research-group pages, CV export, multilingual routing, and structured data. Every site is the same engine configured, so improvements reach every site that runs it.",
+      "webpageUrl": {
+        "url": "https://tzohar-sites.ebenworks.co"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/psychofict/tzohar-engine"
+      },
+      "licenses": [
+        "spdx:Apache-2.0"
+      ],
+      "tags": [
+        "web-framework",
+        "static-site-generator",
+        "academia",
+        "research",
+        "publishing",
+        "nextjs",
+        "typescript",
+        "accessibility",
+        "bibtex",
+        "orcid"
+      ]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "bank",
+        "type": "bank",
+        "description": "Bank transfer. Details on request to hello@ebenworks.co."
+      }
+    ],
+    "plans": [
+      {
+        "guid": "academic-features",
+        "status": "active",
+        "name": "Academic publishing features",
+        "description": "Deepen the parts researchers depend on: Google Scholar and Semantic Scholar import alongside the existing ORCID and BibTeX paths, citation-count display, group and lab directories, and WCAG conformance testing across every section type.",
+        "amount": 12000,
+        "currency": "USD",
+        "frequency": "one-time",
+        "channels": [
+          "bank"
+        ]
+      },
+      {
+        "guid": "maintenance",
+        "status": "active",
+        "name": "Ongoing maintenance",
+        "description": "Dependency and framework upgrades, security patching, accessibility and performance work, and support for the people running sites on the engine.",
+        "amount": 500,
+        "currency": "USD",
+        "frequency": "monthly",
+        "channels": [
+          "bank"
+        ]
+      }
+    ]
+  }
+}

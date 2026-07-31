@@ -1,0 +1,84 @@
+{
+  "version": "2.6.0",
+  "name": "Lantern",
+  "released": "2026-07-31",
+  "highlights": [
+    "Four more modules stop being the reference build. Enabling label, merch, press or influence used to give a client somebody else's brand — his record label's name, website and four social accounts; his merch photos; his press bio, fact sheet and logo downloads; his Instagram feed and thirty-one partner logos. All of it is content now (roster.json gains a label object; merch.json, press.json and influencer.json are new), and every section renders only when this site has something to put in it.",
+    "Two payment and account bugs, both the same shape. /api/checkout hardcoded the reference build's hub product key, so a client whose membership.ts named their own product still resolved prices from another site's PriceTable — a real payment for the wrong thing. /api/account/profile did it for the hub's per-product store, reading and writing one site's visitor profiles under another site's key. Both now read the client's own key and refuse to run without it.",
+    "The structured data a client publishes is theirs. The MusicGroup listed four albums and three tracks as literals and the label Organization was written out in full, so search engines were told a client's site was about another artist's discography and another company's record label. Both are built from content, and both are omitted entirely when there is nothing to describe — a wrong machine-readable claim is worse than none.",
+    "Module pages read their photographs from content. Five hero images, the AI portrait, the tour posters, the links avatar and the merch previews all pointed into a public/ path that only exists in the reference build's repo, so a client enabling a module got a 404 where the page's first impression should be.",
+    "src/data/instagram.ts is no longer 404 lines of one person's feed. It survived the 2.5.0 sweep because the music page imports it too, which made it look structural; the posts are content and the file is now just the selectors.",
+    "The engine ships no client's name. A whole-tree audit of engine-owned files went from 46 files and 180 lines naming another build to zero — including the release codename, which had been a client's actual first name."
+  ],
+  "breaking": [
+    "The `links` page's record-label entry moved from the message key `links.theEsotericOnes` to `links.recordLabel`, and the dead `nav.theEsotericOnes` is removed. next-intl throws on a missing key, so a client running the `links` module must rename that one key in messages/<locale>.json. A build without the `links` module is unaffected.",
+    "Two client-owned files are new: src/data/merch.json, src/data/press.json and src/data/influencer.json (empty objects are valid). The sync seeds them from the template; a client enabling merch, press or influencer without them will fail to build.",
+    "scripts/seed-pages.mjs and scripts/ingest-media.mjs were one client's authoring tools and have moved to scripts/private/, which is excluded from the sync. Their npm script entries are gone from package.json. Note a removed engine file shows up as a DELETION in the next sync plan, and deletions are unticked by default — so the old copies survive in a client repo until an operator ticks them."
+  ],
+  "previous": {
+    "2.5.0": [
+      "The last per-site data left engine code. src/data/artist.ts was a 500-line TypeScript literal holding one artist's discography, government roles, brand partnerships and academic CV — part of the FRAMEWORK, so any client running the music/ai/links/influencer modules inherited someone else's career. It is content now (artist.json + a validated loader), and 174 of those lines turned out to be exports nothing imported at all.",
+      "Enabling a module later no longer breaks the build. A module's loader is engine code that imports client-owned JSON, so switching a module on used to add the loader and nothing else. The sync now seeds the missing starter content in the same commit — from the TEMPLATE, not from this release, because the engine repo doubles as the reference build and its content is one particular site's.",
+      "The music/ai/influencer pages tolerate absent data: a track with no album, an experience entry with no logo, a skill with an unknown icon. They previously assumed every field the reference build happened to fill in."
+    ],
+    "2.4.1": [
+      "Our own documents stop shipping to clients. CLAUDE.md (this framework plus fleet-wide operational context) and PRODUCTIZATION.md (the business model and price list) were seeded into every client repo by the template. An internal pricing document in a customer repository should not be possible; both are excluded now."
+    ],
+    "2.4.0": [
+      "The default home page is content, not code. It hardcoded the reference build's headline numbers, partner logos, three role panels, a featured post and a latest release — so every client shipped a home page advertising another artist, behind links to modules they had switched off and image paths that 404 in a client repo. It now reads src/data/home.json and skips whatever is absent; {} is a valid home, which is the right shape for a site that composes its own with the pages module.",
+      "Role panels only render when the module they link into is enabled. Three panels pointing at 404s was the previous behaviour on every client build.",
+      "The MusicGroup and label Organization schemas moved out of the root layout onto their own modules' pages. Emitting them sitewide claimed every page was about a music group, and it pinned one artist's discography into a core file that shipped to every client.",
+      "The label roster is content (src/data/roster.json + a validated loader), so one label's artists are no longer part of the engine.",
+      "src/config/membership.ts is client-owned. It is documented as a per-client file but was classified engine, so every client inherited a membership gate pointed at the reference build's product on the accounts hub — and src/lib/membership.ts no longer falls back to that product key, because a wrong-but-plausible answer from the hub is worse than failing closed."
+    ],
+    "2.3.1": [
+      "The reference build's personal artefacts (Wikipedia draft, Wikidata sync scripts) moved to scripts/private/ and are now EXCLUDED from the sync. They were 57 mentions of another person's name in every client repo, engine-adjacent only by accident of living under scripts/.",
+      "The remaining build scripts no longer hardcode the reference build in default paths, logo filenames or DOM selectors."
+    ],
+    "2.3.0": [
+      "A client repo now only carries code for the modules it enables. requireModule() already 404s a disabled module's routes, which is enough for a visitor and nothing else: the FILES still shipped, so every client repo contained the reference build's music pages, its record-label roster, its Instagram data and its press quotes — dead weight in their build and another brand's copy in their repo. The sync no longer offers a disabled module's files, and offers the ones already present for removal.",
+      "Ownership is derived, not hand-listed: requireModule() calls give the gated subtree, imports are followed forward, and a file is prunable only when EVERY module that can reach it is disabled and no core entrypoint reaches it. Generated into packages/schema/src/module-paths.ts by `npm run module-paths`; a file the table doesn't know about is never pruned.",
+      "Measured on the first real client (crm + pages + posts): 70 files removed and the build goes from 351 prerendered pages to 45. Reversible — turning a module back on makes the next sync restore its files."
+    ],
+    "2.2.1": [
+      "The light hero wash no longer erases the subject on a phone. Its top band was 72% paper over 190px — doing the navbar's job over exactly the 120–180px where a head lands on a narrow frame — so a hero cropped to show a face showed a rumour of one. Now 58% over 120px, which still carries dark ink over a bright plate."
+    ],
+    "2.2.0": [
+      "Mobile is tighter. The band-padding FLOOR governs every viewport up to ~933px, so a floor of 3.5rem meant every section on a phone was separated by 112px of nothing; the hero is shorter and its bottom padding smaller now that the fact row is hidden. Desktop is bit-identical — above 933px the vw term wins either way.",
+      "The web app manifest is generated from config (src/app/manifest.ts) instead of being a static file copied into every client's public/. It was never replaced after copying, so the first real client's live site offered to install as an app named after the reference build, with a music-producer description, on their own domain.",
+      "favicon.ico moved out of src/app/ (engine-owned) into public/ (client-owned). Next serves the app-dir icon with precedence, so the sync had been shipping the reference build's favicon into every client repo and overriding theirs — verified by md5: the first client's live favicon was byte-identical to ours.",
+      "Fourteen route layouts stopped hardcoding the reference build's domain in their canonical + hreflang tags. A canonical is an instruction to index the OTHER url, so this was pointing clients' SEO at somebody else's site; the language map was also fixed at five locales, advertising alternates that 404 for an en-only build. Both now come from site.url and site.locales via routeAlternates().",
+      "The schema.org graph no longer carries hardcoded reference-build URLs in @id, url and publisher fields."
+    ],
+    "2.1.3": [
+      "schema.org `nationality` now emits a country. `location.from` is written for humans (\"Mwenezi, Zimbabwe\"), and the whole string was being published as a Country name — so the structured data search engines read declared a Country named after a rural district.",
+      "Core-route photo heroes (contact, about) now follow the theme instead of forcing a dark band onto a light page. A light-theme site was opening its contact page on a near-black slab with a light-ink navbar over it — the same defect composed-page heroes had before they gained a light plate, on the routes nobody re-checked. Name a bright frame in Brand → \"Page hero photo — light mode\".",
+      "The light hero wash is rebalanced. At 97% paper it was legible but the photograph was gone; it now sits at a tested middle where the image reads as colour and place and dark ink keeps a comfortable margin. All four scrims (light/dark × wide/narrow) live in one shared module, because these numbers had already been wrong twice in two components.",
+      "A hero's fact row (Based in / Field / Affiliation) is hidden below the sm breakpoint. On a phone it became ~200px of stacked label/value pairs that pushed the affiliations marquee — the thing that establishes credibility at a glance — entirely below the fold. Still in the DOM for crawlers and screen readers, still on desktop.",
+      "Pillar cards take an optional photograph, so the set where a reader decides which domain is theirs isn't three blocks of text.",
+      "The footer credits the build (\"A Tzohar site — built by Ebenworks & Statotech\") and no longer prints the subject's birthplace as if it were an address; that fact still feeds the about page and the schema.org Person."
+    ],
+    "2.1.1": [
+      "Light-mode heroes were unreadable on a phone: the narrow white wash mirrored the dark ramp's opacities, and the mobile crop was shared between two different photographs, putting a face directly behind the title.",
+      "New positionMobileLight so a light plate can be cropped for narrow screens on its own.",
+      "Studio can edit the whole background — the light-mode photo, its scrim and both crops."
+    ],
+    "2.1.0": [
+      "Studio's preview is now this site itself, framed and fed your unsaved draft — same components, CSS, fonts and motion as production, because it is production rendering a draft. It replaced a miniature re-implementation that rendered 9 sections where a real page had 12.",
+      "Appearance changes (colour, font, paper, radius, mode) apply live with no reload, using the same CSS generator the server injects — so they look right rather than approximately right.",
+      "Selecting a section in Studio scrolls this site's preview to it and flashes it.",
+      "Real device viewports — 1440 / 1280 / 834 / 390 with rotate — sized in true CSS pixels so this site's own media queries decide the layout."
+    ],
+    "2.0.0": [
+      "Five new page-section types: gallery (lightbox), video (poster + inline player), journey (annotated map/timeline), portfolio (printable one-pager), postList (filterable article index).",
+      "Posts — a dated, reverse-chronological writing surface with categories, drafts and a safe plain-text body, separate from composed pages.",
+      "A client-facing CMS at /admin: posts, page sections, media uploads and site settings, committed straight to the repo. No hub account, no dependency on Studio being up.",
+      "Heroes gained a light-mode plate, per-mode scrims and a mobile crop, so one hero block can be dark-cinematic and light-airy without duplicating it.",
+      "Navigation panels with icons, blurbs and a feature tile; card grids gained an index variant for small source images.",
+      "Every route's SEO, every transactional email and the schema.org Person now read from site config instead of carrying the previous client's copy.",
+      "Contact inquiry forms are chosen in config, and filtered to the ones this build has copy for, so a trimmed messages file can never break the page.",
+      "Contrast-corrected paper palettes — the noir preset's tonal ladder is separable in both modes, and ink-3 clears 4.6:1 on every band tone."
+    ]
+  },
+  "addsModules": []
+}

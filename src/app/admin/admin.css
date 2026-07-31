@@ -1,0 +1,342 @@
+/*
+ * CRM styles — plain CSS, not Tailwind.
+ *
+ * The public site's Tailwind layer is generated from the site's `@theme` tokens
+ * and its `dark:` variant is scoped to `.dark, .section-invert`. Reusing it here
+ * would couple the tool to the artwork: retuning the client's paper palette would
+ * silently restyle the CMS, and a `.section-invert` anywhere in an editor preview
+ * would flip the surrounding chrome. A few hundred lines of scoped CSS is the
+ * cheaper, more stable choice for an operator surface.
+ */
+
+.crm {
+  --bg: #0e0f13;
+  --panel: #16181e;
+  --panel-2: #1d2027;
+  --edge: #272b34;
+  --edge-strong: #363b47;
+  --ink: #eef1f6;
+  --ink-2: #a7aebd;
+  --ink-3: #6f7788;
+  --accent: #d4af37;
+  --accent-ink: #1a1608;
+  --ok: #35c48d;
+  --warn: #e5a23c;
+  --bad: #f0645f;
+
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--crm-sans), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.crm *,
+.crm *::before,
+.crm *::after {
+  box-sizing: border-box;
+}
+
+.crm h1,
+.crm h2,
+.crm h3 {
+  margin: 0;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.crm h1 { font-size: 1.5rem; }
+.crm h2 { font-size: 1.1rem; }
+.crm h3 { font-size: 0.95rem; }
+.crm p { margin: 0; }
+.crm a { color: inherit; }
+
+.crm-label {
+  font-family: var(--crm-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.crm-mono { font-family: var(--crm-mono), ui-monospace, monospace; }
+
+/* ── shell ────────────────────────────────────────────────────────────── */
+
+.crm-shell {
+  display: grid;
+  grid-template-columns: 244px minmax(0, 1fr);
+  min-height: 100vh;
+}
+@media (max-width: 860px) {
+  .crm-shell { grid-template-columns: minmax(0, 1fr); }
+}
+
+.crm-side {
+  border-right: 1px solid var(--edge);
+  background: var(--panel);
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+@media (max-width: 860px) {
+  .crm-side { border-right: 0; border-bottom: 1px solid var(--edge); }
+}
+
+.crm-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+.crm-brand-mark {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.crm-nav { display: flex; flex-direction: column; gap: 2px; }
+.crm-nav-group + .crm-nav-group { margin-top: 18px; }
+.crm-nav-head { padding: 0 10px 6px; }
+.crm-nav a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  color: var(--ink-2);
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.14s, color 0.14s;
+}
+.crm-nav a:hover { background: var(--panel-2); color: var(--ink); }
+.crm-nav a[aria-current="page"] {
+  background: var(--panel-2);
+  color: var(--ink);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.crm-main { min-width: 0; padding: 26px 28px 80px; }
+@media (max-width: 640px) {
+  .crm-main { padding: 20px 16px 60px; }
+}
+
+.crm-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 18px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--edge);
+}
+
+/* ── store badge ──────────────────────────────────────────────────────── */
+
+.crm-store {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--edge-strong);
+  border-radius: 7px;
+  background: var(--panel);
+}
+.crm-dot { width: 7px; height: 7px; border-radius: 999px; flex: none; }
+.crm-dot--fs { background: var(--warn); }
+.crm-dot--github { background: var(--ok); }
+
+/* ── surfaces ─────────────────────────────────────────────────────────── */
+
+.crm-card {
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 18px;
+}
+.crm-grid { display: grid; gap: 14px; }
+.crm-grid--2 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.crm-grid--3 { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+
+.crm-tile {
+  display: block;
+  text-decoration: none;
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 16px;
+  transition: border-color 0.15s, transform 0.15s, background 0.15s;
+}
+.crm-tile:hover { border-color: var(--edge-strong); background: var(--panel-2); transform: translateY(-1px); }
+.crm-tile-n { font-family: var(--crm-mono), monospace; font-size: 1.6rem; font-weight: 500; }
+
+/* ── rows / list ──────────────────────────────────────────────────────── */
+
+.crm-rows { border: 1px solid var(--edge); border-radius: 10px; overflow: hidden; background: var(--panel); }
+.crm-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--edge);
+}
+.crm-row:last-child { border-bottom: 0; }
+.crm-row-main { min-width: 0; flex: 1; }
+.crm-row-title { font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crm-row-actions { display: flex; gap: 8px; flex: none; }
+
+/* ── form controls ────────────────────────────────────────────────────── */
+
+.crm-field { display: block; margin-bottom: 14px; }
+.crm-field > span { display: block; margin-bottom: 5px; }
+.crm-input,
+.crm-textarea,
+.crm-select {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--edge-strong);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  transition: border-color 0.15s;
+}
+.crm-input:focus,
+.crm-textarea:focus,
+.crm-select:focus { outline: none; border-color: var(--accent); }
+.crm-textarea { resize: vertical; min-height: 96px; line-height: 1.6; }
+.crm-textarea--code {
+  font-family: var(--crm-mono), monospace;
+  font-size: 12.5px;
+  line-height: 1.65;
+  min-height: 240px;
+  white-space: pre;
+}
+/* `display: block` matters: inside `.crm-check` the hint is a sibling of the
+   label text, and as an inline span it ran on the same line — the Draft
+   checkbox read "DraftHidden from the index and search". */
+.crm-hint { display: block; font-size: 12.5px; color: var(--ink-3); margin-top: 5px; }
+.crm-check { display: flex; align-items: center; gap: 9px; cursor: pointer; user-select: none; }
+.crm-check input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+/* ── buttons ──────────────────────────────────────────────────────────── */
+
+.crm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border: 1px solid var(--edge-strong);
+  border-radius: 7px;
+  background: var(--panel-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 550;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.crm-btn:hover { background: var(--edge); }
+.crm-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.crm-btn--primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.crm-btn--primary:hover { background: #e0bd4b; }
+.crm-btn--danger { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, transparent); background: transparent; }
+.crm-btn--danger:hover { background: color-mix(in srgb, var(--bad) 14%, transparent); }
+.crm-btn--sm { padding: 5px 10px; font-size: 13px; }
+
+.crm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding-top: 18px;
+  margin-top: 20px;
+  border-top: 1px solid var(--edge);
+}
+
+/* ── pills / status ───────────────────────────────────────────────────── */
+
+.crm-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--edge-strong);
+  font-family: var(--crm-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.crm-pill--draft { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
+.crm-pill--live { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+
+.crm-note {
+  border: 1px solid var(--edge-strong);
+  border-left: 3px solid var(--accent);
+  border-radius: 7px;
+  background: var(--panel);
+  padding: 12px 14px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.crm-note--bad { border-left-color: var(--bad); }
+.crm-note--ok { border-left-color: var(--ok); }
+
+/* ── login ────────────────────────────────────────────────────────────── */
+
+.crm-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.crm-login-card { width: 100%; max-width: 380px; }
+
+/* ── media grid ───────────────────────────────────────────────────────── */
+
+.crm-media { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.crm-media figure { margin: 0; border: 1px solid var(--edge); border-radius: 9px; overflow: hidden; background: var(--panel); }
+.crm-media img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--bg); }
+.crm-media figcaption { padding: 8px 9px; font-family: var(--crm-mono), monospace; font-size: 10.5px; color: var(--ink-3); word-break: break-all; }
+
+/* ── block editor ─────────────────────────────────────────────────────── */
+
+.crm-block { border: 1px solid var(--edge); border-radius: 9px; background: var(--panel); margin-bottom: 10px; }
+.crm-block-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.crm-block-head:hover { background: var(--panel-2); }
+.crm-block-body { padding: 4px 12px 14px; border-top: 1px solid var(--edge); }
+.crm-block-type {
+  font-family: var(--crm-mono), monospace;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--panel-2);
+  border: 1px solid var(--edge-strong);
+  color: var(--ink-2);
+  flex: none;
+}
+.crm-dot--bad { background: var(--bad); }
+
+/* Next.js dev-mode indicator overlaps the sidebar footer in this layout, and
+   has no business appearing in a client-facing screen. */
+.crm nextjs-portal { display: none; }

@@ -1,0 +1,52 @@
+Tzohar Sites — the engine
+Copyright 2026 Ebenworks Systems (Private) Limited
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+────────────────────────────────────────────────────────────────────────────
+WHAT THIS LICENCE COVERS, AND WHAT IT DOES NOT
+────────────────────────────────────────────────────────────────────────────
+
+This repository holds two things under two different licences.
+
+  OPEN — the engine, under Apache-2.0 (this LICENSE):
+
+      src/app/          src/components/     src/lib/
+      src/i18n/         src/config/         packages/schema/
+      scripts/          middleware.ts       next.config.ts
+      engine.json       and the root build configuration
+
+    This is the framework a client site is built on. It is already delivered
+    as readable source into every client's own repository — the licence makes
+    explicit what was always true in practice, and gives clients a written
+    right to keep, modify and move the code that runs their site.
+
+  NOT OPEN — the control plane, all rights reserved:
+
+      studio/
+
+    Tzohar Studio is the operator console: it onboards clients, publishes
+    content into their repositories and ships engine releases into their
+    forks. It is a commercial product and is not licensed for use, copying
+    or distribution. Its presence in this repository is a matter of
+    convenience for the people who maintain both.
+
+  NOT COVERED — content and brand:
+
+    The name "Tzohar", "Tzohar Sites", "Ebenworks" and "Statotech", the
+    logos, and the wordmarks are trademarks of their respective owners and
+    are NOT licensed by Apache-2.0 (see section 6 of the licence). Fork the
+    code; use your own name.
+
+    Site content in this repository — text, photographs, and the data files
+    under src/data/, messages/ and public/ — describes a particular person
+    or business and is not licensed for reuse.
+
+────────────────────────────────────────────────────────────────────────────
+
+The boundary above is not a convention: packages/schema/src/engine.ts
+classifies every path in this repository as engine, client or excluded, and
+the classification is what the release tooling obeys. If you are unsure which
+side of the line a file is on, that file is the answer.
+
+Questions: legal@ebenworks.co

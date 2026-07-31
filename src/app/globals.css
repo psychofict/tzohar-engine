@@ -1,0 +1,561 @@
+@import "tailwindcss";
+
+/* `.section-invert` is a scoped dark island: any subtree carrying it renders
+   as though the site were in dark mode (dark token values below + the `dark:`
+   variant fires inside it), regardless of the root light/dark mode. Powers the
+   "dark hero, light body" look (`site.layout.heroTone: "dark"`) — a dark hero
+   band on an otherwise light page, plus a navbar that goes light-on-dark while
+   it sits over that band. */
+@variant dark (&:where(.dark, .dark *, .section-invert, .section-invert *));
+
+/* ─────────────────────────────────────────────────────────
+   DESIGN TOKENS
+   Semantic names (bg/surface/ink/accent/etc) so pages don't
+   reach for raw hex values. Light values default; dark mode
+   overrides via .dark.
+   ───────────────────────────────────────────────────────── */
+@theme {
+  /* Surfaces */
+  --color-bg: #FAFAF7;
+  --color-surface: #F2EEE7;
+  --color-surface-2: #E7E1D6;
+  --color-elevated: #FFFFFF;
+
+  /* Ink (text) */
+  --color-ink: #15121C;
+  --color-ink-2: #4A4456;
+  --color-ink-3: #877F92;
+  --color-on-accent: #FFFFFF;
+
+  /* Borders / hairlines */
+  --color-line: rgba(21, 18, 28, 0.10);
+  --color-line-strong: rgba(21, 18, 28, 0.18);
+
+  /* Brand accents — tuned for AA contrast on bg/surface */
+  --color-ocean: #1F5FE0;
+  --color-ocean-strong: #1648B0;
+  --color-sunset: #F08A2B;
+  --color-sunset-strong: #C66A14;
+  --color-emerald: #1F9A66;
+  --color-violet: #6E48E5;
+  --color-magenta: #D33A7A;
+
+  /* Aliases the existing code may still reference */
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-ink);
+  --color-section-dark: var(--color-surface-2);
+  --color-on-dark: var(--color-ink);
+  --color-soft-white: var(--color-surface);
+  --color-sky-tint: var(--color-surface);
+  --color-ocean-dark: var(--color-ocean-strong);
+
+  --font-sans: var(--font-body);
+  --font-display: var(--font-dm-sans);
+  /* Label/apparatus face — see `--font-label` in [locale]/layout.tsx. */
+  --font-mono: var(--font-label), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-card: 1rem;
+  --radius-pill: 9999px;
+
+  --shadow-card: 0 1px 2px rgba(21,18,28,0.04), 0 12px 32px -16px rgba(21,18,28,0.10);
+  --shadow-card-hover: 0 1px 2px rgba(21,18,28,0.04), 0 24px 48px -20px rgba(21,18,28,0.18);
+}
+
+/* ─────────────────────────────────────────────────────────
+   APPEARANCE TOKENS (non-utility) — defaults for the knobs
+   `appearanceStyle()` in @tzohar/schema overrides per site:
+   display typography (weight/tracking/scale) + motion.
+   ───────────────────────────────────────────────────────── */
+:root {
+  /* Display typography — tuned per font pairing + typeScale */
+  --display-weight: 700;
+  --display-tracking: -0.025em;
+  --display-scale: 1;
+
+  /* Scroll-reveal motion — tuned per motion preset */
+  --reveal-distance: 24px;
+  --reveal-duration: 600ms;
+  --reveal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --reveal-blur: 0px;
+  --reveal-scale: 0.96;
+
+  /* Hero entrance keyframes — tuned per motion preset */
+  --entrance-duration: 720ms;
+  --entrance-distance: 14px;
+  --entrance-blur: 4px;
+}
+
+.dark,
+/*
+ * `.section-invert` pins the dark palette on a band regardless of theme.
+ *
+ * `.section-invert-auto` pins it ONLY in dark mode — a photographic band that
+ * follows the theme instead of forcing a dark slab onto a light page. It shares
+ * this declaration block rather than duplicating 26 custom properties. Note that
+ * the `dark:` variant (see the top of this file) is scoped to `.dark` and
+ * `.section-invert` but deliberately NOT to `.section-invert-auto`: inside an
+ * auto band in light mode, `dark:` utilities must stay off so the light plate and
+ * light scrim win. `.dark *` still covers it when the site really is dark.
+ */
+.section-invert,
+.dark .section-invert-auto,
+.section-invert .section-invert-auto {
+  --color-bg: #0A0813;
+  --color-surface: #14101F;
+  --color-surface-2: #1C1730;
+  --color-elevated: #1A1428;
+
+  --color-ink: #ECE7F5;
+  --color-ink-2: #B5AEC4;
+  --color-ink-3: #7C748F;
+
+  --color-line: rgba(255, 255, 255, 0.10);
+  --color-line-strong: rgba(255, 255, 255, 0.18);
+
+  --color-ocean: #4F8AF5;
+  --color-ocean-strong: #80AAFF;
+  --color-sunset: #FFA84A;
+  --color-sunset-strong: #FFC178;
+
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-ink);
+  --color-section-dark: var(--color-surface-2);
+  --color-on-dark: var(--color-ink);
+  --color-soft-white: var(--color-surface);
+  --color-sky-tint: var(--color-surface);
+
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.4), 0 12px 32px -16px rgba(0,0,0,0.6);
+  --shadow-card-hover: 0 1px 2px rgba(0,0,0,0.5), 0 24px 48px -20px rgba(0,0,0,0.7);
+}
+
+/* ─────────────────────────────────────────────────────────
+   THEME PRESETS  (Tzohar)
+   Give a build a distinct look by setting `theme` in site.config,
+   which renders <html data-theme="…">. Each preset swaps the primary
+   (ocean) + secondary (sunset) accents for light and dark; the rest of
+   the palette (surfaces/ink) stays neutral. "default" = base @theme.
+   ───────────────────────────────────────────────────────── */
+[data-theme="violet"] {
+  --color-ocean: #6E48E5; --color-ocean-strong: #5733C4;
+  --color-sunset: #D33A7A; --color-sunset-strong: #B02862;
+}
+.dark[data-theme="violet"] {
+  --color-ocean: #A98BFF; --color-ocean-strong: #C4AEFF;
+  --color-sunset: #FF6FA6; --color-sunset-strong: #FF93BE;
+}
+
+[data-theme="emerald"] {
+  --color-ocean: #1F9A66; --color-ocean-strong: #157A4F;
+  --color-sunset: #E0A21F; --color-sunset-strong: #B47F12;
+}
+.dark[data-theme="emerald"] {
+  --color-ocean: #3FD699; --color-ocean-strong: #74E6B8;
+  --color-sunset: #FFC85A; --color-sunset-strong: #FFD980;
+}
+
+[data-theme="sunset"] {
+  --color-ocean: #F0792B; --color-ocean-strong: #C6600F;
+  --color-sunset: #D33A7A; --color-sunset-strong: #B02862;
+}
+.dark[data-theme="sunset"] {
+  --color-ocean: #FF9F57; --color-ocean-strong: #FFBA82;
+  --color-sunset: #FF6FA6; --color-sunset-strong: #FF93BE;
+}
+
+[data-theme="rose"] {
+  --color-ocean: #D33A7A; --color-ocean-strong: #B02862;
+  --color-sunset: #F0792B; --color-sunset-strong: #C6600F;
+}
+.dark[data-theme="rose"] {
+  --color-ocean: #FF6FA6; --color-ocean-strong: #FF93BE;
+  --color-sunset: #FF9F57; --color-sunset-strong: #FFBA82;
+}
+
+[data-theme="slate"] {
+  --color-ocean: #3D5A80; --color-ocean-strong: #2C4763;
+  --color-sunset: #9C6B4A; --color-sunset-strong: #7D543A;
+}
+.dark[data-theme="slate"] {
+  --color-ocean: #7FA0C8; --color-ocean-strong: #A6BFDD;
+  --color-sunset: #C99A78; --color-sunset-strong: #DDB89C;
+}
+
+html {
+  scroll-behavior: smooth;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:lang(ko) { font-family: var(--font-ko), var(--font-sans), system-ui, sans-serif; }
+:lang(zh) { font-family: var(--font-zh), var(--font-sans), system-ui, sans-serif; }
+:lang(ja) { font-family: var(--font-ja), var(--font-sans), system-ui, sans-serif; }
+
+::selection {
+  background: color-mix(in srgb, var(--color-ocean) 30%, transparent);
+  color: var(--color-ink);
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-ink) 25%, transparent);
+  border-radius: 999px;
+  border: 2px solid var(--color-surface);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-ink) 50%, transparent);
+}
+
+/* Section vertical rhythm */
+.section-padding {
+  padding-top: clamp(3rem, 7vw, 6rem);
+  padding-bottom: clamp(3rem, 7vw, 6rem);
+}
+
+/* ─────────────────────────────────────────────────────────
+   DISPLAY TYPE SYSTEM
+   `.type-display` puts the site's display face + its tuned
+   weight/tracking on a heading; the size classes scale with
+   the per-site --display-scale so `typeScale` is real.
+   ───────────────────────────────────────────────────────── */
+.type-display {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+}
+.display-2xl {
+  font-size: calc(clamp(3.25rem, 7vw, 6.5rem) * var(--display-scale));
+  line-height: 1.0;
+}
+.display-xl {
+  font-size: calc(clamp(2.5rem, 5.5vw, 4.5rem) * var(--display-scale));
+  line-height: 1.04;
+}
+.display-lg {
+  font-size: calc(clamp(2rem, 4vw, 3rem) * var(--display-scale));
+  line-height: 1.08;
+}
+.display-md {
+  font-size: calc(clamp(1.5rem, 3vw, 2.25rem) * var(--display-scale));
+  line-height: 1.14;
+}
+
+/* ─────────────────────────────────────────────────────────
+   LABEL / APPARATUS TYPE
+   The third voice, alongside display and body. Everything
+   that is *metadata about* the content rather than the
+   content itself — eyebrows, stat captions, table heads,
+   dates, places, record numbers — is set here, in the mono
+   label face. Small-caps sans labels read as shrunken
+   headings and compete with real headings; mono labels read
+   as apparatus and recede, which is what lets a page carry a
+   lot of structure without looking busy.
+   ───────────────────────────────────────────────────────── */
+.type-label {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+@media (min-width: 640px) {
+  .type-label { font-size: 0.75rem; }
+}
+/* Mixed-case variant for record values (dates, places, counts) — same face,
+   no uppercasing, so a date stays scannable. */
+.type-record {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  letter-spacing: 0.005em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─────────────────────────────────────────────────────────
+   MEASURE
+   Reading columns are capped in `ch`, not in fractions of a
+   grid, so line length stays ~65–75 characters at every
+   breakpoint and type scale instead of stretching to
+   whatever the column happens to be.
+   ───────────────────────────────────────────────────────── */
+.measure    { max-width: 68ch; }
+.measure-sm { max-width: 52ch; }
+.measure-lg { max-width: 78ch; }
+
+/* ─────────────────────────────────────────────────────────
+   BAND RHYTHM
+   Section padding is a two-step scale, not one value.
+   `BlockRenderer` picks the tight step when a section
+   continues the previous section's tone (they read as one
+   band, so a full pad on both sides of the seam produced the
+   ~160px voids this site had between every pair of muted
+   sections) and the full step when the tone actually changes
+   and the reader is crossing into a new chapter.
+   ───────────────────────────────────────────────────────── */
+:root {
+  /*
+   * The FLOOR is the mobile value, and it governs all the way up to ~933px
+   * (where 6vw finally exceeds it) — so a floor of 3.5rem meant every section on
+   * a phone was separated by 56px top + 56px bottom = 112px of nothing, and a
+   * page read as a slideshow of widely spaced slabs. Lowering only the floor
+   * tightens phones and tablets and leaves desktop bit-identical, because above
+   * 933px the `6vw` term wins either way.
+   */
+  --band-pad: clamp(2.25rem, 6vw, 5.5rem);
+  --band-pad-tight: clamp(1.25rem, 3vw, 2.75rem);
+}
+/* These are plain (unlayered) rules, which in the cascade outrank anything in
+   `@layer utilities` — i.e. every Tailwind utility. So the modifiers below must
+   exist as real classes declared AFTER `.band`: a `pt-32` alongside `.band`
+   silently loses, which is exactly what happened to the first-hero top padding
+   (the copy ended up 9px ABOVE the fixed navbar's bottom edge on mobile). Adjust
+   band padding through these classes, never with a Tailwind spacing utility. */
+.band      { padding-top: var(--band-pad);       padding-bottom: var(--band-pad); }
+.band-top-tight    { padding-top: var(--band-pad-tight); }
+.band-bottom-tight { padding-bottom: var(--band-pad-tight); }
+/* First section on a page: clear the fixed navbar with room to spare. */
+.band-top-hero     { padding-top: clamp(7rem, 9vw, 9rem); }
+
+/* The accent as SIGNAL: a short filled gold rule under a section label. Gold
+   is deliberately not used for small icons or small text anywhere — at 13–16px
+   a mid-tone accent reads as decoration and measures poorly against paper.
+   Filled marks, large numerals and this rule are where it earns its keep. */
+.accent-rule {
+  display: block;
+  height: 2px;
+  width: 2.25rem;
+  flex: none;
+  background: var(--color-ocean);
+}
+
+/* ─────────────────────────────────────────────────────────
+   FOCUS — visible, branded, AA
+   ───────────────────────────────────────────────────────── */
+*:focus-visible {
+  outline: 2px solid var(--color-ocean);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ─────────────────────────────────────────────────────────
+   GRADIENT TEXT (used sparingly — eyebrows / numbers only)
+   ───────────────────────────────────────────────────────── */
+.text-gradient {
+  background: linear-gradient(120deg, var(--color-ocean), var(--color-sunset));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Card hover lift */
+.card-hover {
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* Glass surfaces (used by audio player, mobile menu, etc.) */
+.glass {
+  background: color-mix(in srgb, var(--color-elevated) 78%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--color-line);
+}
+.glass-card {
+  background: color-mix(in srgb, var(--color-elevated) 78%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+}
+.glass-dark {
+  background: color-mix(in srgb, var(--color-surface-2) 80%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--color-line);
+}
+
+.player-bar {
+  background: color-mix(in srgb, var(--color-elevated) 92%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Utility: subtle grain on surfaces */
+.grain {
+  position: relative;
+  isolation: isolate;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.025;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.dark .grain::after { opacity: 0.06; mix-blend-mode: screen; }
+.noise-overlay { position: relative; }
+.noise-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.dark .noise-overlay::before { opacity: 0.04; }
+/* Noise grain is invisible on mobile pixel densities — skip the paint */
+@media (max-width: 640px) {
+  .grain::after,
+  .noise-overlay::before { display: none; }
+}
+
+/* Hide horizontal scrollbar on chip rows */
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Disable mobile tap highlight */
+@media (hover: none) {
+  * { -webkit-tap-highlight-color: transparent; }
+}
+
+/* Logo lockup tone for credibility marquee */
+.logo-muted {
+  filter: grayscale(100%) contrast(0.9) brightness(0.55);
+  opacity: 0.7;
+  transition: filter .4s, opacity .4s;
+}
+.logo-muted:hover { filter: none; opacity: 1; }
+.dark .logo-muted { filter: grayscale(100%) brightness(2.4) contrast(0.8); opacity: 0.55; }
+.dark .logo-muted:hover { filter: none; opacity: 1; }
+
+/* Body scroll lock helper (Navbar uses inline style) */
+html, body { overflow-x: hidden; }
+
+/* iOS-safe fixed backgrounds */
+@supports (-webkit-overflow-scrolling: touch) {
+  .bg-fixed { background-attachment: scroll !important; }
+}
+@media (hover: none) and (pointer: coarse) {
+  .bg-fixed { background-attachment: scroll !important; }
+}
+
+/* Safe area insets */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+/* Subtle marquee animation (used by credibility bar) */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Safety net: any element framer-motion left at opacity:0 / blur / translate is forced
+     to its rest state. Pairs with the .js-on gate below — even if a hydration or observer
+     misfire occurs, reduced-motion users will not be stuck with invisible / blurred content. */
+  [style*="opacity: 0"],
+  [style*="opacity:0"] {
+    opacity: 1 !important;
+  }
+  [style*="filter: blur"],
+  [style*="filter:blur"] {
+    filter: none !important;
+  }
+  [style*="translateY"],
+  [style*="translateX"] {
+    transform: none !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   Hero entrance — CSS-driven so first paint doesn't depend on JS
+   ───────────────────────────────────────────────────────── */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(var(--entrance-distance)); filter: blur(var(--entrance-blur)); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+.hero-rise { animation: hero-rise var(--entrance-duration) var(--reveal-ease) both; }
+.hero-rise-1 { animation-delay: 80ms; }
+.hero-rise-2 { animation-delay: 160ms; }
+.hero-rise-3 { animation-delay: 240ms; }
+.hero-rise-4 { animation-delay: 320ms; }
+.hero-rise-5 { animation-delay: 400ms; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise { animation: none !important; }
+}
+
+/* ─────────────────────────────────────────────────────────
+   <Reveal> — SSR-safe scroll-triggered reveal
+   The inline script in <head> adds .js-on synchronously,
+   so no-JS users see content unconditionally.
+   ───────────────────────────────────────────────────────── */
+.reveal {
+  transition-property: opacity, transform, filter, clip-path;
+  transition-timing-function: var(--reveal-ease);
+  transition-duration: var(--reveal-duration);
+  will-change: opacity, transform;
+}
+/* Without JS: content stays visible (no .js-on, no rule below applies) */
+.js-on .reveal[data-reveal="pending"] { opacity: 0; filter: blur(var(--reveal-blur)); }
+.js-on .reveal[data-reveal="pending"][data-reveal-direction="up"]    { transform: translateY(var(--reveal-distance)); }
+.js-on .reveal[data-reveal="pending"][data-reveal-direction="down"]  { transform: translateY(calc(var(--reveal-distance) * -1)); }
+.js-on .reveal[data-reveal="pending"][data-reveal-direction="left"]  { transform: translateX(var(--reveal-distance)); }
+.js-on .reveal[data-reveal="pending"][data-reveal-direction="right"] { transform: translateX(calc(var(--reveal-distance) * -1)); }
+.js-on .reveal[data-reveal="pending"][data-reveal-direction="scale"] { transform: scale(var(--reveal-scale)); }
+/* Wipe: clip-path sweep for editorial media reveals (opacity stays 1) */
+.js-on .reveal[data-reveal="pending"][data-reveal-direction="wipe"]  { opacity: 1; filter: none; clip-path: inset(0 100% 0 0); }
+.js-on .reveal[data-reveal="visible"][data-reveal-direction="wipe"]  { clip-path: inset(0 0 0 0); }
+
+.reveal[data-reveal="visible"] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Reduced motion overrides the .js-on gate so content is visible immediately. */
+  .js-on .reveal[data-reveal="pending"] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: none !important;
+  }
+}
+
+/* Hairline rule */
+.hairline { border-color: var(--color-line); }
+
+/* Disable Next.js dev floater overlap with bottom nav (cosmetic) */
+nextjs-portal { z-index: 60 !important; }

@@ -1,0 +1,31 @@
+{
+  "name": "Tzohar Starter",
+  "kind": "person",
+  "tagline": "",
+  "description": "Tzohar Starter — official website.",
+  "url": "https://example.com",
+  "email": "hello@example.com",
+  "location": {
+    "based": "",
+    "from": ""
+  },
+  "brand": {
+    "logoLight": "/images/logo-dark.png",
+    "logoDark": "/images/logo-light.png",
+    "ogImage": "/images/og-image.jpg"
+  },
+  "theme": "default",
+  "locales": {
+    "default": "en",
+    "enabled": [
+      "en"
+    ]
+  },
+  "seo": {
+    "titleDefault": "Tzohar Starter"
+  },
+  "socials": [],
+  "modules": [
+    "links"
+  ]
+}
