@@ -115,7 +115,20 @@ export default function JourneyBlock({ block }: { block: JourneyBlockType }) {
       */}
       <div className="space-y-8">
         <Reveal direction="up">
-          <figure className="border-line-strong bg-ink overflow-hidden rounded-[var(--radius-card)] border">
+          {/*
+            `section-invert bg-surface`, NOT `bg-ink`.
+
+            This plate is a permanently dark island: the graticule, the travel
+            paths, the pin labels and the caption are all literal
+            `rgba(255,255,255,…)`, so it only works over a dark ground. `bg-ink`
+            expressed that as "the ink colour", which is near-black in light mode
+            but near-WHITE in dark mode — so on this dark site the map inverted to
+            a cream slab with white labels on it and the whole journey map, the
+            headline feature of the biography page, became unreadable.
+            `.section-invert` pins the site's dark palette here regardless of the
+            root theme, which is what "always dark" actually means.
+          */}
+          <figure className="border-line-strong section-invert bg-surface overflow-hidden rounded-[var(--radius-card)] border">
             <div className="relative" style={{ aspectRatio: `${ar} / 1` }}>
               {block.mapImage ? (
                 <Image
@@ -270,7 +283,17 @@ export default function JourneyBlock({ block }: { block: JourneyBlockType }) {
                         on ? "border-ink bg-ink text-bg" : "border-line-strong text-ink-2 hover:border-ink hover:text-ink",
                       )}
                     >
-                      <span className="text-ink-3 mr-2 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                      {/*
+                        The number has to follow the pill it sits in. `text-ink-3`
+                        is a mid grey chosen against the PAGE; on the active pill
+                        the ground is `bg-ink`, which is near-white in dark mode,
+                        so the prefix measured 2.27:1 there — under the 4.5:1 that
+                        12px text needs. On the active pill it is the pill's own
+                        ink, held back with opacity instead of a fixed grey.
+                      */}
+                      <span className={clsx("mr-2 tabular-nums", on ? "text-bg/65" : "text-ink-3")}>
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
                       {s.label}
                     </button>
                   </li>

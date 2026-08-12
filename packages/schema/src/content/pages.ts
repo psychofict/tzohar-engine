@@ -677,6 +677,19 @@ export const pageNavSchema = z.object({
   /** Literal nav label (composed pages are single-locale content). */
   label: z.string().min(1),
   icon: z.string().optional(),
+  /**
+   * Show this page in the HEADER BAR. Defaults to true; set false to keep a page
+   * in the footer sitemap and the CRM's menu listing while leaving it out of the
+   * top-level tabs.
+   *
+   * Separating the two is what makes a short bar possible without orphaning
+   * pages. `nav` previously meant both "is in the menu" and "is in the bar", so
+   * the only way to shorten the bar was to delete `nav` — which also deleted the
+   * page from the footer, leaving it reachable by URL alone. This site's brief
+   * asks for three tabs and says of the biography page, in writing, "dont make
+   * it a tab"; it still needs to be linked.
+   */
+  inBar: z.boolean().optional(),
   /** One-line blurb for the header's expanded menu panel. */
   description: z.string().optional(),
   /** Dropdown children — anchors must match a block `id` on the page. */

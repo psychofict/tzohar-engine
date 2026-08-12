@@ -31,5 +31,10 @@ const toneClass = {
 };
 
 export default function Eyebrow({ children, tone = "label", className }: Props) {
-  return <span className={clsx("type-label inline-block", toneClass[tone], className)}>{children}</span>;
+  // `text-balance`: these labels are often three joined nouns ("Research ·
+  // Innovation · Public Diplomacy") and at 390px they wrapped to a full line
+  // plus a single orphaned word. Balanced, the two lines come out even.
+  return (
+    <span className={clsx("type-label inline-block text-balance", toneClass[tone], className)}>{children}</span>
+  );
 }

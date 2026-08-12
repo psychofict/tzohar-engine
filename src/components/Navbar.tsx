@@ -19,13 +19,26 @@ const hasMembership = hasModule("membership");
 const hasMultipleLocales = routing.locales.length > 1;
 
 // Navigation IA + module filtering live in src/config/navigation.ts.
-const navSocials = ["Instagram", "LinkedIn", "Twitter/X"] as const;
+
+/**
+ * `site.cta` — the one filled control in the bar, when a site names one.
+ *
+ * With a CTA, Contact steps down to a plain link: Contact is a destination,
+ * while the CTA is the thing the site is asking for, and a filled pill reading
+ * "Contact" spent the bar's only emphasis on the weaker of the two. Without
+ * one, the header is exactly as it was.
+ *
+ * The label is literal client copy rather than an i18n key — see the schema for
+ * why a new `messages` key is not an option — so the Contact fallback is what a
+ * multi-locale site should keep using.
+ */
+const cta = site.cta;
 
 /** next-intl's typed Link wants a known route; composed pages are data-driven. */
 type Href = Parameters<typeof Link>[0]["href"];
 
 export default function Navbar() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, locked: themeLocked } = useTheme();
   const pathname = usePathname();
   const t = useTranslations("nav");
   const tc = useTranslations("common");
@@ -54,9 +67,30 @@ export default function Navbar() {
    * so ordinary ink tokens read correctly against it), and `forceDark` is the
    * separate opt-in for a hero band that is dark regardless of mode.
    */
-  const forceDark = site.layout?.heroTone === "dark";
+  const configHeroDark = site.layout?.heroTone === "dark";
   const [overHero, setOverHero] = useState(true);
   const [activeAnchor, setActiveAnchor] = useState<string | null>(null);
+  /**
+   * Is the band under the header dark in BOTH modes? Read from what is rendered,
+   * not from config.
+   *
+   * `layout.heroTone: "dark"` is an art-direction switch an operator sets by
+   * hand, and a composed page whose first block carries `tone: "invert"` is a
+   * dark band whether or not anyone remembered to. On the demo build nobody had:
+   * in light mode the header sat transparent over a near-black hero with its
+   * dark-ink logo, which disappeared, and its light-mode nav ink on top of it.
+   *
+   * The renderer wraps an inverted section in `.section-invert`, so the first
+   * child of <main> answers the question exactly. `.section-invert-auto` (core
+   * routes with a photo hero) is deliberately NOT matched — that band is dark
+   * only in dark mode, where `.dark` already handles the chrome.
+   */
+  const [heroBandDark, setHeroBandDark] = useState(false);
+  useEffect(() => {
+    const first = document.querySelector("main")?.firstElementChild;
+    setHeroBandDark(!!first?.classList.contains("section-invert"));
+  }, [pathname]);
+  const forceDark = configHeroDark || heroBandDark;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -387,42 +421,45 @@ export default function Navbar() {
           {/* Desktop nav */}
           <ul className="hidden items-center gap-0.5 lg:flex">{navEntries.map(renderDesktop)}</ul>
 
-          {/* Right cluster */}
+          {/* Right cluster.
+              Social icons live in the footer and the mobile drawer, not here.
+              The header's job is the sections plus one call to action; a social
+              glyph beside that CTA is an exit link competing with it. */}
           <div className="flex items-center gap-1">
-            <ul className="mr-1 hidden items-center gap-1 xl:flex">
-              {navSocials.map((name) => {
-                const s = site.socials.find((x) => x.name === name);
-                if (!s) return null;
-                return (
-                  <li key={name}>
-                    <a
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={name}
-                      className="text-ink-3 hover:text-ink hover:bg-surface inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors"
-                    >
-                      {socialIconMap[name]}
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
             {hasMultipleLocales && <LanguageSwitcher scrolled={true} />}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={theme === "dark" ? tc("switchToLight") : tc("switchToDark")}
-              className="border-line text-ink-2 hover:text-ink hover:bg-surface inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors"
-            >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
+            {/* A site that pins `appearance.mode` has committed to one palette,
+                so offering a toggle only invites visitors out of its own
+                identity — and the provider now ignores the stored value there,
+                which would make the control look broken. */}
+            {!themeLocked && (
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={theme === "dark" ? tc("switchToLight") : tc("switchToDark")}
+                className="border-line text-ink-2 hover:text-ink hover:bg-surface inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors"
+              >
+                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+            )}
             <Link
               href="/contact"
-              className="bg-ink text-bg ml-2 hidden h-9 items-center rounded-[var(--radius-pill)] px-4 text-[13px] font-semibold transition-opacity hover:opacity-90 sm:inline-flex"
+              className={
+                cta
+                  ? "text-ink-2 hover:text-ink ml-2 hidden h-9 items-center px-1 text-[13px] font-medium transition-colors sm:inline-flex"
+                  : "bg-ink text-bg ml-2 hidden h-9 items-center rounded-[var(--radius-pill)] px-4 text-[13px] font-semibold transition-opacity hover:opacity-90 sm:inline-flex"
+              }
             >
               {t("contact")}
             </Link>
+            {cta && (
+              <Link
+                href={cta.href as Href}
+                className="border-ocean text-ocean hover:bg-ocean hover:text-on-accent ml-3 hidden h-9 items-center gap-1.5 rounded-[var(--radius-pill)] border px-4 text-[13px] font-semibold transition-colors sm:inline-flex"
+              >
+                {cta.label}
+                <ArrowRight size={14} aria-hidden />
+              </Link>
+            )}
             {hasMembership && <SessionInfoButton variant="desktop" className="ml-2" />}
             <button
               type="button"
@@ -459,6 +496,20 @@ export default function Navbar() {
                     {t("contact")}
                   </Link>
                 </li>
+                {/* The CTA is `sm:inline-flex` in the bar, so on a phone the
+                    drawer is the only place the site's primary action exists. */}
+                {cta && (
+                  <li className="border-line border-b">
+                    <Link
+                      href={cta.href as Href}
+                      onClick={() => setMobileOpen(false)}
+                      className="text-ocean flex items-center gap-2 py-4 text-xl font-semibold"
+                    >
+                      {cta.label}
+                      <ArrowRight size={18} aria-hidden />
+                    </Link>
+                  </li>
+                )}
                 {hasMembership && (
                   <li className="border-line border-b">
                     <SessionInfoButton variant="mobile" onNavigate={() => setMobileOpen(false)} />
@@ -472,17 +523,19 @@ export default function Navbar() {
                 </div>
               )}
 
-              <div className="mt-8">
-                <p className="type-label text-ink-3 mb-4">Appearance</p>
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  className="border-line bg-surface text-ink hover:bg-surface-2 inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[15px] font-semibold transition-colors"
-                >
-                  {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-                  {theme === "dark" ? tc("switchToLight") : tc("switchToDark")}
-                </button>
-              </div>
+              {!themeLocked && (
+                <div className="mt-8">
+                  <p className="type-label text-ink-3 mb-4">Appearance</p>
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="border-line bg-surface text-ink hover:bg-surface-2 inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[15px] font-semibold transition-colors"
+                  >
+                    {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+                    {theme === "dark" ? tc("switchToLight") : tc("switchToDark")}
+                  </button>
+                </div>
+              )}
 
               {site.socials.length > 0 && (
                 <div className="mt-8 pb-8">

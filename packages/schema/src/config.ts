@@ -95,6 +95,19 @@ export const layoutSchema = z.object({
   hero: z.enum(HERO_CHOICES).optional(),
   sections: z.enum(SECTION_STYLE_CHOICES).optional(),
   heroTone: z.enum(HERO_TONE_CHOICES).optional(),
+  /**
+   * Core nav entries to leave out of the menus, by key — `"home"`, `"about"`,
+   * or any module key in the engine's nav IA (`src/config/navigation.ts`), and
+   * leaf keys as well as top-level ones.
+   *
+   * A site built entirely from composed pages otherwise gets a bar it never
+   * asked for: Home, every page, then About and Biography — and Home is a tab
+   * spent repeating the wordmark beside it. Composed pages already choose
+   * whether they take a tab (`nav.inBar`); this is the same choice for the
+   * entries the engine ships. Unknown keys are ignored, so a key that moves
+   * loses its effect rather than breaking the build.
+   */
+  navHide: z.array(z.string().min(1)).optional(),
 });
 
 // ── Contact — which inquiry forms this site offers ─────────────────────────
@@ -117,6 +130,31 @@ export const INQUIRY_CHOICES = [
  */
 export const contactSchema = z.object({
   inquiries: z.array(z.enum(INQUIRY_CHOICES)).min(1).optional(),
+});
+
+// ── CTA — the one button in the header ─────────────────────────────────────
+/**
+ * The header's call to action. Absent, the header keeps its Contact button and
+ * nothing changes.
+ *
+ * Set it and the arrangement flips: Contact becomes a plain link and this
+ * becomes the only filled control in the bar. That is the point — Contact is a
+ * destination, whereas the thing a site is actually asking for is usually
+ * narrower ("Partner with us", "Book the band", "Request a demo"), and a pill
+ * reading "Contact" spends the bar's only emphasis on the weaker of the two.
+ *
+ * `label` is literal copy, like a composed page's nav label, NOT an i18n key:
+ * `messages/<locale>.json` is client-owned and next-intl throws on a missing
+ * key, so a new key here would break every existing build until its messages
+ * file was edited. A multi-locale site that needs this translated should leave
+ * it unset and use the localised Contact button.
+ *
+ * `href` may carry a hash (`/contact#research`), which is how it lands on one
+ * of the contact page's inquiry tabs rather than on the generic form.
+ */
+export const ctaSchema = z.object({
+  label: z.string().min(1),
+  href: z.string().min(1),
 });
 
 // ── Person — the schema.org facts behind the JSON-LD ───────────────────────
@@ -258,6 +296,8 @@ export const configSchema = z.object({
   modules: z.array(moduleSchema),
   /** Which inquiry forms the contact page offers. */
   contact: contactSchema.optional(),
+  /** The header's call to action. Omit to keep the Contact button. */
+  cta: ctaSchema.optional(),
   /** schema.org Person/Organization facts (JSON-LD). */
   person: personSchema.optional(),
   /** The client-facing CMS at /admin (also needs the `crm` module enabled). */
@@ -273,6 +313,7 @@ export type SiteKind = z.infer<typeof kindSchema>;
 export type SocialLink = z.infer<typeof socialLinkSchema>;
 export type Appearance = z.infer<typeof appearanceSchema>;
 export type SiteContact = z.infer<typeof contactSchema>;
+export type SiteCta = z.infer<typeof ctaSchema>;
 export type SitePerson = z.infer<typeof personSchema>;
 export type SiteCrm = z.infer<typeof crmSchema>;
 export type InquiryChoice = (typeof INQUIRY_CHOICES)[number];

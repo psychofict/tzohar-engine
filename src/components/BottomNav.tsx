@@ -2,7 +2,7 @@
 
 import { usePathname, Link } from "@/i18n/navigation";
 import { Home, Music, BrainCircuit, Globe2, Sparkles, Mail, FileText, type LucideIcon } from "lucide-react";
-import { hasModule, type SiteModule } from "@/config/site";
+import { hasModule, site, type SiteModule } from "@/config/site";
 import { routedPages } from "@/data/pages";
 import { resolveIcon } from "@/lib/icons";
 
@@ -23,29 +23,47 @@ const moduleItems: NavItem[] = [
 ];
 
 /**
- * Composed pages carry their own literal nav label and icon, so they can join
- * the quick-bar directly. Without them a site built entirely from composed
- * pages — the usual shape for a bespoke build — got a bottom bar holding just
- * Home and Contact while every actual section was reachable only through the
- * hamburger.
+ * Shorten a nav label only when it cannot fit its cell.
  *
- * Labels are shortened to the first word: the bar allots each item roughly a
- * fifth of a 390px viewport, and "Public Diplomacy" does not fit in 78px.
+ * The rule used to be "first word", unconditionally — which rendered
+ * "Public Diplomacy" as **"Public"**, a label that names the wrong thing. Taking
+ * the LAST word keeps the distinctive half ("Diplomacy"), and short labels are
+ * left exactly as authored.
+ */
+const shortLabel = (label: string) => {
+  if (label.length <= 11) return label;
+  const words = label.split(/[\s·—-]+/).filter(Boolean);
+  return words[words.length - 1] ?? label;
+};
+
+/**
+ * Composed pages carry their own literal nav label and icon, so they can join
+ * the quick-bar directly. `inBar: false` keeps a page out of the top bar, and
+ * the mobile bar honours the same flag — otherwise the two navigations disagree
+ * about what the site's sections are.
  */
 const pageItems: NavItem[] = hasModule("pages")
   ? routedPages
-      .filter((p) => p.nav)
+      .filter((p) => p.nav && p.nav.inBar !== false)
       .map((p) => ({
         href: `/${p.slug}`,
         icon: resolveIcon(p.nav!.icon) ?? FileText,
-        label: p.nav!.label.split(/[\s·—-]+/)[0],
+        label: shortLabel(p.nav!.label),
       }))
   : [];
 
-// Five is the most that stays tappable at 390px; Home and Contact are fixed
-// anchors, so the middle is what gets truncated when a site has many sections.
+/*
+ * One navigation, not two — so the Home tab follows the header's.
+ *
+ * A site that hides Home from the header (`layout.navHide`) has decided the
+ * wordmark is its home link, and spending a thumb-sized cell here to disagree
+ * put a seven-item hamburger above a five-item bar whose last label was
+ * truncated. A site that keeps the header tab keeps this one, unchanged.
+ */
+const showHome = !(site.layout?.navHide ?? []).includes("home");
+
 const navItems: NavItem[] = [
-  { href: "/", icon: Home, label: "Home" },
+  ...(showHome ? [{ href: "/", icon: Home, label: "Home" }] : []),
   ...moduleItems.filter((i) => !i.module || hasModule(i.module)),
   ...pageItems,
 ]

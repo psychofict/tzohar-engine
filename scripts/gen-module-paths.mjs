@@ -75,10 +75,17 @@ const resolveSpec = (from, spec) => {
 };
 
 const importsOf = new Map();
+/**
+ * The next-intl namespaces each file reads. Same idea as the import graph: read it
+ * from the source so a new module needs no edit here.
+ */
+const nsOf = new Map();
+const NS_CALL = /(?:useTranslations|getTranslations)\(\s*["']([a-zA-Z]+)["']|namespace:\s*["']([a-zA-Z]+)["']/g;
 for (const f of files) {
   const src = readFileSync(f, "utf8");
   const specs = [...src.matchAll(/(?:from\s+|import\s*\(\s*)["']([^"']+)["']/g)].map((m) => m[1]);
   importsOf.set(f, new Set(specs.map((s) => resolveSpec(f, s)).filter(Boolean)));
+  nsOf.set(f, new Set([...src.matchAll(NS_CALL)].map((m) => m[1] ?? m[2])));
 }
 
 // module -> gated subtrees, from requireModule() in the source
@@ -119,6 +126,34 @@ const coreReach = reach(
   ),
 );
 
+/*
+ * MODULE -> THE i18n NAMESPACES ENABLING IT ADDITIONALLY NEEDS.
+ *
+ * `messages/<locale>.json` is client-owned, so no sync ever writes it, and a
+ * client repo trimmed to the modules it launched with has no namespace for the
+ * ones it did not. Enabling `gallery` later then renders the literal strings
+ * "gallery.eyebrow", "gallery.title" on a live page — next-intl prints the key
+ * when the message is missing. (Seen on a real build.) Studio seeds the missing
+ * namespaces from the template on sync; this is the map it needs.
+ *
+ * Core namespaces are subtracted: every build has them, and listing them would
+ * make the seeding pass propose rewriting a client's own core copy.
+ */
+const nsReach = (roots) => {
+  const out = new Set();
+  for (const f of reach(roots)) for (const n of nsOf.get(f) ?? []) out.add(n);
+  return out;
+};
+const coreNamespaces = new Set();
+for (const f of coreReach) for (const n of nsOf.get(f) ?? []) coreNamespaces.add(n);
+const namespaces = {};
+for (const [m, dirs] of gates) {
+  const own = [...nsReach(files.filter((f) => dirs.some((d) => under(f, d))))]
+    .filter((n) => !coreNamespaces.has(n))
+    .sort();
+  if (own.length) namespaces[m] = own;
+}
+
 const table = {};
 for (const f of files) {
   const o = owners.get(f);
@@ -139,6 +174,20 @@ const body = `/**
  */
 export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = ${JSON.stringify(
   Object.fromEntries(Object.entries(table).sort(([a], [b]) => a.localeCompare(b))),
+  null,
+  2,
+)};
+
+/**
+ * The i18n namespaces a module needs BEYOND the core ones every build has.
+ *
+ * \`messages/<locale>.json\` is client-owned, so a release never writes it: a repo
+ * trimmed to the modules it launched with renders raw message keys ("gallery.title")
+ * on a live page the moment one of the others is switched on. Studio seeds these
+ * from the client template instead. Core namespaces are deliberately absent.
+ */
+export const MODULE_NAMESPACES: Record<string, readonly string[]> = ${JSON.stringify(
+  Object.fromEntries(Object.entries(namespaces).sort(([a], [b]) => a.localeCompare(b))),
   null,
   2,
 )};

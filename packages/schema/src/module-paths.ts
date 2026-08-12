@@ -378,3 +378,57 @@ export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = {
     "research"
   ]
 };
+
+/**
+ * The i18n namespaces a module needs BEYOND the core ones every build has.
+ *
+ * `messages/<locale>.json` is client-owned, so a release never writes it: a repo
+ * trimmed to the modules it launched with renders raw message keys ("gallery.title")
+ * on a live page the moment one of the others is switched on. Studio seeds these
+ * from the client template instead. Core namespaces are deliberately absent.
+ */
+export const MODULE_NAMESPACES: Record<string, readonly string[]> = {
+  "ai": [
+    "ai"
+  ],
+  "biography": [
+    "biography"
+  ],
+  "engagements": [
+    "engagements"
+  ],
+  "gallery": [
+    "gallery"
+  ],
+  "influencer": [
+    "macroInfluencer"
+  ],
+  "innovation": [
+    "innovation"
+  ],
+  "label": [
+    "label"
+  ],
+  "links": [
+    "links"
+  ],
+  "membership": [
+    "account"
+  ],
+  "merch": [
+    "merch"
+  ],
+  "music": [
+    "music",
+    "release"
+  ],
+  "research": [
+    "research"
+  ],
+  "tour": [
+    "tour"
+  ],
+  "vault": [
+    "vault"
+  ]
+};

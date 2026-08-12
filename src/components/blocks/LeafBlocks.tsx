@@ -58,7 +58,17 @@ const BTN_VARIANT: Record<NonNullable<BlockButton["style"]>, "primary" | "outlin
 export function BlockButtons({ buttons, className }: { buttons?: BlockButton[]; className?: string }) {
   if (!buttons?.length) return null;
   return (
-    <div className={clsx("flex flex-wrap gap-3", className)}>
+    /*
+     * Stacked buttons match widths on a phone.
+     *
+     * `flex-wrap` alone gave each button its intrinsic width, so a hero stacked
+     * "Biography" over "Explore the research" as two left-aligned pills of very
+     * different lengths — a ragged right edge directly under a headline that
+     * shares the same left margin. In a column the default `stretch` makes both
+     * fill the column, and the label centring already in the button does the
+     * rest. Rows resume at `sm`, where they fit side by side.
+     */
+    <div className={clsx("flex flex-col gap-3 sm:flex-row sm:flex-wrap", className)}>
       {buttons.map((b, i) => (
         <ButtonLink key={i} href={b.href} variant={BTN_VARIANT[b.style ?? (i === 0 ? "primary" : "outline")]}>
           {b.label}
@@ -271,6 +281,7 @@ export function HeroBlock({ block }: { block: z.infer<typeof heroBlockSchema> })
   // cinematic: copy sits over the photo, so the framed side card is dropped.
   const hasBg = !!block.background;
   const sideImage = !!block.image && !hasBg;
+  const longTitle = (block.title?.replace(/\n/g, " ").length ?? 0) > 34;
   return (
     <Container size="xl">
       <div className={clsx("grid items-center gap-12", sideImage && "lg:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]")}>
@@ -288,27 +299,58 @@ export function HeroBlock({ block }: { block: z.infer<typeof heroBlockSchema> })
               <h1
                 className={clsx(
                   "type-display text-ink text-balance leading-[1.06]",
+                  // `hyphens-none`: "socio-economic" carries a hard hyphen, which
+                  // is a break opportunity, so the headline split as "Africa's
+                  // socio- / economic" — a mid-word break in 67px display type.
+                  "[hyphens:none]",
                   // Sized against the ~46% copy column, not the viewport: at the
                   // previous scale a four-word line like "From the bench to" broke
                   // across two lines inside the column even with text-balance.
-                  hasBg
-                    ? "text-[calc(clamp(2.25rem,4.6vw,3.75rem)*var(--display-scale))]"
-                    : "text-[calc(clamp(2.25rem,5vw,4rem)*var(--display-scale))]",
+                  //
+                  // Long titles step down a size. Display type has to scale with
+                  // LINE LENGTH, not just viewport width: a two-word title wants
+                  // the full 3.75rem, while a phrase like "Africa's socio-economic
+                  // and political development" ran to four lines at that size and
+                  // swamped the statement it was introducing.
+                  longTitle
+                    ? "text-[calc(clamp(1.75rem,3vw,2.5rem)*var(--display-scale))]"
+                    : hasBg
+                      ? "text-[calc(clamp(2.25rem,4.6vw,3.75rem)*var(--display-scale))]"
+                      : "text-[calc(clamp(2.25rem,5vw,4rem)*var(--display-scale))]",
                 )}
               >
                 {multiline(block.title)}
               </h1>
             )}
-            {block.role && <p className="type-label text-ink-2 mt-5">{block.role}</p>}
+            {/*
+              `mt-7` and balanced wrapping, not `mt-5`.
+              20px of clearance under a 67px headline is about a third of an em —
+              measured on the research page the kicker's first line sat 20px below
+              the descenders of "driving impact." and read as collided. The long
+              kickers these pages carry also wrap, and an unbalanced wrap orphaned
+              a single word ("…· GREEN / CHEMISTRY") directly under the headline.
+            */}
+            {block.role && <p className="type-label text-ink-2 mt-7 text-balance">{block.role}</p>}
             {variant === "quote" && block.quote && (
-              <blockquote className="mt-7">
-                <p className="text-ink text-[clamp(1.25rem,1.9vw,1.6rem)] font-medium leading-[1.45]">
-                  <span
-                    className="text-ocean-strong mr-1 align-[-0.18em] text-[2.1em] leading-none"
-                    aria-hidden
-                  >
-                    &ldquo;
-                  </span>
+              <blockquote className="mt-6">
+                {/*
+                  The quote mark sits ABOVE the text, not inline before it.
+
+                  Inline, it indented the first line by its own width, so the
+                  quote's opening line started ~30px right of every line beneath
+                  it — and right of the eyebrow, headline and buttons, all of
+                  which share the column's left edge. A single left margin is the
+                  thing the client asked for by name, and one ragged line is
+                  enough to lose it. As a block the mark still reads as a mark and
+                  every line of copy starts flush.
+                */}
+                <span
+                  className="text-ocean-strong block text-[2.6rem] leading-[0.7] select-none"
+                  aria-hidden
+                >
+                  &ldquo;
+                </span>
+                <p className="text-ink mt-3 text-[clamp(1.25rem,1.9vw,1.6rem)] font-medium leading-[1.45]">
                   {block.quote}
                 </p>
                 {block.quoteAttribution && (
@@ -353,21 +395,62 @@ export function LogoStripBlock({ block }: { block: z.infer<typeof logoStripBlock
         </p>
       )}
       {marquee ? (
-        <div className="relative overflow-hidden" style={{ maskImage: LOGO_FADE, WebkitMaskImage: LOGO_FADE }}>
-          <div className="animate-marquee flex w-max items-center gap-x-14 sm:gap-x-20">
-            {[...logos, ...logos].map((logo, i) => (
-              <Image
+        <>
+          {/*
+            One even row on desktop; the marquee only where the row cannot fit.
+
+            The client's mockup shows the affiliations as a single static strip of
+            equal cells divided by hairlines, and a partner strip is a statement
+            about standing — it should sit still and line up. A flex-wrap fallback
+            broke seven logos into a 5+2 row, which is the ragged shape the review
+            objected to, so the desktop layout is an explicit N-column grid: every
+            cell identical, every logo optically centred in it.
+
+            Below `lg` seven cells would be ~50px wide and illegible, so the
+            marquee is kept there — it is the one context where scrolling earns
+            its place.
+          */}
+          <div
+            className="hidden items-stretch lg:grid"
+            style={{ gridTemplateColumns: `repeat(${logos.length}, minmax(0, 1fr))` }}
+          >
+            {logos.map((logo, i) => (
+              <div
                 key={i}
-                src={logo.src}
-                alt={i < logos.length ? logo.alt ?? "" : ""}
-                aria-hidden={i >= logos.length}
-                width={220}
-                height={64}
-                className="h-8 w-auto flex-none object-contain opacity-80 sm:h-10"
-              />
+                className={clsx(
+                  "flex items-center justify-center px-6 py-1",
+                  i > 0 && "border-line border-l",
+                )}
+              >
+                <Image
+                  src={logo.src}
+                  alt={logo.alt ?? ""}
+                  width={220}
+                  height={64}
+                  className="h-10 w-auto object-contain opacity-80"
+                />
+              </div>
             ))}
           </div>
-        </div>
+          <div
+            className="relative overflow-hidden lg:hidden"
+            style={{ maskImage: LOGO_FADE, WebkitMaskImage: LOGO_FADE }}
+          >
+            <div className="animate-marquee flex w-max items-center gap-x-14 sm:gap-x-20">
+              {[...logos, ...logos].map((logo, i) => (
+                <Image
+                  key={i}
+                  src={logo.src}
+                  alt={i < logos.length ? logo.alt ?? "" : ""}
+                  aria-hidden={i >= logos.length}
+                  width={220}
+                  height={64}
+                  className="h-8 w-auto flex-none object-contain opacity-80 sm:h-10"
+                />
+              ))}
+            </div>
+          </div>
+        </>
       ) : block.image ? (
         <Image
           src={block.image}
@@ -406,12 +489,43 @@ export function PillarsBlock({ block }: { block: z.infer<typeof pillarsBlockSche
         card edge was effectively invisible and three cards read as one loose
         column of text. The stronger hairline is what makes them objects.
       */}
-      <div className={clsx("grid gap-5", GRID_COLS[block.columns ?? 3])}>
+      {/*
+        THE TAG BAND IS A SHARED GRID ROW, NOT A PER-CARD AFTERTHOUGHT.
+
+        Each card used to be its own flex column with the tag block pushed down
+        by `mt-auto`. That bottom-aligns the block, which is not the same as
+        aligning the LABEL: a card whose chips wrap into four rows starts its
+        "Key interest areas" label one chip-row lower than a card that wraps into
+        five. Measured on this page: the three labels sat at y=3104, 3068, 3068 —
+        the first card 36px out of step with its neighbours, which is precisely
+        the kind of near-miss the client called out.
+
+        So the band gets its own row in the OUTER grid and every card spans it
+        with `grid-rows-subgrid`. Row 1 (`1fr`) holds the image and prose and
+        stretches to the tallest card; row 2 (`auto`) holds every tag block, so
+        all three labels share one baseline no matter how the chips wrap. The
+        row pair repeats once per band of cards, so this holds for 3, 4 or 6
+        items just as well as for the 3 here.
+      */}
+      <div
+        className={clsx("grid gap-5 sm:grid-rows-(--pillar-rows)", GRID_COLS[block.columns ?? 3])}
+        style={
+          {
+            "--pillar-rows": `repeat(${Math.ceil(block.items.length / (block.columns ?? 3))}, minmax(0,1fr) auto)`,
+          } as React.CSSProperties
+        }
+      >
         {block.items.map((item, i) => {
           const Icon = resolveIcon(item.icon);
           return (
-            <Reveal key={i} direction="up" delay={i * 60}>
-              <article className="border-line-strong bg-elevated flex h-full flex-col overflow-hidden rounded-[var(--radius-card)] border">
+            <Reveal
+              key={i}
+              direction="up"
+              delay={i * 60}
+              as="article"
+              className="border-line-strong bg-elevated overflow-hidden rounded-[var(--radius-card)] border sm:row-span-2 sm:grid sm:grid-rows-subgrid"
+            >
+              <div className="flex flex-col">
                 {item.image && (
                   <div className="border-line relative aspect-[16/9] w-full overflow-hidden border-b">
                     <Image
@@ -423,7 +537,7 @@ export function PillarsBlock({ block }: { block: z.infer<typeof pillarsBlockSche
                     />
                   </div>
                 )}
-                <div className="flex flex-1 flex-col p-7 sm:p-8">
+                <div className="flex flex-1 flex-col p-7 pb-0 sm:p-8 sm:pb-0">
                   {/*
                     No 01/02/03 here. Research · Innovation · Public Diplomacy are
                     three parallel domains, not an ordered sequence, and numbering
@@ -434,19 +548,21 @@ export function PillarsBlock({ block }: { block: z.infer<typeof pillarsBlockSche
                     <span className="bg-line h-px flex-1" aria-hidden />
                   </div>
                   <h3 className="type-display text-ink mb-3.5 text-[1.45rem] leading-tight">{item.title}</h3>
-                  <p className="text-ink-2 measure mb-7 text-[15px] leading-[1.7]">{item.body}</p>
-                  {item.tags && item.tags.length > 0 && (
-                    <div className="mt-auto">
-                      {item.tagsLabel && <p className="type-label text-ink-3 mb-3">{item.tagsLabel}</p>}
-                      <div className="flex flex-wrap gap-2">
-                        {item.tags.map((tag) => (
-                          <Tag key={tag}>{tag}</Tag>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <p className="text-ink-2 measure text-[15px] leading-[1.7]">{item.body}</p>
                 </div>
-              </article>
+              </div>
+              <div className="p-7 pt-7 sm:p-8 sm:pt-7">
+                {item.tags && item.tags.length > 0 && (
+                  <>
+                    {item.tagsLabel && <p className="type-label text-ink-3 mb-3">{item.tagsLabel}</p>}
+                    <div className="flex flex-wrap gap-2">
+                      {item.tags.map((tag) => (
+                        <Tag key={tag}>{tag}</Tag>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </Reveal>
           );
         })}
@@ -780,7 +896,16 @@ export function MediaTextBlock({ block }: { block: z.infer<typeof mediaTextBlock
   return (
     <Container size="xl">
       <BlockHeaderRow header={block.header} />
-      <div className={clsx("grid items-start gap-x-14 gap-y-10", block.image && !sheet && "lg:grid-cols-2")}>
+      {/* Centred beside a single image, for the reason given on VideoBlock: a
+          fixed-ratio frame is routinely taller than the prose beside it (measured
+          387px against 163px on the biography page), and `items-start` banks the
+          whole 224px difference into one hole below the text. */}
+      <div
+        className={clsx(
+          "grid items-start gap-x-14 gap-y-10",
+          block.image && !sheet && "lg:grid-cols-2 lg:items-center",
+        )}
+      >
         <div className={clsx(block.flip && !sheet && "lg:order-2")}>
           {block.heading && (
             <h3 className="type-display text-ink mb-4 text-[1.6rem] leading-[1.24]">{block.heading}</h3>

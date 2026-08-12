@@ -1,4 +1,4 @@
-import { hasModule, type SiteModule } from "./site";
+import { hasModule, site, type SiteModule } from "./site";
 import { routedPages } from "@/data/pages";
 
 export type NavLeaf = {
@@ -107,6 +107,25 @@ const NAV: NavEntry[] = [
 const visible = (m?: SiteModule) => !m || hasModule(m);
 
 /**
+ * `layout.navHide` — core entries this site leaves out, by key.
+ *
+ * Module filtering answers "does this site have that section"; this answers
+ * "does it want that section in the menu", which is a different question and
+ * the only one the engine cannot derive. A site composed entirely of pages
+ * (the usual shape for a bespoke build) otherwise gets Home, its own pages,
+ * then About and Biography — with Home a whole tab spent repeating the wordmark
+ * two inches to its left. Composed pages already choose this for themselves via
+ * `nav.inBar`; core entries had no way to say it.
+ *
+ * Keys are the `nameKey`/`labelKey` values below, and leaves count as well as
+ * top-level entries. An unknown key is ignored rather than fatal — this list is
+ * client content and the IA is engine code, so the two can move apart.
+ */
+const hidden = new Set(site.layout?.navHide ?? []);
+const entryKey = (e: NavEntry) => (e.kind === "group" ? e.labelKey : e.nameKey);
+const shown = (e: NavEntry) => visible(e.module) && !hidden.has(entryKey(e));
+
+/**
  * Composed pages (`pages` module, src/data/pages.json) slot in right after
  * Home. Their labels are literal client content rather than i18n keys — the
  * leading "@" marks them so Navbar's `navText` renders them verbatim. Pages
@@ -121,7 +140,10 @@ const literal = (label: string) => `@${label}`;
 
 const pageEntries: NavEntry[] = hasModule("pages")
   ? routedPages
-      .filter((p) => p.nav)
+      // `nav.inBar: false` keeps a page in the footer sitemap and the CRM's
+      // listing while leaving the tab bar. Before the flag existed the only way
+      // to shorten the bar was to delete `nav`, which orphaned the page.
+      .filter((p) => p.nav && p.nav.inBar !== false)
       .map((p): NavEntry =>
         p.nav!.children?.length
           ? {
@@ -156,14 +178,28 @@ const pageEntries: NavEntry[] = hasModule("pages")
       )
   : [];
 
-const staticEntries: NavEntry[] = NAV.filter((e) => visible(e.module))
+const staticEntries: NavEntry[] = NAV.filter(shown)
   .map((e) =>
-    e.kind === "group" ? { ...e, children: e.children.filter((c) => visible(c.module)) } : e,
+    e.kind === "group"
+      ? { ...e, children: e.children.filter((c) => visible(c.module) && !hidden.has(c.nameKey)) }
+      : e,
   )
   .filter((e) => e.kind !== "group" || e.children.length > 0);
 
-export const navEntries: NavEntry[] = [
-  ...staticEntries.slice(0, 1),
-  ...pageEntries,
-  ...staticEntries.slice(1),
-];
+/**
+ * Home leads, then the site's own pages, then the module sections — and the
+ * composition finds Home rather than assuming it is `staticEntries[0]`, because
+ * `navHide` can remove it. The old `slice(0, 1)` would then have promoted
+ * whatever entry happened to be first (Music, or Research) into Home's slot
+ * ahead of the pages, which is a silent reordering rather than a removal.
+ */
+const homeIndex = staticEntries.findIndex((e) => entryKey(e) === "home");
+
+export const navEntries: NavEntry[] =
+  homeIndex === -1
+    ? [...pageEntries, ...staticEntries]
+    : [
+        ...staticEntries.slice(0, homeIndex + 1),
+        ...pageEntries,
+        ...staticEntries.slice(homeIndex + 1),
+      ];

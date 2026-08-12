@@ -30,7 +30,15 @@ export default function VideoBlock({ block }: { block: VideoBlockType }) {
   return (
     <Container size="xl">
       <BlockHeaderRow header={block.header} />
-      <div className={clsx("grid items-start gap-8", block.body && "lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-12")}>
+      {/*
+        `lg:items-center`, not `items-start`.
+        A portrait video is locked to 2:3, so beside three lines of copy and a
+        button it stands roughly 260px taller than its text column. Pinned to the
+        top, all of that difference collected as one empty block under the copy
+        and read as a hole in the page. Centred, the same slack is split above
+        and below and the two columns balance against each other.
+      */}
+      <div className={clsx("grid items-start gap-8 lg:items-center", block.body && "lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-12")}>
         <Reveal direction="up">
           <figure>
             <div

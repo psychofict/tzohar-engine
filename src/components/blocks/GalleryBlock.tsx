@@ -102,7 +102,20 @@ function GalleryTile({ item, onOpen, priority }: { item: Item; onOpen: () => voi
         type="button"
         onClick={onOpen}
         className="border-line-strong bg-surface relative block w-full overflow-hidden rounded-[var(--radius-card)] border"
-        style={{ aspectRatio: "4 / 3" }}
+        /*
+         * 4:3 is the tile's INTRINSIC shape, not a cap.
+         *
+         * A `wide` item spans two columns, so at 1440px its frame is 802×601
+         * while its single-column row-mate is 392×294. Grid stretches the row to
+         * the tallest item, but an aspect-locked frame cannot use the extra
+         * height — leaving a measured 309px of dead space under the short tile's
+         * caption, which is the void that reads as the page being broken.
+         *
+         * `flexGrow` with an `auto` basis keeps the ratio as the intrinsic size
+         * in an ordinary row and lets the frame fill a row that a wide neighbour
+         * has made taller. `object-cover` on the image absorbs the difference.
+         */
+        style={{ aspectRatio: "4 / 3", flexGrow: 1 }}
         aria-label={item.video ? `Play: ${item.caption ?? item.alt ?? "video"}` : `Enlarge: ${item.caption ?? item.alt ?? "photograph"}`}
       >
         <Image

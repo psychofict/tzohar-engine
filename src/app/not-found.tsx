@@ -60,7 +60,9 @@ export default function RootNotFound() {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var m=${JSON.stringify(forcedMode)};var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&(m==='dark'||(m!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches)))){document.documentElement.classList.add('dark')}}catch(e){}})()`,
+            // Same precedence as the root layout: a pinned appearance.mode wins,
+            // and localStorage is only consulted under "system".
+            __html: `(function(){try{var m=${JSON.stringify(forcedMode)};var t=m==='system'?localStorage.getItem('theme'):null;if(m==='dark'||t==='dark'||(m==='system'&&t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
           }}
         />
         {appearanceCss && <style dangerouslySetInnerHTML={{ __html: appearanceCss }} />}

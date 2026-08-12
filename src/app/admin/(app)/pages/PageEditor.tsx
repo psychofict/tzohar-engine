@@ -229,6 +229,26 @@ export default function PageEditor({ page }: { page: SitePage }) {
               placeholder={draft.nav ? "" : "This page isn't in the menu"}
             />
           </label>
+          {draft.nav && (
+            <label className="crm-check" style={{ marginTop: 4 }}>
+              <input
+                type="checkbox"
+                checked={draft.nav.inBar !== false}
+                onChange={(e) =>
+                  setDraft((d) =>
+                    d.nav ? { ...d, nav: { ...d.nav, inBar: e.target.checked ? undefined : false } } : d,
+                  )
+                }
+              />
+              <span>
+                A tab in the header
+                <span className="crm-hint">
+                  Off keeps the footer link and drops the tab. Three or four tabs is about as many as a
+                  phone can carry.
+                </span>
+              </span>
+            </label>
+          )}
           <label className="crm-field">
             <span className="crm-label">Search-result title</span>
             <input

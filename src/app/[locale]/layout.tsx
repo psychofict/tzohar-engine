@@ -334,11 +334,11 @@ export default async function LocaleLayout({
     >
       <head>
         {/* Prevent flash of wrong theme + flag JS for the Reveal primitive.
-            A localStorage 'theme' always wins; with no stored value, the site's
-            appearance.mode forces the default ('system' = prefers-color-scheme). */}
+            A PINNED appearance.mode ('light'/'dark') wins outright — see below.
+            Under 'system' a stored choice wins, then prefers-color-scheme. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var m=${JSON.stringify(forcedMode)};var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&(m==='dark'||(m!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches)))){document.documentElement.classList.add('dark')}document.documentElement.classList.add('js-on')}catch(e){}})()`,
+            __html: `(function(){try{var m=${JSON.stringify(forcedMode)};var t=m==='system'?localStorage.getItem('theme'):null;if(m==='dark'||t==='dark'||(m==='system'&&t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}document.documentElement.classList.add('js-on')}catch(e){}})()`,
           }}
         />
         {/* Custom accent/radius overrides — after globals.css so head source order wins. */}
@@ -360,7 +360,7 @@ export default async function LocaleLayout({
           Skip to content
         </a>
         <NextIntlClientProvider messages={messages}>
-          <ThemeProvider>
+          <ThemeProvider mode={forcedMode}>
             <ScrollProgress />
             <AudioPlayerProvider>
               <Navbar />

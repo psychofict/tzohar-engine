@@ -24,7 +24,15 @@ export default function AdminPagesPage() {
               <span className="crm-hint">
                 <span className="crm-mono">{page.slug === "home" ? "/" : `/${page.slug}`}</span> · {page.blocks.length}{" "}
                 sections
-                {page.nav ? ` · in the menu as “${page.nav.label}”` : " · not in the menu"}
+                {/* `nav` and `nav.inBar` are two different things now: a page can
+                    be listed in the footer sitemap without taking a top-level
+                    tab. Saying "in the menu" for both would describe the top bar
+                    wrongly for exactly the pages deliberately kept out of it. */}
+                {!page.nav
+                  ? " · not in the menu"
+                  : page.nav.inBar === false
+                    ? ` · footer only, as “${page.nav.label}”`
+                    : ` · a top tab, as “${page.nav.label}”`}
               </span>
             </span>
             <span className="crm-row-actions">

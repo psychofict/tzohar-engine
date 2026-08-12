@@ -10,12 +10,15 @@ import { z } from "zod";
 export const copySchema = z.object({
   common: z.record(z.string(), z.string()).optional(),
   home: z.record(z.string(), z.string()).optional(),
+  footer: z.record(z.string(), z.string()).optional(),
+  contact: z.record(z.string(), z.string()).optional(),
+  about: z.record(z.string(), z.string()).optional(),
 });
 
 export type CopyContent = z.infer<typeof copySchema>;
 
 export interface CopyField {
-  ns: "common" | "home";
+  ns: "common" | "home" | "footer" | "contact" | "about";
   key: string;
   label: string;
   help?: string;
@@ -34,6 +37,16 @@ export const COPY_FIELDS: readonly CopyField[] = [
   { ns: "home", key: "whereIOperateDesc", label: "Sections description", multiline: true },
   { ns: "home", key: "letsBuild", label: "Closing CTA heading" },
   { ns: "home", key: "collabDesc", label: "Closing CTA subtext", multiline: true },
+  // The footer runs under EVERY page, including a site composed entirely of
+  // `pages` where none of the home fields above are rendered at all — and the
+  // template's placeholder for it reads "Replace this in Studio.", which was an
+  // instruction Studio could not carry out. A live demo site published it.
+  { ns: "footer", key: "tagline", label: "Footer blurb", help: "The line under the logo in the footer, on every page.", multiline: true },
+  // The other two placeholders that say "Replace this in Studio" out loud, on
+  // core routes every site has: /contact's opening paragraph and /about's first
+  // line. Both were live on the demo build.
+  { ns: "contact", key: "intro", label: "Contact intro", help: "The paragraph above the enquiry tabs on /contact.", multiline: true },
+  { ns: "about", key: "bioIntro", label: "About — opening paragraph", help: "The first paragraph of /about.", multiline: true },
 ] as const;
 
 /** Read a copy value from a CopyContent object for a given field. */

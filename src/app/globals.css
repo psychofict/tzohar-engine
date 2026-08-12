@@ -138,6 +138,9 @@
 [data-theme="violet"] {
   --color-ocean: #6E48E5; --color-ocean-strong: #5733C4;
   --color-sunset: #D33A7A; --color-sunset-strong: #B02862;
+  /* …and the values its dark island uses (see the .section-invert rule below). */
+  --accent-invert: #A98BFF; --accent-invert-strong: #C4AEFF;
+  --accent2-invert: #FF6FA6; --accent2-invert-strong: #FF93BE;
 }
 .dark[data-theme="violet"] {
   --color-ocean: #A98BFF; --color-ocean-strong: #C4AEFF;
@@ -147,6 +150,9 @@
 [data-theme="emerald"] {
   --color-ocean: #1F9A66; --color-ocean-strong: #157A4F;
   --color-sunset: #E0A21F; --color-sunset-strong: #B47F12;
+  /* …and the values its dark island uses (see the .section-invert rule below). */
+  --accent-invert: #3FD699; --accent-invert-strong: #74E6B8;
+  --accent2-invert: #FFC85A; --accent2-invert-strong: #FFD980;
 }
 .dark[data-theme="emerald"] {
   --color-ocean: #3FD699; --color-ocean-strong: #74E6B8;
@@ -156,6 +162,9 @@
 [data-theme="sunset"] {
   --color-ocean: #F0792B; --color-ocean-strong: #C6600F;
   --color-sunset: #D33A7A; --color-sunset-strong: #B02862;
+  /* …and the values its dark island uses (see the .section-invert rule below). */
+  --accent-invert: #FF9F57; --accent-invert-strong: #FFBA82;
+  --accent2-invert: #FF6FA6; --accent2-invert-strong: #FF93BE;
 }
 .dark[data-theme="sunset"] {
   --color-ocean: #FF9F57; --color-ocean-strong: #FFBA82;
@@ -165,6 +174,9 @@
 [data-theme="rose"] {
   --color-ocean: #D33A7A; --color-ocean-strong: #B02862;
   --color-sunset: #F0792B; --color-sunset-strong: #C6600F;
+  /* …and the values its dark island uses (see the .section-invert rule below). */
+  --accent-invert: #FF6FA6; --accent-invert-strong: #FF93BE;
+  --accent2-invert: #FF9F57; --accent2-invert-strong: #FFBA82;
 }
 .dark[data-theme="rose"] {
   --color-ocean: #FF6FA6; --color-ocean-strong: #FF93BE;
@@ -174,10 +186,37 @@
 [data-theme="slate"] {
   --color-ocean: #3D5A80; --color-ocean-strong: #2C4763;
   --color-sunset: #9C6B4A; --color-sunset-strong: #7D543A;
+  /* …and the values its dark island uses (see the .section-invert rule below). */
+  --accent-invert: #7FA0C8; --accent-invert-strong: #A6BFDD;
+  --accent2-invert: #C99A78; --accent2-invert-strong: #DDB89C;
 }
 .dark[data-theme="slate"] {
   --color-ocean: #7FA0C8; --color-ocean-strong: #A6BFDD;
   --color-sunset: #C99A78; --color-sunset-strong: #DDB89C;
+}
+
+/*
+ * A DARK ISLAND MUST CARRY THIS THEME'S ACCENT.
+ *
+ * `.section-invert` above pins the whole dark palette on a band — including
+ * `--color-ocean`, hardcoded to the base accent. It is a DESCENDANT rule, so a
+ * preset's `.dark[data-theme="…"]` block never reaches inside it: on any
+ * non-default theme, every inverted hero and every inverted CTA painted the
+ * engine's default blue while the rest of the site was emerald (or rose, or
+ * slate). Found on a live emerald build whose hero button was blue.
+ *
+ * Specificity, deliberately: attribute + class = (0,2,0), which beats the base
+ * `.section-invert` (0,1,0) and still LOSES to the custom-accent rules the theme
+ * engine emits as `html:root .section-invert` (0,2,1) — so a client's own accent
+ * continues to win over their preset. The fallbacks make "default" a no-op.
+ */
+[data-theme] .section-invert,
+.dark[data-theme] .section-invert-auto,
+[data-theme] .section-invert .section-invert-auto {
+  --color-ocean: var(--accent-invert, #4F8AF5);
+  --color-ocean-strong: var(--accent-invert-strong, #80AAFF);
+  --color-sunset: var(--accent2-invert, #FFA84A);
+  --color-sunset-strong: var(--accent2-invert-strong, #FFC178);
 }
 
 html {

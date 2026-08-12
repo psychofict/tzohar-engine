@@ -24,7 +24,17 @@ const ACCENT = "#8A6A12";
 const styles = StyleSheet.create({
   page: { paddingTop: 52, paddingBottom: 56, paddingHorizontal: 52, fontSize: 10.5, fontFamily: "Helvetica", color: INK },
   eyebrow: { fontSize: 8, letterSpacing: 1.6, color: INK_3, fontFamily: "Helvetica-Bold", marginBottom: 10 },
-  h1: { fontSize: 26, fontFamily: "Times-Bold", marginBottom: 6, lineHeight: 1.15 },
+  /*
+   * `Helvetica-Bold`, not `Times-Bold`.
+   *
+   * The PDF ran its one big headline in a serif while every other word on the
+   * page was Helvetica — the same display/body mismatch the client objected to
+   * on the site itself ("the main big font need to be same as the standard font
+   * used"), reproduced in the artefact he actually hands to people. Of the
+   * PDF-standard faces Helvetica is the closest to the brand's Inter, so the
+   * document now speaks in one voice.
+   */
+  h1: { fontSize: 26, fontFamily: "Helvetica-Bold", marginBottom: 6, lineHeight: 1.15 },
   standfirst: { fontSize: 11, color: INK_2, lineHeight: 1.5, marginBottom: 16, maxWidth: 400 },
   rule: { borderBottomWidth: 1.5, borderBottomColor: ACCENT, width: 44, marginBottom: 22 },
   h2: {

@@ -290,6 +290,15 @@ const formComponents: Record<TabType, React.FC> = {
 
 export default function ContactPage() {
   const t = useTranslations("contact");
+  /**
+   * Where they are, from config — the same field the `from` line below already reads.
+   *
+   * This printed `t("seoulKorea")`: a message key named after one particular city,
+   * holding "City, Country" in every trimmed build, on the page whose whole job is
+   * to say where you are. The demo published `location.based: "Seoul, South Korea"`
+   * and still rendered the placeholder. The message stays as the fallback.
+   */
+  const basedIn = site.location?.based || t("seoulKorea");
   const tc = useTranslations("common");
   const heroImage = site.brand.heroImage ?? site.brand.ogImage;
   const tabKeys = useInquiryTabs(t);
@@ -350,7 +359,7 @@ export default function ContactPage() {
               <a href={`mailto:${site.email}`} className="flex-1 text-center text-sm font-medium text-ink-2 hover:text-ink py-2 rounded-[calc(var(--radius-card)*0.6)] bg-ink/5">
                 {site.email}
               </a>
-              <span className="type-label text-ink-3">{t("seoulKorea")}</span>
+              <span className="type-label text-ink-3">{basedIn}</span>
             </div>
 
             {/* Form Column */}
@@ -460,7 +469,7 @@ export default function ContactPage() {
                 <dl className="space-y-3">
                   <div>
                     <dt className="sr-only">{t("basedIn")}</dt>
-                    <dd className="type-record text-ink text-[15px]">{t("seoulKorea")}</dd>
+                    <dd className="type-record text-ink text-[15px]">{basedIn}</dd>
                   </div>
                   {site.location?.from && (
                     <div>

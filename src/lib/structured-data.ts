@@ -239,7 +239,7 @@ export function getEbenworksOrganizationSchema() {
       name: "Seoul, South Korea",
     },
     description:
-      "Ebenworks is a Seoul software studio building AI products for markets the industry overlooks. Products include Imali (a WhatsApp business OS for South Africa) and Chingu (a Korean-native voice AI for seniors).",
+      "Ebenworks is a Seoul software studio building AI products for markets the industry overlooks. Nine products are live, among them Imali (a WhatsApp business OS for Africa's informal merchants, live in five countries) and Chingu (a Korean-native voice AI for seniors).",
     founder: {
       "@type": "Person",
       "@id": `${site.url}/#person`,
@@ -253,7 +253,7 @@ export function getEbenworksOrganizationSchema() {
         "@type": "Organization",
         name: "Imali",
         url: "https://imali.ebenworks.co",
-        description: "WhatsApp business OS for South Africa",
+        description: "WhatsApp business OS for Africa's informal merchants, live in five countries",
       },
       {
         "@type": "Organization",

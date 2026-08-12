@@ -22,8 +22,16 @@ export default function HeroPhoto({ stats }: HeroProps) {
 
   return (
     <>
-      {/* ─── mobile — photo-as-background ─── */}
-      <section className="relative lg:hidden overflow-hidden bg-ink min-h-[100svh] flex flex-col">
+      {/*
+        ─── mobile — photo-as-background ───
+        `section-invert bg-bg`, NOT `bg-ink`. Every word in this hero is literal
+        `text-white` over a photograph, so the ground behind that photograph has
+        to be dark in BOTH modes. `bg-ink` is the ink colour, which is near-black
+        in light mode but near-WHITE in dark — so on a dark-mode site the letterbox
+        edges and the pre-decode frame flashed a white slab behind white type.
+        Same defect that made the journey map unreadable; see JourneyBlock.
+      */}
+      <section className="section-invert bg-bg relative lg:hidden overflow-hidden min-h-[100svh] flex flex-col">
         <div className="absolute inset-0">
           <Image
             src={heroImageSrc}
@@ -86,8 +94,8 @@ export default function HeroPhoto({ stats }: HeroProps) {
         </div>
       </section>
 
-      {/* ─── desktop — photo-as-background ─── */}
-      <section className="relative hidden lg:flex flex-col justify-end overflow-hidden bg-ink min-h-[92svh]">
+      {/* ─── desktop — photo-as-background ─── (same reason as the mobile band) */}
+      <section className="section-invert bg-bg relative hidden lg:flex flex-col justify-end overflow-hidden min-h-[92svh]">
         <div className="absolute inset-0">
           <Image
             src={heroImageSrc}
