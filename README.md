@@ -71,7 +71,7 @@ your own name.
 
 Tzohar Sites is built and maintained by
 [Ebenworks Systems (Private) Limited](https://ebenworks.co), which also runs it as
-a service: we design, compose and operate sites on this engine for people who would
+[a service](https://tzohar-sites.ebenworks.co): we design, compose and operate sites on this engine for people who would
 rather not. That service is a separate, commercial product — the control plane that
 onboards clients and ships engine releases into their repositories is not part of
 this repository and is not open source.
