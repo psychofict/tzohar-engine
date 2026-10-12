@@ -83,6 +83,22 @@ check("a dependency they added survives", cOut.dependencies["chart.js"], "^4.0.0
 check("and is flagged, because the release lockfile will not have it",
   c.clientOnlyDependencies, ["chart.js"]);
 
+// ── a mirror drops what the engine dropped (EBE-1312) ───────────────────────
+// The template still listed stripe after the engine removed it; the mirror copies
+// the engine's lockfile, so keeping it made `npm ci` fail on every new client repo.
+const TEMPLATE = JSON.stringify({
+  name: "tzohar-client-template",
+  dependencies: { next: "^16.2.12", react: "19.2.3", stripe: "^22.3.0" },
+  devDependencies: { typescript: "^5" },
+});
+const mir = mergePackageJson(ENGINE, TEMPLATE, { dropClientOnly: true });
+const mirOut = JSON.parse(mir.text);
+check("a mirror drops a dependency the engine no longer has", "stripe" in mirOut.dependencies, false);
+check("and reports it", mir.clientOnlyDependencies, ["stripe"]);
+check("a client sync still keeps it", "stripe" in JSON.parse(mergePackageJson(ENGINE, TEMPLATE).text).dependencies, true);
+check("a mirrored manifest is stable on the next refresh",
+  mergePackageJson(ENGINE, mir.text, { dropClientOnly: true }).changed, false);
+
 // ── a dependency the engine MOVED must not end up in both sections ──────────
 const MOVED_ENGINE = JSON.stringify({ dependencies: {}, devDependencies: { sharp: "^0.35.3" } });
 const MOVED_CLIENT = JSON.stringify({ dependencies: { sharp: "^0.34.5" } });

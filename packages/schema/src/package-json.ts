@@ -123,7 +123,20 @@ function serialise(value: unknown): string {
  * own object re-serialised the same way, so a repo that merely uses 4-space indent
  * is not reported as differing every single sync.
  */
-export function mergePackageJson(releaseText: string, clientText: string): PackageMerge {
+export function mergePackageJson(
+  releaseText: string,
+  clientText: string,
+  opts: {
+    /**
+     * For a straight mirror (`refreshEngineMirror`): drop dependencies the engine no
+     * longer has instead of keeping them. The mirror takes the engine's lockfile
+     * wholesale, so a kept extra makes `npm ci` fail ("Missing: stripe from lock
+     * file", EBE-1312). The dropped names are still reported in
+     * `clientOnlyDependencies`. Client syncs keep the default.
+     */
+    dropClientOnly?: boolean;
+  } = {},
+): PackageMerge {
   const release = asRecord(JSON.parse(releaseText));
   const client = asRecord(JSON.parse(clientText));
 
@@ -148,7 +161,7 @@ export function mergePackageJson(releaseText: string, clientText: string): Packa
     const kept: Record<string, unknown> = {};
     for (const [name, range] of Object.entries(fromClient)) {
       if (!releaseDepNames.has(name)) {
-        kept[name] = range;
+        if (!opts.dropClientOnly) kept[name] = range;
         clientOnlyDependencies.push(name);
       }
     }
