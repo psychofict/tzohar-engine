@@ -10,6 +10,7 @@ import Container from "@/components/ui/Container";
 import Reveal from "@/components/ui/Reveal";
 import { site, canonicalUrl } from "@/config/site";
 import { innovationCategories, getInnovationCategory, entriesInCategory } from "@/data/innovation";
+import { fitTitle } from "@/lib/route-meta";
 
 interface Props {
   params: Promise<{ category: string; locale: string }>;
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cat = getInnovationCategory(category);
   if (!cat) return {};
   return {
-    title: `${cat.label} — Innovation — ${site.name}`,
+    title: fitTitle(`${cat.label} — Innovation — ${site.name}`, site.name),
     alternates: { canonical: canonicalUrl(locale, `/innovation/${category}`) },
   };
 }

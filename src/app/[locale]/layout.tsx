@@ -20,9 +20,6 @@ import {
   Instrument_Serif,
   DM_Serif_Display,
   IBM_Plex_Mono,
-  Noto_Sans_KR,
-  Noto_Sans_SC,
-  Noto_Sans_JP,
   Caveat,
 } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
@@ -51,8 +48,20 @@ import ScrollProgress from "@/components/ScrollProgress";
 import ThemeProvider from "@/components/ThemeProvider";
 import PreviewBridge from "@/components/preview/PreviewBridge";
 import { fontVarStyle } from "@/lib/font-vars";
+/*
+ * CJK faces come from a GENERATED module, because a next/font call downloads its
+ * family at BUILD time whether or not the result is used — so the three Noto
+ * families could not be gated on `site.locales.enabled` by a condition, only by
+ * not existing. Declared inline here they cost an English-only client 349 of its
+ * 434 font fetches, and made every build depend on ~350 URLs staying up at
+ * fonts.gstatic.com — one client deploy failed outright when a few 404'd.
+ *
+ * Regenerate with `npm run cjk-fonts` after changing locales; `prebuild` runs it
+ * too, so a deploy cannot ship a stale set. See scripts/gen-cjk-fonts.mjs.
+ */
+import { cjkVariableForLocale } from "@/lib/cjk-fonts.generated";
 import BottomNav from "@/components/BottomNav";
-import { routeAlternates } from "@/lib/route-meta";
+import { clampDescription, routeAlternates } from "@/lib/route-meta";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-body",
@@ -151,35 +160,6 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-const notoSansKR = Noto_Sans_KR({
-  variable: "--font-ko",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-  preload: false,
-});
-
-const notoSansSC = Noto_Sans_SC({
-  variable: "--font-zh",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-  preload: false,
-});
-
-const notoSansJP = Noto_Sans_JP({
-  variable: "--font-ja",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-  preload: false,
-});
-
-const cjkVariableForLocale: Record<string, string> = {
-  ko: notoSansKR.variable,
-  zh: notoSansSC.variable,
-  ja: notoSansJP.variable,
-};
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -202,7 +182,7 @@ export async function generateMetadata({
       template: `%s | ${site.name}`,
       default: site.seo.titleDefault,
     },
-    description: site.description,
+    description: clampDescription(site.description),
     keywords: site.seo.keywords,
     openGraph: {
       title: site.seo.titleDefault,
@@ -289,6 +269,11 @@ export default async function LocaleLayout({
   const appearanceCss = appearanceStyle(site);
   // Forced default color mode for the no-flash script ("system" preserves today's behavior).
   const forcedMode = site.appearance?.mode ?? "system";
+  // Whether visitors get a light/dark switch. "system" always does; a pinned
+  // mode does only when the site opts in — then the pinned mode is just the
+  // first-visit default. Must stay in lockstep with the pre-paint script below
+  // and ThemeProvider.
+  const allowToggle = site.appearance?.toggle === true || forcedMode === "system";
   // Only override --font-body/--font-display when a non-default pairing is chosen.
   const fontChoice = site.appearance?.font;
   // Shared with the live-preview bridge — see src/lib/font-vars.ts for why the
@@ -334,11 +319,12 @@ export default async function LocaleLayout({
     >
       <head>
         {/* Prevent flash of wrong theme + flag JS for the Reveal primitive.
-            A PINNED appearance.mode ('light'/'dark') wins outright — see below.
-            Under 'system' a stored choice wins, then prefers-color-scheme. */}
+            When a toggle is offered (appearance.toggle, or mode 'system') a stored
+            choice wins, else the mode's default. A locked pinned mode ignores
+            storage. Keep this in lockstep with ThemeProvider and not-found.tsx. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var m=${JSON.stringify(forcedMode)};var t=m==='system'?localStorage.getItem('theme'):null;if(m==='dark'||t==='dark'||(m==='system'&&t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}document.documentElement.classList.add('js-on')}catch(e){}})()`,
+            __html: `(function(){try{var m=${JSON.stringify(forcedMode)},c=${JSON.stringify(allowToggle)};var s=c?localStorage.getItem('theme'):null;if(s==='dark'||(s!=='light'&&(m==='dark'||(m==='system'&&window.matchMedia('(prefers-color-scheme:dark)').matches)))){document.documentElement.classList.add('dark')}document.documentElement.classList.add('js-on')}catch(e){}})()`,
           }}
         />
         {/* Custom accent/radius overrides — after globals.css so head source order wins. */}
@@ -360,7 +346,7 @@ export default async function LocaleLayout({
           Skip to content
         </a>
         <NextIntlClientProvider messages={messages}>
-          <ThemeProvider mode={forcedMode}>
+          <ThemeProvider mode={forcedMode} toggle={allowToggle}>
             <ScrollProgress />
             <AudioPlayerProvider>
               <Navbar />

@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
               You'll be the first to know about new research, public diplomacy engagements, and updates from ${escapeHtml(site.name)}.
             </p>
           </div>
-          <div style="background: #F0F0EC; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
+          <div style="background: #F0F0F0; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
             <p style="color: #999; font-size: 12px; margin: 0;">
               &copy; ${new Date().getFullYear()} ${escapeHtml(site.legalName ?? site.name)}. All rights reserved.
             </p>

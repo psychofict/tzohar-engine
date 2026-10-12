@@ -3,6 +3,7 @@ import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { requireModule } from "@/lib/modules";
 import { site, canonicalUrl } from "@/config/site";
+import { clampDescription, fitTitle } from "@/lib/route-meta";
 export async function generateMetadata({
   params,
 }: {
@@ -12,8 +13,8 @@ export async function generateMetadata({
   const canonical = canonicalUrl(locale, "/research");
 
   return {
-    title: `Research — ${site.name}`,
-    description: `${site.name}'s research interests, publications, and academic credentials.`,
+    title: fitTitle(`Research — ${site.name}`, site.name),
+    description: clampDescription(`${site.name}'s research interests, publications, and academic credentials.`),
     alternates: {
       canonical,
       languages: Object.fromEntries([

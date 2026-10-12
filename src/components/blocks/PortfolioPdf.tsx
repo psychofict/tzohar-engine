@@ -80,17 +80,24 @@ function paragraphs(body: string) {
 
 function SectionBody({ section }: { section: Section }) {
   return (
-    <View wrap={false}>
-      <Text style={styles.h2}>{section.label.toUpperCase()}</Text>
+    /*
+      Sections wrap; their headings don't orphan. `wrap={false}` on the whole
+      section pushed any section that didn't fit whole onto the next page, which
+      on a five-item publication list left the bottom third of page one empty.
+      `minPresenceAhead` keeps the heading with at least the first lines under
+      it instead of buying that with a page of white paper.
+    */
+    <View>
+      <Text style={styles.h2} minPresenceAhead={60}>{section.label.toUpperCase()}</Text>
       {section.body && paragraphs(section.body).map((p, i) => <Text key={i} style={styles.p}>{p}</Text>)}
       {section.records?.map((r, i) => (
-        <View key={i} style={styles.recordRow}>
+        <View key={i} style={styles.recordRow} wrap={false}>
           <Text style={styles.recordLabel}>{r.label.toUpperCase()}</Text>
           <Text style={styles.recordValue}>{r.value}</Text>
         </View>
       ))}
       {section.items?.map((item, i) => (
-        <View key={i} style={styles.bullet}>
+        <View key={i} style={styles.bullet} wrap={false}>
           <Text style={styles.bulletDot}>•</Text>
           <Text style={styles.bulletText}>{item}</Text>
         </View>

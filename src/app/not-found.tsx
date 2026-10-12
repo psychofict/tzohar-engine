@@ -39,6 +39,7 @@ const label = IBM_Plex_Mono({
 export default function RootNotFound() {
   const appearanceCss = appearanceStyle(site);
   const forcedMode = site.appearance?.mode ?? "system";
+  const allowToggle = site.appearance?.toggle === true || forcedMode === "system";
 
   return (
     <html
@@ -60,9 +61,10 @@ export default function RootNotFound() {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            // Same precedence as the root layout: a pinned appearance.mode wins,
-            // and localStorage is only consulted under "system".
-            __html: `(function(){try{var m=${JSON.stringify(forcedMode)};var t=m==='system'?localStorage.getItem('theme'):null;if(m==='dark'||t==='dark'||(m==='system'&&t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
+            // Same precedence as the root layout: a stored choice wins only when a
+            // toggle is offered (appearance.toggle, or mode 'system'); a locked
+            // pinned mode ignores storage.
+            __html: `(function(){try{var m=${JSON.stringify(forcedMode)},c=${JSON.stringify(allowToggle)};var s=c?localStorage.getItem('theme'):null;if(s==='dark'||(s!=='light'&&(m==='dark'||(m==='system'&&window.matchMedia('(prefers-color-scheme:dark)').matches)))){document.documentElement.classList.add('dark')}}catch(e){}})()`,
           }}
         />
         {appearanceCss && <style dangerouslySetInnerHTML={{ __html: appearanceCss }} />}

@@ -3,6 +3,7 @@ import { site, canonicalUrl } from "@/config/site";
 import { posts, postCategories, postSummaries } from "@/data/posts";
 import PageHero from "@/components/ui/PageHero";
 import PostListBlock from "@/components/blocks/PostListBlock";
+import { clampDescription, fitTitle } from "@/lib/route-meta";
 
 /**
  * Post index. A server component so `posts.json` — bodies and drafts included —
@@ -21,9 +22,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   return {
-    title: `Publications & Blog — ${site.name}`,
-    description:
-      "Opinion articles, research commentary, policy briefs and blog posts on nanoscience, green chemistry and Africa–Korea science diplomacy.",
+    title: fitTitle(`Publications & Blog — ${site.name}`, site.name),
+    description: clampDescription("Opinion articles, research commentary, policy briefs and blog posts on nanoscience, green chemistry and Africa–Korea science diplomacy."),
     alternates: { canonical: canonicalUrl(locale, "/posts") },
   };
 }

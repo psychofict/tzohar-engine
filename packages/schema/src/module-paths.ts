@@ -218,21 +218,6 @@ export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = {
   "src/app/api/checkout/route.ts": [
     "membership"
   ],
-  "src/app/api/membership/callback/route.ts": [
-    "membership"
-  ],
-  "src/app/api/membership/checkout/route.ts": [
-    "membership"
-  ],
-  "src/app/api/membership/logout/route.ts": [
-    "membership"
-  ],
-  "src/app/api/membership/portal/route.ts": [
-    "membership"
-  ],
-  "src/app/api/membership/session/route.ts": [
-    "membership"
-  ],
   "src/app/api/orcid-publications/route.ts": [
     "research"
   ],
@@ -282,6 +267,12 @@ export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = {
   "src/components/MembershipPanel.tsx": [
     "membership",
     "vault"
+  ],
+  "src/components/payments/AcceptedMethods.generated.tsx": [
+    "membership"
+  ],
+  "src/components/payments/PaymentMark.generated.tsx": [
+    "membership"
   ],
   "src/components/PostBody.tsx": [
     "posts"
@@ -364,6 +355,12 @@ export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = {
     "research",
     "tour",
     "vault"
+  ],
+  "src/lib/payments/marks.generated.ts": [
+    "membership"
+  ],
+  "src/lib/payments/rails.generated.ts": [
+    "membership"
   ],
   "src/lib/streaming.ts": [
     "music"

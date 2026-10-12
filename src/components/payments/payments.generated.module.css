@@ -1,0 +1,86 @@
+/* GENERATED FILE — DO NOT EDIT.
+
+Edit the source and re-run the sync. A change made here is lost on the next run
+and, worse, is invisible until then: the whole point of one source is that the
+three copies of the checkout cannot disagree about which rails exist.
+
+  source: products/accounts-hub/integration-kit/payments/payments.module.css
+  sync:   infra/scripts/sync-payment-ui.py
+  check:  infra/scripts/sync-payment-ui.py --check
+  sha256: 60948bff19a23a7f
+ */
+
+/* Payment marks and the method chooser.
+ *
+ * Every value falls back twice: the hub's own token, then a literal, so the same
+ * stylesheet looks native in a repository that has never heard of these names.
+ * A consumer that wants tighter control sets --ewpay-* once on a wrapper.
+ */
+.chip {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 4px 6px;
+  border-radius: var(--ewpay-radius, var(--radius-sm, 6px));
+  background: var(--ewpay-mark-ground, #ffffff);
+  border: 1px solid var(--ewpay-mark-border, var(--border, #e3e3e3));
+}
+.chip[data-size="strip"] { padding: 3px 5px; }
+.chip img { display: block; object-fit: contain; filter: none !important; }
+
+.marks { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+/* The chooser. The radio stays the real control and is only visually replaced,
+   so arrow-key roving, grouping and focus remain the browser's.
+
+   One bordered group with hairline dividers, not three stacked boxes: the page
+   repeats this control once per plan card, and three ringed boxes per card read
+   as nine competing objects on a desktop screen. Selection is a solid accent bar
+   down the left edge plus a wash, which survives a dark theme that a tinted
+   background alone does not. */
+.choice {
+  margin: 0; padding: 0; display: grid;
+  border: 1px solid var(--ewpay-border, var(--border, #e3e3e3));
+  border-radius: var(--ewpay-radius-lg, var(--radius, 10px));
+  background: var(--ewpay-surface, var(--surface, #ffffff));
+  overflow: hidden;
+}
+.card { position: relative; transition: background .16s ease; }
+.card + .card { border-top: 1px solid var(--ewpay-border, var(--border, #e3e3e3)); }
+.card:hover { background: var(--ewpay-surface-hover, var(--surface-2, #f4f4f4)); }
+.card[data-selected="true"] { background: var(--ewpay-accent-wash, rgba(252, 95, 0, .07)); }
+.card[data-selected="true"]::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 3px;
+  background: var(--ewpay-accent, var(--brand, #fc5f00));
+}
+.card:has(.radio:focus-visible) {
+  outline: 2px solid var(--ewpay-accent, var(--brand, #fc5f00));
+  outline-offset: -2px;
+}
+.hit { display: grid; grid-template-columns: auto 1fr; gap: 11px; align-items: start; padding: 12px 14px; cursor: pointer; }
+.radio { margin: 2px 0 0; accent-color: var(--ewpay-accent, var(--brand, #fc5f00)); }
+.body { display: grid; gap: 6px; min-width: 0; }
+.title { font-weight: 600; line-height: 1.3; }
+.note { font-size: .8125em; line-height: 1.45; color: var(--ewpay-muted, var(--muted, #6f695f)); }
+.phone { padding: 0 14px 12px 40px; display: grid; gap: 6px; }
+.phone input { width: 100%; }
+.hint { font-size: .8125em; line-height: 1.5; color: var(--ewpay-muted, var(--muted, #6f695f)); margin: 0; }
+.err { font-size: .8125em; line-height: 1.5; color: var(--ewpay-error, var(--error, #c0392b)); margin: 0; }
+.choice[data-busy="true"] { opacity: .6; pointer-events: none; }
+
+/* The accepted-methods strip. */
+.strip { display: grid; gap: 8px; }
+.strip[data-align="center"] { justify-items: center; }
+.strip[data-align="center"] .caption { text-align: center; }
+.stripList { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.stripList li { display: flex; }
+.gateway { margin-left: 4px; padding-left: 10px; border-left: 1px solid var(--ewpay-border, var(--border, #e3e3e3)); }
+.caption { font-size: .8125em; line-height: 1.5; color: var(--ewpay-muted, var(--muted, #6f695f)); margin: 0; }
+
+/* Shipped here because two consuming repositories have no .sr-only of their own. */
+.srOnly {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } }

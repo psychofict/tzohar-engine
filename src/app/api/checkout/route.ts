@@ -5,8 +5,10 @@ import { membership } from "@/config/membership";
 // `.ebenworks.co` session cookie; we forward it server-side to the hub's cookie-authed
 // `POST /api/payments/checkout`, so no payment secret and no INTER_SERVICE_SECRET
 // ever touch this site. The hub validates the user, resolves the price for
-// (<hubProduct>, <plan>, USD) from its PriceTable, and returns a hosted Stripe
-// Checkout URL. Stripe is the fleet gateway.
+// (<hubProduct>, <plan>) from its PriceTable, charges in USD, and returns a hosted Paynow URL.
+// Paynow is the fleet's only gateway. No method is asked for here: the hosted page covers cards,
+// Zimswitch and bank transfer, and the mobile-money rails need a phone number this proxy has no
+// business collecting.
 
 // Server route: prefer a runtime (non-inlined) ACCOUNTS_URL so this works even
 // if the env is set after the build; fall back to the build-inlined public var.
@@ -41,7 +43,7 @@ export async function POST(req: NextRequest) {
     const r = await fetch(`${HUB}/api/payments/checkout`, {
       method: "POST",
       headers: { "content-type": "application/json", cookie },
-      body: JSON.stringify({ product: PRODUCT, plan, gateway: "stripe", interval }),
+      body: JSON.stringify({ product: PRODUCT, plan, gateway: "paynow", interval }),
     });
 
     const data = await r.json().catch(() => null);

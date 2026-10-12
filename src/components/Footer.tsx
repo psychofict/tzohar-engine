@@ -119,7 +119,7 @@ export default function Footer() {
     hasModule("pages") && navPages.length > 0
       ? { heading: t("sections"), items: navPages.map((p) => ({ label: p.nav!.label, href: `/${p.slug}` })) }
       : null;
-  const sitemap = pageColumn ? [pageColumn, ...columns] : columns;
+  const sitemap = site.layout?.footerSitemap === false ? [] : pageColumn ? [pageColumn, ...columns] : columns;
 
   return (
     /* No top margin. `mt-16` painted 4rem of page background between the last
@@ -129,11 +129,13 @@ export default function Footer() {
     <footer className="relative bg-surface-2 text-ink border-t border-line">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 pt-16 pb-10">
         {/* Brand + newsletter */}
-        <div className="grid gap-10 md:grid-cols-2 pb-12 border-b border-line">
+        {/* The rule under the brand row separates it from the sitemap. With the
+            sitemap off it would be a line under the last thing on the page. */}
+        <div className={`grid gap-10 md:grid-cols-2${sitemap.length > 0 ? " pb-12 border-b border-line" : ""}`}>
           <div>
             <Link href="/" className="inline-flex items-center">
-              <Image src={site.brand.logoLight} alt={site.name} width={228} height={96} className="h-10 w-auto dark:hidden" />
-              <Image src={site.brand.logoDark} alt={site.name} width={233} height={96} className="h-10 w-auto hidden dark:block" />
+              <Image src={site.brand.logoLight} alt={site.name} width={1024} height={289} className="h-10 w-auto dark:hidden" />
+              <Image src={site.brand.logoDark} alt={site.name} width={1024} height={289} className="h-10 w-auto hidden dark:block" />
             </Link>
             <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-ink-2">{t("tagline")}</p>
             <ul className="mt-6 flex flex-wrap gap-1.5">
@@ -195,6 +197,7 @@ export default function Footer() {
         </div>
 
         {/* Categorised sitemap */}
+        {sitemap.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 pt-12">
           {sitemap.map((col) => (
             <div key={col.heading}>
@@ -211,6 +214,7 @@ export default function Footer() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       <div className="border-t border-line">

@@ -205,6 +205,11 @@ export default function PageHero({
           */}
           <Container size="xl" className="relative z-10 mt-auto w-full pb-12 pt-32 sm:pb-16 lg:pb-20">
             <motion.div
+              // Lets the fixed header fade its scrim in exactly as this copy
+              // reaches the bar — see Navbar's `scrim`. Core routes need it too:
+              // in light mode this band is the short paper hero, so the copy
+              // starts close to the bar and reaches it almost immediately.
+              data-nav-collide=""
               className={clsx(
                 "flex flex-col gap-4 sm:gap-5",
                 align === "center" ? "items-center text-center" : "items-start text-left",

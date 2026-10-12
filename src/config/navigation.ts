@@ -17,6 +17,12 @@ export type NavEntry =
       labelKey: string;
       module?: SiteModule;
       icon?: string;
+      /**
+       * The group label's own destination. Set, the label is a link and the
+       * chevron alone opens the panel; unset, the label is a disclosure button
+       * and the panel is the only way in.
+       */
+      href?: string;
       children: NavLeaf[];
       /** Feature tile in the menu panel — image plus caption. */
       feature?: { image: string; label?: string; href: string };
@@ -133,8 +139,8 @@ const shown = (e: NavEntry) => visible(e.module) && !hidden.has(entryKey(e));
  *
  * Icons and blurbs are carried through rather than dropped: the header renders
  * an expanded panel, and a panel of bare nouns is no more useful than the flat
- * list it replaced. The first child is always the page overview itself, so a
- * group label is reachable as a destination and not just as a menu toggle.
+ * list it replaced. The group label carries the page's own href, so the tab is
+ * a destination and the panel lists only the sections inside it.
  */
 const literal = (label: string) => `@${label}`;
 
@@ -150,20 +156,13 @@ const pageEntries: NavEntry[] = hasModule("pages")
               kind: "group",
               labelKey: literal(p.nav!.label),
               icon: p.nav!.icon,
-              children: [
-                {
-                  nameKey: literal(`${p.nav!.label} overview`),
-                  href: `/${p.slug}`,
-                  icon: p.nav!.icon,
-                  description: p.nav!.description,
-                },
-                ...p.nav!.children.map((c) => ({
-                  nameKey: literal(c.label),
-                  href: `/${p.slug}#${c.anchor}`,
-                  icon: c.icon,
-                  description: c.description,
-                })),
-              ],
+              href: `/${p.slug}`,
+              children: p.nav!.children.map((c) => ({
+                nameKey: literal(c.label),
+                href: `/${p.slug}#${c.anchor}`,
+                icon: c.icon,
+                description: c.description,
+              })),
               ...(p.nav!.featureImage
                 ? {
                     feature: {

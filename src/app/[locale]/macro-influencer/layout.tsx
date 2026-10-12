@@ -5,7 +5,7 @@ import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { requireModule } from "@/lib/modules";
 import { site, canonicalUrl } from "@/config/site";
-import { routeAlternates } from "@/lib/route-meta";
+import { clampDescription, fitTitle, routeAlternates } from "@/lib/route-meta";
 export async function generateMetadata({
   params,
 }: {
@@ -15,8 +15,8 @@ export async function generateMetadata({
   const path = "/macro-influencer";
   
   return {
-    title: "Macro Influencer — Partnerships, Events & Government",
-    description: `Partnerships, events and public roles — ${site.name}.`,
+    title: fitTitle("Macro Influencer — Partnerships, Events & Government", site.name),
+    description: clampDescription(`Partnerships, events and public roles — ${site.name}.`),
     alternates: routeAlternates(path, locale),
     openGraph: {
       title: `Macro Influencer — Partnerships, Events & Government | ${site.name}`,

@@ -6,6 +6,7 @@ import { routing } from "@/i18n/routing";
 import CaseStudyLayout from "@/components/CaseStudyLayout";
 import { site, canonicalUrl } from "@/config/site";
 import { innovationEntries, getInnovationEntry, getInnovationCategory } from "@/data/innovation";
+import { clampDescription, fitTitle } from "@/lib/route-meta";
 
 interface Props {
   params: Promise<{ category: string; slug: string; locale: string }>;
@@ -22,8 +23,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const entry = getInnovationEntry(category, slug);
   if (!entry) return {};
   return {
-    title: `${entry.title} — Innovation — ${site.name}`,
-    description: entry.summary,
+    title: fitTitle(`${entry.title} — Innovation — ${site.name}`, site.name),
+    description: clampDescription(entry.summary),
     alternates: { canonical: canonicalUrl(locale, `/innovation/${category}/${slug}`) },
   };
 }

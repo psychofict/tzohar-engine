@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { site, canonicalUrl } from "@/config/site";
+import { fitTitle } from "@/lib/route-meta";
 
 export async function generateMetadata({
   params,
@@ -14,7 +15,7 @@ export async function generateMetadata({
   const description = `Get in touch with ${site.name} — speaking invitations, research collaboration, press, and general inquiries.`;
 
   return {
-    title: "Contact",
+    title: fitTitle("Contact", site.name),
     description,
     alternates: {
       canonical,

@@ -1,0 +1,8 @@
+[
+  {
+    "id": "GHSA-vfj7-8cjw-p6xm",
+    "package": "braces",
+    "until": "2026-11-02",
+    "reason": "braces 3.0.3 is the newest release and the last affected one, so there is no patched version. It is reached only through micromatch and chokidar (build and file-watch tooling). Our code calls no glob library and no request data reaches a glob pattern. Dismissed in Dependabot on 2026-10-05. Re-check npm for a release above 3.0.3 on or before the until date."
+  }
+]

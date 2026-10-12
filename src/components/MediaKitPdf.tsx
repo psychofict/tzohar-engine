@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10.5, fontFamily: "Helvetica", color: "#15121C" },
   h1: { fontSize: 22, fontFamily: "Helvetica-Bold", marginBottom: 4 },
   tagline: { fontSize: 11, color: "#4A4456", marginBottom: 18 },
-  h2: { fontSize: 13, fontFamily: "Helvetica-Bold", marginTop: 16, marginBottom: 8, borderBottom: "1 solid #E7E1D6", paddingBottom: 4 },
+  h2: { fontSize: 13, fontFamily: "Helvetica-Bold", marginTop: 16, marginBottom: 8, borderBottom: "1 solid #E0E0E0", paddingBottom: 4 },
   p: { fontSize: 10, lineHeight: 1.5, marginBottom: 6 },
   item: { marginBottom: 8 },
   itemTitle: { fontSize: 10.5, fontFamily: "Helvetica-Bold" },

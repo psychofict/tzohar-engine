@@ -4,7 +4,7 @@ import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { requireModule } from "@/lib/modules";
 import { site, canonicalUrl } from "@/config/site";
-import { routeAlternates } from "@/lib/route-meta";
+import { clampDescription, fitTitle, routeAlternates } from "@/lib/route-meta";
 export async function generateMetadata({
   params,
 }: {
@@ -14,9 +14,8 @@ export async function generateMetadata({
   const path = "/press";
   
   return {
-    title: `Press & Media Kit — ${site.name} EPK`,
-    description:
-      `Download ${site.name}'s electronic press kit — bio, press photos, logo assets, and streaming links.`,
+    title: fitTitle(`Press & Media Kit — ${site.name} EPK`, site.name),
+    description: clampDescription(`Download ${site.name}'s electronic press kit — bio, press photos, logo assets, and streaming links.`),
     alternates: routeAlternates(path, locale),
     openGraph: {
       title: `Press & Media Kit — ${site.name} EPK`,

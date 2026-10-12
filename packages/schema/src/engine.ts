@@ -23,6 +23,32 @@ import { MODULE_PATH_OWNERS } from "./module-paths";
 export type PathOwner = "engine" | "client" | "excluded";
 
 /**
+ * CODE WRITTEN FOR ONE CLIENT ALONE. Client-owned, so a sync never writes it and
+ * never deletes it, and it transfers to the client on payment with the rest of
+ * their site.
+ *
+ * Before it existed, a feature built for one client had two places to go, and
+ * both were wrong for a handover. Under `src/components/` or `src/app/` it was
+ * engine code, so the next sync overwrote it or it had to be merged into the
+ * engine, which is what happened to the first bespoke build in engine 2.0.0.
+ * Either way it ended up under the engine paths the NOTICE licenses as
+ * Apache-2.0 and jointly owned, which is not what a client paying for its own
+ * feature was promised. This directory sits outside every NOTICE path on
+ * purpose; keep it there.
+ *
+ * The engine reaches it through one optional entry, `src/custom/pages.tsx` (see
+ * `src/lib/custom-pages.ts`). A repo without the directory builds unchanged,
+ * because the `@custom/*` alias falls back to an empty engine stub in
+ * `src/lib/custom-none/`. Nothing else in the engine imports from here.
+ */
+export const CLIENT_CODE_PREFIX = "src/custom/";
+
+/** Is this repo-relative path client-written code (as opposed to content)? */
+export function isClientCode(path: string): boolean {
+  return path.replace(/^\/+/, "").startsWith(CLIENT_CODE_PREFIX);
+}
+
+/**
  * Never leaves this repo. `studio/` and `marketing/` are separate applications
  * that happen to live alongside the engine; `docs/` is our documentation, not
  * the client's; the rest is build output and local state. Shipping any of it
@@ -38,6 +64,13 @@ export const EXCLUDED_PREFIXES = [
    * client repo. Never ships.
    */
   "scripts/private/",
+  /**
+   * Our release script for Tzohar Studio (project `tzohar-studio` on our Vercel
+   * account), one of five identical fleet siblings. It sits under `scripts/` and
+   * was about to ride the template refresh into every new client repo and the
+   * public engine mirror (EBE-1312). A client deploys its own project its own way.
+   */
+  "scripts/deploy-prod.sh",
   /**
    * Our documents, not the client's. `CLAUDE.md` describes this framework and
    * carries fleet-wide operational context; `PRODUCTIZATION.md` is the business
@@ -73,6 +106,10 @@ export const EXCLUDED_PREFIXES = [
  * their identity.
  */
 export const CLIENT_PREFIXES = [
+  /* The client's own code. Listed first and explicitly: an unknown path would
+     default to the client anyway, but a later engine prefix such as "src/"
+     would silently take this directory over without it. */
+  CLIENT_CODE_PREFIX,
   "src/config/site.values.json",
   /**
    * Documented as a per-client file (see CLAUDE.md) but classified as engine, so
@@ -85,6 +122,15 @@ export const CLIENT_PREFIXES = [
   "public/",
   "README.md",
   "vercel.json",
+  /**
+   * Generated FROM the client's own `locales.enabled`, so it differs per site
+   * even though it sits in engine space (`src/lib/`). Left engine-classified, a
+   * sync would hand every client the reference build's copy — which declares
+   * Korean, Chinese AND Japanese — and silently undo the whole point of
+   * generating it: 349 of an English-only site's 434 build-time font fetches.
+   * Each repo regenerates its own on `prebuild`; see scripts/gen-cjk-fonts.mjs.
+   */
+  "src/lib/cjk-fonts.generated.ts",
   /**
    * `.gitignore` accumulates client-specific rules. The first real client's
    * ignores 617MB of raw source material (a client's asset pack) that must

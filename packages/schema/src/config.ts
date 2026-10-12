@@ -75,6 +75,17 @@ export const appearanceSchema = z.object({
   radius: z.enum(RADIUS_CHOICES).optional(),
   /** Default color mode for visitors. `system` follows the OS. */
   mode: z.enum(MODE_CHOICES).optional(),
+  /**
+   * Offer visitors a light/dark switch, remembering their choice.
+   *
+   * Decouples "what the toggle does" from "what the default is": with `mode`
+   * pinned to `dark` or `light`, `toggle: true` makes that pinned value the
+   * FIRST-VISIT default while still showing the switch and honouring a stored
+   * choice. `mode: "system"` already implies a toggle, so this is only
+   * meaningful alongside a pinned mode. Default (absent/false) keeps a pinned
+   * mode locked, exactly as before.
+   */
+  toggle: z.boolean().optional(),
 });
 
 // ── Layout — structural variation, not just color/type ─────────────────────
@@ -108,6 +119,16 @@ export const layoutSchema = z.object({
    * loses its effect rather than breaking the build.
    */
   navHide: z.array(z.string().min(1)).optional(),
+  /**
+   * Drop the footer's categorised sitemap, leaving the brand row, the
+   * newsletter and the credit line.
+   *
+   * On a site whose whole IA is three tabs plus About and Contact, that grid
+   * repeats the header a second time twenty pixels below it, and reads as
+   * filler rather than as navigation. Sites with a deep IA keep it, which is
+   * why it stays on by default.
+   */
+  footerSitemap: z.boolean().optional(),
 });
 
 // ── Contact — which inquiry forms this site offers ─────────────────────────

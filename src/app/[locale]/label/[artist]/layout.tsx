@@ -5,7 +5,7 @@ import { routing } from "@/i18n/routing";
 import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { canonicalUrl } from "@/config/site";
-import { routeAlternates } from "@/lib/route-meta";
+import { clampDescription, fitTitle, routeAlternates } from "@/lib/route-meta";
 
 async function getSpotifyToken(): Promise<string | null> {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
@@ -56,8 +56,8 @@ export async function generateMetadata({
   
   if (!artist) {
     return {
-      title: `Artist Profile | ${labelName}`,
-      description: `Artist profile on ${labelName}.`,
+      title: fitTitle(`Artist Profile | ${labelName}`, labelName),
+      description: clampDescription(`Artist profile on ${labelName}.`),
       alternates: routeAlternates(path, locale),
     };
   }
@@ -67,8 +67,8 @@ export async function generateMetadata({
     : "";
 
   return {
-    title: `${artist.name}${genreText} | ${labelName}`,
-    description: `${artist.name} on ${labelName}. Listen to their latest music, top tracks, and full discography.${genreText ? ` Genres: ${artist.genres.slice(0, 5).join(", ")}.` : ""}`,
+    title: fitTitle(`${artist.name}${genreText} | ${labelName}`, labelName),
+    description: clampDescription(`${artist.name} on ${labelName}. Listen to their latest music, top tracks, and full discography.${genreText ? ` Genres: ${artist.genres.slice(0, 5).join(", ")}.` : ""}`),
     alternates: routeAlternates(path, locale),
     openGraph: {
       title: `${artist.name} | ${labelName}`,

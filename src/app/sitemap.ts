@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { releases } from "@/data/releases";
 import { rosterArtistIds } from "@/data/roster";
 import { routedPages } from "@/data/pages";
+import { customPageSlugs } from "@/lib/custom-pages";
 import { posts } from "@/data/posts";
 import { site, hasModule } from "@/config/site";
 
@@ -68,9 +69,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }
 
   // Composed pages (the `pages` module) are real routes; include them.
+  // The client's own pages (src/custom/pages.tsx) ride the same route.
   if (hasModule("pages")) {
-    for (const page of routedPages) {
-      staticPaths.push({ path: `/${page.slug}`, freq: "monthly", priority: 0.8 });
+    const slugs = new Set([...routedPages.map((p) => p.slug), ...customPageSlugs]);
+    for (const slug of slugs) {
+      staticPaths.push({ path: `/${slug}`, freq: "monthly", priority: 0.8 });
     }
   }
 

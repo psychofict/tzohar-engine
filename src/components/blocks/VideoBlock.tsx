@@ -38,8 +38,21 @@ export default function VideoBlock({ block }: { block: VideoBlockType }) {
         and read as a hole in the page. Centred, the same slack is split above
         and below and the two columns balance against each other.
       */}
-      <div className={clsx("grid items-start gap-8 lg:items-center", block.body && "lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-12")}>
-        <Reveal direction="up">
+      <div
+        className={clsx(
+          "grid items-start gap-8 lg:items-center",
+          block.body &&
+            (block.flip
+              ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:gap-12"
+              : "lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-12"),
+        )}
+      >
+        {/*
+          Flipped, the film keeps its source order so it still comes first to a
+          screen reader and first on a stacked phone; only the desktop columns
+          swap.
+        */}
+        <Reveal direction="up" className={clsx(block.flip && block.body && "lg:order-2")}>
           <figure>
             <div
               className={clsx(
@@ -97,7 +110,7 @@ export default function VideoBlock({ block }: { block: VideoBlockType }) {
         </Reveal>
 
         {block.body && (
-          <Reveal direction="up" delay={100}>
+          <Reveal direction="up" delay={100} className={clsx(block.flip && "lg:order-1")}>
             <div>
               <p className="text-ink-2 measure text-[15.5px] leading-[1.75]">{block.body}</p>
               <BlockButtons buttons={block.buttons} className="mt-7" />

@@ -60,12 +60,18 @@ const API_OWNERS = {
 const files = execSync("git ls-files --cached --others --exclude-standard src packages/schema/src", { encoding: "utf8" })
   .trim()
   .split("\n")
-  .filter((f) => /\.(ts|tsx)$/.test(f));
+  .filter((f) => /\.(ts|tsx)$/.test(f))
+  // A client repo's own code (src/custom/, CLIENT_CODE_PREFIX in engine.ts) is
+  // theirs, never pruned and never in this table, even if someone runs this there.
+  .filter((f) => !f.startsWith("src/custom/"));
 
 const resolveSpec = (from, spec) => {
   let base;
   if (spec.startsWith("@/")) base = path.join("src", spec.slice(2));
   else if (spec.startsWith("@tzohar/schema")) return "packages/schema/src/index.ts";
+  // tsconfig maps this alias to the client's src/custom/pages first; in the engine
+  // repo, which has none, it is the empty stub.
+  else if (spec.startsWith("@custom/")) base = path.join("src/lib/custom-none", spec.slice("@custom/".length));
   else if (spec.startsWith(".")) base = path.normalize(path.join(path.dirname(from), spec));
   else return null;
   for (const c of [base, `${base}.ts`, `${base}.tsx`, `${base}/index.ts`, `${base}/index.tsx`]) {

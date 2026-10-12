@@ -5,7 +5,7 @@ import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { getMusicGroupSchema } from "@/lib/structured-data-music";
 import { requireModule } from "@/lib/modules";
 import { site, canonicalUrl } from "@/config/site";
-import { routeAlternates } from "@/lib/route-meta";
+import { clampDescription, fitTitle, routeAlternates } from "@/lib/route-meta";
 import { heroes } from "@/data/artist";
 export async function generateMetadata({
   params,
@@ -16,9 +16,8 @@ export async function generateMetadata({
   const path = "/music";
   
   return {
-    title: `Music & Releases — ${site.name}`,
-    description:
-      `Stream ${site.name}'s (엡스타) music — 5M+ streams across piano house, dance-pop, and Amapiano. Latest singles, albums & playlists.`,
+    title: fitTitle(`Music & Releases — ${site.name}`, site.name),
+    description: clampDescription(`Stream ${site.name}'s (엡스타) music — 5M+ streams across piano house, dance-pop, and Amapiano. Latest singles, albums & playlists.`),
     alternates: routeAlternates(path, locale),
     openGraph: {
       title: `Music & Releases — ${site.name}`,

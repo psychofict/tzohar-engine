@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SessionInfoButton — the header auth control. Provider-agnostic: it reads state
 // from useMembership() and builds the sign-in link from signInUrl(), so it works
-// for both the hub and the client-owned Stripe provider (see src/lib/membership).
+// from whichever membership provider the build is configured for (see src/lib/membership).
 //
 //   Signed out / loading / error → "Sign in" CTA (fail to least-privilege UI).
 //   Signed in                    → name + "account" link (→ /account).

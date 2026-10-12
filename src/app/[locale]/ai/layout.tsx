@@ -4,7 +4,7 @@ import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { requireModule } from "@/lib/modules";
 import { site, canonicalUrl } from "@/config/site";
-import { routeAlternates } from "@/lib/route-meta";
+import { clampDescription, fitTitle, routeAlternates } from "@/lib/route-meta";
 import { heroes } from "@/data/artist";
 export async function generateMetadata({
   params,
@@ -15,9 +15,8 @@ export async function generateMetadata({
   const path = "/ai";
   
   return {
-    title: `AI/ML & Software Engineer — ${site.name}`,
-    description:
-      "AI/ML and Software Engineer. Published at IJCNN & Neural Networks, MSc AI from Korea University (GKS). 10+ shipped products, production CV/ML pipelines for smart cities.",
+    title: fitTitle(`AI/ML & Software Engineer — ${site.name}`, site.name),
+    description: clampDescription("AI/ML and Software Engineer. Published at IJCNN & Neural Networks, MSc AI from Korea University. 10+ shipped products, production CV/ML for smart cities."),
     alternates: routeAlternates(path, locale),
     openGraph: {
       title: `AI/ML & Software Engineer — ${site.name}`,

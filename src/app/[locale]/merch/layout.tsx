@@ -5,7 +5,7 @@ import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { requireModule } from "@/lib/modules";
 import { site, canonicalUrl } from "@/config/site";
-import { routeAlternates } from "@/lib/route-meta";
+import { clampDescription, fitTitle, routeAlternates } from "@/lib/route-meta";
 export async function generateMetadata({
   params,
 }: {
@@ -15,8 +15,8 @@ export async function generateMetadata({
   const path = "/merch";
   
   return {
-    title: `Merch Store — ${merchStoreName}`,
-    description: merchDescription || `Official ${merchStoreName} merchandise.`,
+    title: fitTitle(`Merch Store — ${merchStoreName}`, site.name),
+    description: clampDescription(merchDescription || `Official ${merchStoreName} merchandise.`),
     alternates: routeAlternates(path, locale),
     openGraph: {
       title: `Merch Store — Coming Soon | ${site.name}`,

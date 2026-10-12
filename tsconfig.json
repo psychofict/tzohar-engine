@@ -20,7 +20,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@tzohar/schema": ["./packages/schema/src/index.ts"]
+      "@tzohar/schema": ["./packages/schema/src/index.ts"],
+      "@custom/*": ["./src/custom/*", "./src/lib/custom-none/*"]
     }
   },
   "include": [

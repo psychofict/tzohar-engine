@@ -4,7 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { releases, getReleaseBySlug } from "@/data/releases";
 import ReleaseClient from "./ReleaseClient";
-import { routeAlternates } from "@/lib/route-meta";
+import { fitTitle, routeAlternates } from "@/lib/route-meta";
 import { canonicalUrl } from "@/config/site";
 import { site } from "@/config/site";
 import { artist } from "@/data/artist";
@@ -30,7 +30,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const path = `/music/${slug}`;
   
   return {
-    title: release.title,
+    /*
+     * Through the fitter, not raw. `music/layout.tsx` now returns an absolute
+     * title, and an absolute title on a layout removes the `%s | <site>` template
+     * for everything under it — so a release page that had been getting the site
+     * name from the template rendered as a bare "Washa!".
+     */
+    title: fitTitle(release.title, site.name),
     description,
     openGraph: {
       title,

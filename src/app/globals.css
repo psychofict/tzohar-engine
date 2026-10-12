@@ -16,9 +16,9 @@
    ───────────────────────────────────────────────────────── */
 @theme {
   /* Surfaces */
-  --color-bg: #FAFAF7;
-  --color-surface: #F2EEE7;
-  --color-surface-2: #E7E1D6;
+  --color-bg: #FFFFFF;
+  --color-surface: #F7F7F8;
+  --color-surface-2: #EFEFF1;
   --color-elevated: #FFFFFF;
 
   /* Ink (text) */
@@ -232,9 +232,32 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-:lang(ko) { font-family: var(--font-ko), var(--font-sans), system-ui, sans-serif; }
-:lang(zh) { font-family: var(--font-zh), var(--font-sans), system-ui, sans-serif; }
-:lang(ja) { font-family: var(--font-ja), var(--font-sans), system-ui, sans-serif; }
+/*
+ * CJK body text. `--font-ko/zh/ja` are defined only where the site enables that
+ * locale (src/lib/cjk-fonts.generated.ts), so each var() MUST carry its own
+ * fallback.
+ *
+ * Written as a bare `var(--font-ko)` this list looks like it degrades to
+ * `--font-sans` — it does not. An undefined custom property makes the whole
+ * declaration invalid AT COMPUTED-VALUE TIME, so the property is unset and the
+ * rest of the stack never gets a turn: the browser falls back to its own default
+ * and every Korean page renders in Times New Roman. Measured exactly that, on a
+ * build that ships no KR family. Same trap as `--font-sans` itself (see the
+ * font-variable note in [locale]/layout.tsx).
+ *
+ * The system faces are named ahead of the generic keywords so a site without the
+ * webfont still gets a real CJK face rather than whatever `sans-serif` resolves
+ * to for that script.
+ */
+:lang(ko) {
+  font-family: var(--font-ko, var(--font-sans)), "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+}
+:lang(zh) {
+  font-family: var(--font-zh, var(--font-sans)), "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+}
+:lang(ja) {
+  font-family: var(--font-ja, var(--font-sans)), "Hiragino Sans", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+}
 
 ::selection {
   background: color-mix(in srgb, var(--color-ocean) 30%, transparent);

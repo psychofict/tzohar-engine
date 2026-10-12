@@ -46,7 +46,6 @@ export default function Navbar() {
   // navigation.ts marks them with a leading "@" so they render verbatim.
   const navText = (key: string) => (key.startsWith("@") ? key.slice(1) : t(key));
 
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileAccordion, setMobileAccordion] = useState<string | null>(null);
@@ -62,13 +61,24 @@ export default function Navbar() {
    * as well (see `background.imageLight`), so in light mode the bar was rendering
    * white type over a bright photograph and the logo disappeared entirely.
    *
-   * Split into two independent things: `overHero` decides whether the bar is
-   * transparent (both modes — the hero scrim ramps toward the mode's own paper,
-   * so ordinary ink tokens read correctly against it), and `forceDark` is the
+   * Split into two independent things: `scrim` decides how present the bar's own
+   * surface is (both modes — the hero scrim ramps toward the mode's own paper, so
+   * ordinary ink tokens read correctly against it), and `forceDark` is the
    * separate opt-in for a hero band that is dark regardless of mode.
    */
   const configHeroDark = site.layout?.heroTone === "dark";
-  const [overHero, setOverHero] = useState(true);
+  /**
+   * How present the bar's own surface is, 0 → 1.
+   *
+   * The bar floats fully transparent over the hero — that is the site's look and
+   * it is deliberate. What it must not do is stay invisible while hero copy
+   * scrolls up into it, which is what a scroll-distance threshold caused: the
+   * heading passed under the nav with nothing behind it and the two collided.
+   * So the scrim is driven by the hero copy's actual distance from the bar and
+   * ramps in over the last `SCRIM_RAMP` px before it would touch. The float is
+   * kept and the collision cannot happen.
+   */
+  const [scrim, setScrim] = useState(0);
   const [activeAnchor, setActiveAnchor] = useState<string | null>(null);
   /**
    * Is the band under the header dark in BOTH modes? Read from what is rendered,
@@ -93,10 +103,59 @@ export default function Navbar() {
   const forceDark = configHeroDark || heroBandDark;
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 8);
-      setOverHero(window.scrollY < window.innerHeight * 0.6);
+    const HEADER_H = 64; // h-16
+    const SCRIM_RAMP = 140; // how long the fade runs before contact
+
+    /*
+     * The hero's copy block, marked by the renderer. Re-queried when missing
+     * because this runs on navigation too, and a route with no hero (a post, a
+     * legal page) has no float target at all — there the bar behaves like an
+     * ordinary one and takes its surface as soon as the page moves.
+     */
+    let target: HTMLElement | null = null;
+    /**
+     * The copy's gap from the bar at rest, in document space.
+     *
+     * Measured rather than assumed, because it decides how long the fade can be:
+     * a hero whose copy sits only ~70px below the bar has less room than the ramp
+     * wants, and reading the live gap alone made the bar half-solid while still at
+     * the top of the page — which is the float gone. Anchoring to the rest gap
+     * keeps scrim exactly 0 at scrollY 0 on every page, and only compresses the
+     * fade where there genuinely isn't room for it.
+     */
+    let restGap = Infinity;
+    const findTarget = () => {
+      target =
+        document.querySelector<HTMLElement>("[data-nav-collide]") ??
+        document.querySelector<HTMLElement>("main h1");
+      if (target) {
+        restGap = target.getBoundingClientRect().top + window.scrollY - HEADER_H;
+      }
+      return target;
     };
+    findTarget();
+
+    const handleScroll = () => {
+      const y = window.scrollY;
+
+      if (!target?.isConnected) findTarget();
+      if (!target) {
+        setScrim(y > 8 ? 1 : 0);
+        return;
+      }
+
+      // Re-measure whenever we're back at the top: fonts, hero images and the
+      // entrance animation all settle after mount, and this is self-healing on
+      // resize too, so one stale reading can't outlive a scroll to the top.
+      if (y === 0) restGap = target.getBoundingClientRect().top - HEADER_H;
+
+      // How much room is left before the copy reaches the bar, and a fade that
+      // ends exactly on contact.
+      const gap = restGap - y;
+      const ramp = Math.max(1, Math.min(SCRIM_RAMP, restGap));
+      setScrim(Math.min(1, Math.max(0, (ramp - gap) / ramp)));
+    };
+
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleScroll, { passive: true });
@@ -104,10 +163,13 @@ export default function Navbar() {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, []);
+  }, [pathname]);
 
-  const transparent = overHero && !mobileOpen && !openDropdown;
-  const onDark = forceDark && transparent;
+  // An open panel always needs a readable ground under it, whatever the scroll.
+  const scrimOpacity = mobileOpen || openDropdown ? 1 : scrim;
+  // Chrome stays inverted while the photograph is still what's behind it, and
+  // flips once the bar's own surface is carrying the type.
+  const onDark = forceDark && scrimOpacity < 0.5;
 
   /*
    * SCROLL-SPY over in-page anchors.
@@ -167,7 +229,8 @@ export default function Navbar() {
   };
   /** A group is current when this page is one of its destinations. */
   const groupCurrent = (entry: NavEntry) =>
-    entry.kind === "group" && entry.children.some((c) => c.href.split("#")[0] === pathname);
+    entry.kind === "group" &&
+    (entry.href?.split("#")[0] === pathname || entry.children.some((c) => c.href.split("#")[0] === pathname));
 
   useEffect(() => () => {
     if (leaveTimeout.current) clearTimeout(leaveTimeout.current);
@@ -238,20 +301,49 @@ export default function Navbar() {
           onMouseEnter={() => handleMouseEnter(entry.labelKey)}
           onMouseLeave={handleMouseLeave}
         >
-          <button
-            type="button"
-            className={`relative inline-flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium transition-colors ${
+          {/*
+            A tab that owns a page is a link; the chevron beside it is the
+            disclosure. Rolled into one button, the only way to the page itself
+            was a duplicate "overview" row at the top of the panel, which the
+            client read as a wasted first line in every menu.
+          */}
+          <span
+            className={`relative inline-flex items-center transition-colors ${
               current || open ? "text-ink" : "text-ink-2 hover:text-ink"
             }`}
-            aria-current={current ? "page" : undefined}
-            aria-expanded={open}
-            aria-haspopup="true"
-            onClick={() => setOpenDropdown(open ? null : entry.labelKey)}
           >
-            {navText(entry.labelKey)}
+            {entry.href ? (
+              <Link
+                href={entry.href as Href}
+                aria-current={current ? "page" : undefined}
+                className="py-2 pr-1 pl-3 text-[14px] font-medium"
+              >
+                {navText(entry.labelKey)}
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="py-2 pr-1 pl-3 text-[14px] font-medium"
+                aria-current={current ? "page" : undefined}
+                aria-expanded={open}
+                aria-haspopup="true"
+                onClick={() => setOpenDropdown(open ? null : entry.labelKey)}
+              >
+                {navText(entry.labelKey)}
+              </button>
+            )}
+            <button
+              type="button"
+              className="py-2 pr-3 pl-0.5"
+              aria-expanded={open}
+              aria-haspopup="true"
+              aria-label={`${navText(entry.labelKey)} sections`}
+              onClick={() => setOpenDropdown(open ? null : entry.labelKey)}
+            >
+              <ChevronDown size={14} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+            </button>
             {current && <span className="bg-ocean absolute inset-x-3 bottom-0.5 h-0.5" aria-hidden />}
-            <ChevronDown size={14} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-          </button>
+          </span>
 
           <AnimatePresence>
             {open && (
@@ -303,18 +395,37 @@ export default function Navbar() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.04 }}
         >
-          <button
-            type="button"
-            onClick={() => setMobileAccordion((p) => (p === entry.labelKey ? null : entry.labelKey))}
-            className="text-ink flex w-full items-center justify-between gap-3 py-4 text-left text-xl font-semibold"
-            aria-expanded={isOpen}
-          >
-            <span className="flex items-center gap-3">
-              {GroupIcon && <GroupIcon size={19} strokeWidth={1.6} className="text-ink-3" aria-hidden />}
-              {navText(entry.labelKey)}
-            </span>
-            <ChevronDown size={20} className={`flex-none transition-transform ${isOpen ? "rotate-180" : ""}`} />
-          </button>
+          <div className="text-ink flex w-full items-center justify-between gap-3 text-xl font-semibold">
+            {entry.href ? (
+              <Link
+                href={entry.href as Href}
+                onClick={() => setMobileOpen(false)}
+                className="flex flex-1 items-center gap-3 py-4 text-left"
+              >
+                {GroupIcon && <GroupIcon size={19} strokeWidth={1.6} className="text-ink-3" aria-hidden />}
+                {navText(entry.labelKey)}
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setMobileAccordion((p) => (p === entry.labelKey ? null : entry.labelKey))}
+                className="flex flex-1 items-center gap-3 py-4 text-left"
+                aria-expanded={isOpen}
+              >
+                {GroupIcon && <GroupIcon size={19} strokeWidth={1.6} className="text-ink-3" aria-hidden />}
+                {navText(entry.labelKey)}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setMobileAccordion((p) => (p === entry.labelKey ? null : entry.labelKey))}
+              className="flex-none py-4 pl-3"
+              aria-expanded={isOpen}
+              aria-label={`${navText(entry.labelKey)} sections`}
+            >
+              <ChevronDown size={20} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
+            </button>
+          </div>
           <AnimatePresence>
             {isOpen && (
               <motion.ul
@@ -387,33 +498,49 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 inset-x-0 z-50 transition-[background-color,box-shadow,border-color] duration-200 ${
-          onDark
-            ? "section-invert bg-transparent border-b border-transparent"
-            : transparent
-              ? "bg-transparent border-b border-transparent"
-              : scrolled || mobileOpen || openDropdown
-                ? "bg-bg/88 backdrop-blur-xl border-b border-line shadow-[0_1px_0_0_var(--color-line)]"
-                : "bg-bg/60 backdrop-blur-md border-b border-transparent"
-        }`}
+        className={`fixed top-0 inset-x-0 z-50 ${onDark ? "section-invert" : ""}`}
       >
-        <nav aria-label="Primary" className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 h-16">
+        {/*
+          The bar's surface is its own layer so it can FADE. As a set of switched
+          background classes it could only cut between transparent and solid, which
+          is why the float had to be held for most of the viewport (and the hero
+          copy collided in the gap). Painted separately, it ramps in under the type
+          as the hero copy arrives and the transition is continuous.
+        */}
+        <div
+          aria-hidden
+          className="bg-bg/88 border-line pointer-events-none absolute inset-0 border-b shadow-[0_1px_0_0_var(--color-line)] backdrop-blur-xl transition-opacity duration-150"
+          style={{ opacity: scrimOpacity }}
+        />
+        {/* `relative` is load-bearing: the scrim above is absolutely positioned, so
+            without it the scrim would paint over this static content. */}
+        <nav aria-label="Primary" className="relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 h-16">
           {/* Logo — horizontal lockup (mark + signature wordmark) */}
           <Link href="/" className="flex shrink-0 items-center" aria-label={`${site.name} — home`}>
+            {/*
+              The declared size is the file's real 1024x289, not a guess. The
+              old 228x96 was neither asset's aspect ratio, so the bar reserved a
+              box a third too tall and the mark jumped on load.
+
+              Two files, not one with a CSS filter: the mark is dark metal on
+              black, which sits on a light bar as designed but disappears into a
+              near-black one. The dark-mode file is the same cut with its
+              luminance lifted, so the letterforms hold at 36px.
+            */}
             <Image
               src={site.brand.logoLight}
               alt={site.name}
-              width={228}
-              height={96}
-              className="h-8 w-auto dark:hidden"
+              width={1024}
+              height={289}
+              className="h-9 w-auto dark:hidden"
               priority
             />
             <Image
               src={site.brand.logoDark}
               alt={site.name}
-              width={233}
-              height={96}
-              className="hidden h-8 w-auto dark:block"
+              width={1024}
+              height={289}
+              className="hidden h-9 w-auto dark:block"
               priority
             />
           </Link>

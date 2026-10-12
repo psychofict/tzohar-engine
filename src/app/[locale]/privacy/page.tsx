@@ -45,9 +45,9 @@ export default function PrivacyPage() {
                 <>
                   <li>
                     <strong>Membership</strong> — when you subscribe, sign-in and payment run through
-                    Ebenworks Accounts, with <strong>Stripe</strong> as the payment processor and Ebenworks
-                    Systems (Pvt) Ltd as the merchant of record. This site only ever sees whether you are
-                    signed in, your display name and your plan status.
+                    Ebenworks Accounts, with <strong>Paynow</strong> as the payment processor and Ebenworks
+                    Systems (Pvt) Ltd as the merchant of record. Charges are in US dollars. This site only
+                    ever sees whether you are signed in, your display name and your plan status.
                   </li>
                   <li>
                     <strong>Your profile</strong> — a display name and notification preferences you set on
@@ -71,7 +71,7 @@ export default function PrivacyPage() {
               <li>To respond to your enquiries (legitimate interest).</li>
               <li>To operate, secure and improve the site (legitimate interest).</li>
               {membership && (
-                <li>To provide membership — handled via Ebenworks Accounts, with Stripe as payment processor.</li>
+                <li>To provide membership — handled via Ebenworks Accounts, with Paynow as payment processor.</li>
               )}
             </ul>
           </section>
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
             <h2>Who we share it with</h2>
             <ul>
               <li><strong>Resend</strong> — email delivery (newsletter, contact).</li>
-              {membership && <li><strong>Ebenworks Accounts</strong> &amp; <strong>Stripe</strong> — account and billing.</li>}
+              {membership && <li><strong>Ebenworks Accounts</strong> &amp; <strong>Paynow</strong> — account and billing.</li>}
               <li><strong>Google, Plausible, Naver</strong> — analytics.</li>
             </ul>
             <p>We do not sell your personal information.</p>

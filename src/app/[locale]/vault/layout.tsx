@@ -3,7 +3,7 @@ import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { requireModule } from "@/lib/modules";
 import { site, canonicalUrl } from "@/config/site";
-import { routeAlternates } from "@/lib/route-meta";
+import { clampDescription, fitTitle, routeAlternates } from "@/lib/route-meta";
 export async function generateMetadata({
   params,
 }: {
@@ -13,9 +13,8 @@ export async function generateMetadata({
   const path = "/vault";
   
   return {
-    title: `The Vault — ${site.name} Inner Circle`,
-    description:
-      "Join the Inner Circle for first listens, presale access, behind-the-scenes drops and invite-only moments — before they go public.",
+    title: fitTitle(`The Vault — ${site.name} Inner Circle`, site.name),
+    description: clampDescription("Join the Inner Circle for first listens, presale access, behind-the-scenes drops and invite-only moments — before they go public."),
     alternates: routeAlternates(path, locale),
     openGraph: {
       title: `The Vault — ${site.name} Inner Circle`,

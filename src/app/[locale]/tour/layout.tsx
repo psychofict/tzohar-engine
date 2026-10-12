@@ -4,7 +4,7 @@ import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { requireModule } from "@/lib/modules";
 import { site, canonicalUrl } from "@/config/site";
-import { routeAlternates } from "@/lib/route-meta";
+import { clampDescription, fitTitle, routeAlternates } from "@/lib/route-meta";
 import { heroes } from "@/data/artist";
 export async function generateMetadata({
   params,
@@ -15,9 +15,8 @@ export async function generateMetadata({
   const path = "/tour";
   
   return {
-    title: `Tour Dates 2026 — ${site.name} Live`,
-    description:
-      `${site.name} (엡스타) live tour dates and performances for 2026. Find upcoming shows, venues, and ticket links worldwide.`,
+    title: fitTitle(`Tour Dates 2026 — ${site.name} Live`, site.name),
+    description: clampDescription(`${site.name} (엡스타) live tour dates and performances for 2026. Find upcoming shows, venues, and ticket links worldwide.`),
     alternates: routeAlternates(path, locale),
     openGraph: {
       title: `Tour Dates 2026 — ${site.name} Live`,

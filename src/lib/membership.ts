@@ -10,14 +10,17 @@ import { planByHubPlan } from "@/data/plans";
 // hubAccountUrl, logoutUrl) is stable; the provider (set in src/config/membership)
 // decides where state and billing come from.
 //
-//   • "hub"    — Ebenworks SSO hub (as the reference build uses). Reads
-//                ${NEXT_PUBLIC_ACCOUNTS_URL}/api/session-info and links out for
-//                login/checkout/billing. No secrets here.
-//   • "stripe" — client-owned Stripe via same-origin routes under
-//                /api/membership/* (see src/lib/stripe.ts + docs/membership.md).
+//   • "hub"    — Ebenworks SSO hub. Reads ${NEXT_PUBLIC_ACCOUNTS_URL}/api/session-info and
+//                links out for login/checkout/billing. No secrets here, and no payment code:
+//                the hub bills through Paynow and this site never touches a key.
 //   • "none"   — no membership; everything reads signed-out / not-a-member.
 //
-// Both providers return the SAME session shape, so the hook below is shared.
+// A client-owned Stripe provider used to be the third option. It was removed on 2026-09-02
+// when Ebenworks stopped using Stripe anywhere: keeping a payment integration alive for a
+// gateway the company has no account with means keeping a dependency, a key path and a set of
+// routes nobody exercises. A client who needs their own gateway gets it built then, against
+// whatever they actually use.
+//
 // Fails CLOSED (signed-out / not-a-member) on any error.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -86,7 +89,6 @@ function sessionUrl(): string | null {
     const b = hubBase();
     return b ? `${b}/api/session-info?product=${HUB_PRODUCT}` : null;
   }
-  if (PROVIDER === "stripe") return "/api/membership/session";
   return null;
 }
 
@@ -95,7 +97,6 @@ export function signInUrl(allowWindow = true): string {
     const b = hubBase();
     return `${b}/login?product=${HUB_PRODUCT}&callbackUrl=${encodeURIComponent(here(b || "/", allowWindow))}`;
   }
-  if (PROVIDER === "stripe") return "/account";
   return "/";
 }
 
@@ -114,19 +115,18 @@ export function logoutUrl(allowWindow = true): string {
     const b = hubBase();
     return `${b}/logout?callbackUrl=${encodeURIComponent(here(b || "/", allowWindow))}`;
   }
-  if (PROVIDER === "stripe") return "/api/membership/logout";
   return "/";
 }
 
 /**
- * Start checkout for a plan. `planId` is the hub Plan enum for the hub provider
- * (e.g. "STARTER") — kept for backward compatibility; for Stripe it is mapped
- * back to the plan slug. Redirects to the hosted checkout, or to sign-in on 401.
+ * Start checkout for a plan. `planId` is the hub Plan enum (e.g. "STARTER"). Redirects to the
+ * hosted checkout, or to sign-in on 401.
  */
 export async function startCheckout(planId: string, interval: "month" | "year" = "month"): Promise<void> {
   if (PROVIDER === "none") return;
-  const url = PROVIDER === "hub" ? "/api/checkout" : "/api/membership/checkout";
-  const plan = PROVIDER === "hub" ? planId : planByHubPlan(planId)?.slug ?? planId;
+  if (PROVIDER !== "hub") return;
+  const url = "/api/checkout";
+  const plan = planId;
 
   const res = await fetch(url, {
     method: "POST",
@@ -163,7 +163,7 @@ export function useMembership(): MembershipState {
     const url = sessionUrl();
     if (!url) return; // nothing to fetch; loading already false
     fetch(url, {
-      // hub is cross-origin (shared cookie); stripe is same-origin.
+      // The hub is cross-origin and reads the shared cookie.
       credentials: PROVIDER === "hub" ? "include" : "same-origin",
       headers: { accept: "application/json" },
     })

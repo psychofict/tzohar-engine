@@ -15,7 +15,13 @@
     "check-messages": "node scripts/check-messages.mjs",
     "test:bibtex": "npx --yes tsx scripts/bibtex.test.ts",
     "test:tex": "npx --yes tsx scripts/tex.test.ts",
-    "test:package-json": "npx --yes tsx scripts/package-json.test.ts"
+    "test:package-json": "npx --yes tsx scripts/package-json.test.ts",
+    "test:json-ld": "npx --yes tsx scripts/json-ld.test.ts",
+    "test:csp-report": "npx --yes tsx scripts/csp-report.test.ts",
+    "prebuild": "node scripts/gen-cjk-fonts.mjs",
+    "cjk-fonts": "node scripts/gen-cjk-fonts.mjs",
+    "cjk-fonts:check": "node scripts/gen-cjk-fonts.mjs --check",
+    "predev": "node scripts/gen-cjk-fonts.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
@@ -23,7 +29,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.575.0",
-    "next": "^16.2.12",
+    "next": "^16.4.0",
     "next-intl": "^4.13.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -40,17 +46,17 @@
     "@types/react-dom": "^19",
     "@types/react-simple-maps": "^3.0.6",
     "eslint": "^9",
-    "eslint-config-next": "16.2.12",
+    "eslint-config-next": "16.4.0",
     "playwright": "^1.59.1",
-    "sharp": "^0.35.3",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
   "overrides": {
-    "js-yaml": "^4.3.1",
+    "js-yaml": "^4.3.2",
     "nanoid": "^3.3.18",
     "postcss": "^8.5.25",
-    "sharp": "^0.35.3"
+    "sharp": "$sharp"
   },
   "license": "Apache-2.0"
 }

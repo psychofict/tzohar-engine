@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { site, canonicalUrl } from "@/config/site";
+import { clampDescription, fitTitle } from "@/lib/route-meta";
 
 export async function generateMetadata({
   params,
@@ -10,8 +11,8 @@ export async function generateMetadata({
   const canonical = canonicalUrl(locale, "/privacy");
 
   return {
-    title: "Privacy Policy",
-    description: `How ${site.name}'s website handles the data it collects directly — newsletter, contact, analytics and cookies.`,
+    title: fitTitle("Privacy Policy", site.name),
+    description: clampDescription(`How ${site.name}'s website handles the data it collects directly — newsletter, contact, analytics and cookies.`),
     alternates: { canonical },
   };
 }

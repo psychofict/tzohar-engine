@@ -24,6 +24,7 @@ import { ArrowRight, ExternalLink, ChevronDown } from "lucide-react";
 import Container from "@/components/ui/Container";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Reveal from "@/components/ui/Reveal";
+import { getBlurDataURL } from "@/lib/image-blur";
 import Timeline from "@/components/ui/Timeline";
 import { ButtonLink } from "@/components/ui/Button";
 import { resolveIcon } from "@/lib/icons";
@@ -70,7 +71,12 @@ export function BlockButtons({ buttons, className }: { buttons?: BlockButton[]; 
      */
     <div className={clsx("flex flex-col gap-3 sm:flex-row sm:flex-wrap", className)}>
       {buttons.map((b, i) => (
-        <ButtonLink key={i} href={b.href} variant={BTN_VARIANT[b.style ?? (i === 0 ? "primary" : "outline")]}>
+        <ButtonLink
+          key={i}
+          href={b.href}
+          download={b.download || undefined}
+          variant={BTN_VARIANT[b.style ?? (i === 0 ? "primary" : "outline")]}
+        >
           {b.label}
           <ArrowRight size={16} aria-hidden />
         </ButtonLink>
@@ -89,11 +95,11 @@ export function BlockButtons({ buttons, className }: { buttons?: BlockButton[]; 
  * right-hand side of a text-only section something to be. Sections here used to
  * leave the entire right half of a 1440px viewport empty.
  */
-function RegisterRule({ label, className }: { label: string; className?: string }) {
+function RegisterRule({ label, as, className }: { label: string; as?: "span" | "h1" | "h2"; className?: string }) {
   return (
     <div className={clsx("flex items-center gap-3.5", className)}>
       <span className="accent-rule" aria-hidden />
-      <Eyebrow>{label}</Eyebrow>
+      <Eyebrow as={as}>{label}</Eyebrow>
       <span className="bg-line h-px flex-1" aria-hidden />
     </div>
   );
@@ -294,7 +300,16 @@ export function HeroBlock({ block }: { block: z.infer<typeof heroBlockSchema> })
             contrast, and on mobile covered the portrait entirely.
           */}
           <div className={clsx(hasBg ? "max-w-xl lg:max-w-[46%] lg:min-w-[34rem]" : "max-w-2xl")}>
-            {block.eyebrow && <RegisterRule label={block.eyebrow} className="mb-7" />}
+            {/*
+              A hero whose headline is a pull quote leaves `title` empty, so the
+              h1 below never renders and the page has no top-level heading at all
+              — it starts at h2, which reads to a crawler and a screen reader as
+              a page with no subject. The eyebrow is the phrase the quote
+              continues from, so it is the heading; it just becomes one.
+            */}
+            {block.eyebrow && (
+              <RegisterRule label={block.eyebrow} as={block.title ? undefined : "h1"} className="mb-7" />
+            )}
             {block.title && (
               <h1
                 className={clsx(
@@ -385,6 +400,12 @@ const LOGO_FADE = "linear-gradient(90deg, transparent, #000 8%, #000 92%, transp
 export function LogoStripBlock({ block }: { block: z.infer<typeof logoStripBlockSchema> }) {
   const logos = block.logos ?? [];
   const marquee = block.variant === "marquee" && logos.length > 0;
+  /*
+   * Single-colour marks follow the band's ink. `dark:` is scoped to `.dark` AND
+   * `.section-invert` (globals.css), so a strip inside a dark band keeps the
+   * white knock-outs while the same markup inverts to ink on light paper.
+   */
+  const monoClass = block.mono ? "invert dark:invert-0" : undefined;
   return (
     <Container size="xl">
       {block.caption && (
@@ -427,7 +448,7 @@ export function LogoStripBlock({ block }: { block: z.infer<typeof logoStripBlock
                   alt={logo.alt ?? ""}
                   width={220}
                   height={64}
-                  className="h-10 w-auto object-contain opacity-80"
+                  className={clsx("h-10 w-auto object-contain opacity-80", monoClass)}
                 />
               </div>
             ))}
@@ -445,7 +466,7 @@ export function LogoStripBlock({ block }: { block: z.infer<typeof logoStripBlock
                   aria-hidden={i >= logos.length}
                   width={220}
                   height={64}
-                  className="h-8 w-auto flex-none object-contain opacity-80 sm:h-10"
+                  className={clsx("h-8 w-auto flex-none object-contain opacity-80 sm:h-10", monoClass)}
                 />
               ))}
             </div>
@@ -463,7 +484,7 @@ export function LogoStripBlock({ block }: { block: z.infer<typeof logoStripBlock
       ) : (
         <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 opacity-80">
           {logos.map((logo, i) => (
-            <Image key={i} src={logo.src} alt={logo.alt ?? ""} width={200} height={64} className="h-9 w-auto object-contain sm:h-11" />
+            <Image key={i} src={logo.src} alt={logo.alt ?? ""} width={200} height={64} className={clsx("h-9 w-auto object-contain sm:h-11", monoClass)} />
           ))}
         </div>
       )}
@@ -523,7 +544,10 @@ export function PillarsBlock({ block }: { block: z.infer<typeof pillarsBlockSche
               direction="up"
               delay={i * 60}
               as="article"
-              className="border-line-strong bg-elevated overflow-hidden rounded-[var(--radius-card)] border sm:row-span-2 sm:grid sm:grid-rows-subgrid"
+              className={clsx(
+                "border-line-strong bg-elevated relative overflow-hidden rounded-[var(--radius-card)] border sm:row-span-2 sm:grid sm:grid-rows-subgrid",
+                item.href && "hover:border-ocean transition-colors",
+              )}
             >
               <div className="flex flex-col">
                 {item.image && (
@@ -547,7 +571,21 @@ export function PillarsBlock({ block }: { block: z.infer<typeof pillarsBlockSche
                     {Icon && <Icon size={19} strokeWidth={1.6} className="text-ink-2" aria-hidden />}
                     <span className="bg-line h-px flex-1" aria-hidden />
                   </div>
-                  <h3 className="type-display text-ink mb-3.5 text-[1.45rem] leading-tight">{item.title}</h3>
+                  {/*
+                    Stretched link, not a wrapping <a>. The card is a subgrid
+                    item spanning two rows; wrapping it would put the anchor
+                    between the grid and the article and collapse the shared tag
+                    band that alignment depends on.
+                  */}
+                  <h3 className="type-display text-ink mb-3.5 text-[1.45rem] leading-tight">
+                    {item.href ? (
+                      <a href={item.href} className="after:absolute after:inset-0">
+                        {item.title}
+                      </a>
+                    ) : (
+                      item.title
+                    )}
+                  </h3>
                   <p className="text-ink-2 measure text-[15px] leading-[1.7]">{item.body}</p>
                 </div>
               </div>
@@ -893,6 +931,9 @@ export function IconListBlock({ block }: { block: z.infer<typeof iconListBlockSc
 
 export function MediaTextBlock({ block }: { block: z.infer<typeof mediaTextBlockSchema> }) {
   const sheet = block.images && block.images.length > 0;
+  // A wide figure owns the full measure, so it cancels the two-column split the
+  // same way a contact sheet does.
+  const wide = !!block.image && !!block.imageWide && !sheet;
   return (
     <Container size="xl">
       <BlockHeaderRow header={block.header} />
@@ -903,10 +944,10 @@ export function MediaTextBlock({ block }: { block: z.infer<typeof mediaTextBlock
       <div
         className={clsx(
           "grid items-start gap-x-14 gap-y-10",
-          block.image && !sheet && "lg:grid-cols-2 lg:items-center",
+          block.image && !sheet && !wide && "lg:grid-cols-2 lg:items-center",
         )}
       >
-        <div className={clsx(block.flip && !sheet && "lg:order-2")}>
+        <div className={clsx(block.flip && !sheet && !wide && "lg:order-2")}>
           {block.heading && (
             <h3 className="type-display text-ink mb-4 text-[1.6rem] leading-[1.24]">{block.heading}</h3>
           )}
@@ -917,12 +958,26 @@ export function MediaTextBlock({ block }: { block: z.infer<typeof mediaTextBlock
           </div>
           <BlockButtons buttons={block.buttons} className="mt-8" />
         </div>
-        {block.image && !sheet && (
+        {block.image && !sheet && !wide && (
           <div className={clsx("lg:justify-self-end", block.flip && "lg:order-1")}>
             <Plate src={block.image} alt={block.imageAlt ?? ""} />
           </div>
         )}
       </div>
+      {wide && (
+        <Reveal direction="up" delay={80}>
+          <Image
+            src={block.image!}
+            alt={block.imageAlt ?? ""}
+            width={1260}
+            height={473}
+            sizes="(max-width: 1024px) 92vw, 1100px"
+            placeholder={getBlurDataURL(block.image!) ? "blur" : undefined}
+            blurDataURL={getBlurDataURL(block.image!)}
+            className="border-line mt-11 h-auto w-full rounded-[var(--radius-card)] border"
+          />
+        </Reveal>
+      )}
       {sheet && (
         <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:max-w-3xl">
           {block.images!.map((img, i) => (

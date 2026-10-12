@@ -3,7 +3,7 @@ import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { requireModule } from "@/lib/modules";
 import { site, canonicalUrl } from "@/config/site";
-import { routeAlternates } from "@/lib/route-meta";
+import { clampDescription, fitTitle, routeAlternates } from "@/lib/route-meta";
 export async function generateMetadata({
   params,
 }: {
@@ -13,9 +13,8 @@ export async function generateMetadata({
   const path = "/join";
   
   return {
-    title: `Membership — Join the Inner Circle | ${site.name}`,
-    description:
-      `Become an ${site.name} Insider: first listens, presale access, behind-the-scenes drops and invite-only moments. Plans from $6/mo, cancel anytime.`,
+    title: fitTitle(`Membership — Join the Inner Circle | ${site.name}`, site.name),
+    description: clampDescription(`Become an ${site.name} Insider: first listens, presale access, behind-the-scenes drops and invite-only moments. Plans from $6/mo; renew monthly by card, or pay one period at a time.`),
     alternates: routeAlternates(path, locale),
     openGraph: {
       title: `Membership — Join the Inner Circle | ${site.name}`,

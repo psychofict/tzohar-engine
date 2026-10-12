@@ -3,7 +3,7 @@ import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { requireModule } from "@/lib/modules";
 import { site, canonicalUrl } from "@/config/site";
-import { routeAlternates } from "@/lib/route-meta";
+import { clampDescription, fitTitle, routeAlternates } from "@/lib/route-meta";
 export async function generateMetadata({
   params,
 }: {
@@ -13,9 +13,8 @@ export async function generateMetadata({
   const path = "/gallery";
   
   return {
-    title: `Gallery — ${site.name}`,
-    description:
-      `Photos from the stage, the road, and the milestones — ${site.name} across tours, travel, press and releases.`,
+    title: fitTitle(`Gallery — ${site.name}`, site.name),
+    description: clampDescription(`Photos from the stage, the road, and the milestones — ${site.name} across tours, travel, press and releases.`),
     alternates: routeAlternates(path, locale),
     openGraph: {
       title: `Gallery — ${site.name}`,

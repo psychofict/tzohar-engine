@@ -16,7 +16,7 @@
  * white rectangle with a rumour of an image behind it. Both have shipped here.
  *
  * Every light value is built from `--color-bg` rather than a literal white, so it
- * tracks the site's paper tone (a warm #F7F6F4 on the reference build, not #FFF).
+ * tracks the site's paper tone (#FFFFFF on the default 'pure' paper).
  * The dark values use a fixed near-black: they sit UNDER light type in a band that
  * is dark in both themes, so they must not follow the theme.
  */

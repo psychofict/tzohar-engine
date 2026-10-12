@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { site, canonicalUrl } from "@/config/site";
+import { clampDescription, fitTitle } from "@/lib/route-meta";
 import { allPosts, categoryLabel, getPost, posts, postSummaries } from "@/data/posts";
 import { formatPostDate } from "@/lib/posts-format";
 import { getBlurDataURL } from "@/lib/image-blur";
@@ -40,13 +41,13 @@ export async function generateMetadata({
   const post = getPost(slug);
   if (!post) return {};
   return {
-    title: `${post.title} — ${site.name}`,
-    description: post.excerpt ?? site.description,
+    title: fitTitle(post.title, site.name),
+    description: clampDescription(post.excerpt ?? site.description),
     alternates: { canonical: canonicalUrl(locale, `/posts/${slug}`) },
     openGraph: {
       type: "article",
       title: post.title,
-      description: post.excerpt ?? site.description,
+      description: clampDescription(post.excerpt ?? site.description),
       publishedTime: post.date,
       images: post.coverImage ? [{ url: post.coverImage }] : undefined,
     },

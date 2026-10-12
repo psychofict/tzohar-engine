@@ -26,8 +26,13 @@ export function useTheme() {
  * Resolves the theme with the SAME precedence as the pre-paint inline script in
  * the root layout:
  *
- *   appearance.mode "light" | "dark"  → that mode, full stop.
- *   appearance.mode "system"          → stored choice, else prefers-color-scheme.
+ *   canToggle = appearance.toggle === true || mode === "system"
+ *   canToggle → stored choice wins, else the mode's own default.
+ *   otherwise → the pinned mode, full stop (a stored value can only be stale).
+ *
+ * where the mode's own default is: "dark" → dark, "light" → light,
+ * "system" → prefers-color-scheme. So `mode: "dark"` + `toggle: true` opens dark
+ * for a first-time visitor yet still shows the switch and remembers a choice.
  *
  * That agreement is the whole point. This provider used to initialise to "light"
  * and consult only localStorage + `prefers-color-scheme`, ignoring the configured
@@ -50,28 +55,33 @@ export function useTheme() {
 export default function ThemeProvider({
   children,
   mode = "system",
+  toggle = false,
 }: {
   children: React.ReactNode;
   mode?: Mode;
+  toggle?: boolean;
 }) {
+  // A pinned mode is only unlocked when the site opts into a toggle; "system"
+  // always allows one.
+  const canToggle = toggle || mode === "system";
   // Match the inline script's first guess so the initial client render agrees
   // with the DOM it hydrates into.
   const [theme, setTheme] = useState<Theme>(mode === "dark" ? "dark" : "light");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (mode === "dark" || mode === "light") {
-      setTheme(mode);
+    const stored = canToggle ? (localStorage.getItem("theme") as Theme | null) : null;
+    if (stored === "light" || stored === "dark") {
+      setTheme(stored);
+    } else if (mode === "dark") {
+      setTheme("dark");
+    } else if (mode === "light") {
+      setTheme("light");
     } else {
-      const stored = localStorage.getItem("theme") as Theme | null;
-      if (stored === "light" || stored === "dark") {
-        setTheme(stored);
-      } else {
-        setTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-      }
+      setTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     }
     setMounted(true);
-  }, [mode]);
+  }, [mode, canToggle]);
 
   // Apply the theme class to <html>. No persistence here — see above.
   useEffect(() => {
@@ -92,7 +102,7 @@ export default function ThemeProvider({
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, locked: mode !== "system" }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, locked: !canToggle }}>
       {children}
     </ThemeContext.Provider>
   );

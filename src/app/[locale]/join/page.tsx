@@ -7,6 +7,7 @@ import { Check, ArrowRight, Star } from "lucide-react";
 import PageHero from "@/components/ui/PageHero";
 import Container from "@/components/ui/Container";
 import MembershipPanel from "@/components/MembershipPanel";
+import AcceptedMethods from "@/components/payments/AcceptedMethods.generated";
 import LegalConsent from "@/components/LegalConsent";
 import { plans, type Plan } from "@/data/plans";
 import { useMembership, startCheckout } from "@/lib/membership";
@@ -32,7 +33,7 @@ export default function JoinPage() {
     await submitForm({ email, source: "join-free" });
   };
 
-  // Paid tiers = hub Stripe checkout (via same-origin proxy).
+  // Paid tiers = hub Paynow checkout (via same-origin proxy).
   const [pending, setPending] = useState<string | null>(null);
   const [checkoutErr, setCheckoutErr] = useState<string | null>(null);
   const [billing, setBilling] = useState<"month" | "year">("month");
@@ -204,7 +205,9 @@ export default function JoinPage() {
         {checkoutErr && (
           <p className="mt-6 text-center text-sm text-magenta">{checkoutErr}</p>
         )}
-        <p className="mt-8 text-center text-xs text-ink-3">{t("footnote")}</p>
+        <div className="mt-8">
+          <AcceptedMethods align="center" caption={t("footnote")} acceptsLabel={t("acceptedSpoken")} />
+        </div>
         <LegalConsent variant="paid" className="mx-auto mt-3 max-w-md text-center text-xs leading-relaxed text-ink-3" />
 
         {/* FAQ */}

@@ -10,6 +10,14 @@ type Props = {
    * band, a live state). Reach for it rarely.
    */
   tone?: "label" | "accent" | "ink";
+  /**
+   * The element to render. A hero whose headline is a pull quote has no title to
+   * make the page's h1, and the eyebrow is the phrase the quote continues from —
+   * so that hero passes `as="h1"` and the page gets a heading without gaining a
+   * line of type. Purely structural: the styling here is what sets the size, so
+   * the element changes and nothing moves.
+   */
+  as?: "span" | "h1" | "h2";
   className?: string;
 };
 
@@ -30,11 +38,11 @@ const toneClass = {
   ink: "text-ink-2",
 };
 
-export default function Eyebrow({ children, tone = "label", className }: Props) {
+export default function Eyebrow({ children, tone = "label", as: Tag = "span", className }: Props) {
   // `text-balance`: these labels are often three joined nouns ("Research ·
   // Innovation · Public Diplomacy") and at 390px they wrapped to a full line
   // plus a single orphaned word. Balanced, the two lines come out even.
   return (
-    <span className={clsx("type-label inline-block text-balance", toneClass[tone], className)}>{children}</span>
+    <Tag className={clsx("type-label inline-block text-balance", toneClass[tone], className)}>{children}</Tag>
   );
 }

@@ -97,6 +97,12 @@ export const blockButtonSchema = z.object({
   label: z.string().min(1),
   href: z.string().min(1),
   style: z.enum(["primary", "outline", "ghost"]).optional(),
+  /**
+   * Save the target instead of opening it. A PDF href without this loads in the
+   * browser's viewer, which is not what a button labelled "Download" promises.
+   * Same-origin files only — the attribute is ignored cross-origin.
+   */
+  download: z.boolean().optional(),
 });
 
 /** Optional standard section header. `sideNote` renders the asymmetric
@@ -161,6 +167,17 @@ export const logoStripBlockSchema = z.object({
   imageAlt: z.string().optional(),
   /** …or individual logos. */
   logos: z.array(z.object(image)).optional(),
+  /**
+   * These marks are single-colour silhouettes, so flip them with the band.
+   *
+   * A partner strip is normally supplied as white knock-outs for a dark design.
+   * Rendered unchanged on a light band they disappear — white on cream — and the
+   * colour originals are no help, because they ship as opaque JPEG/PNG and land
+   * as white boxes. With `mono` the same marks invert to ink in light mode and
+   * stay white inside a dark band, so one asset set serves both modes. Off by
+   * default: inverting a full-colour logo would wreck it.
+   */
+  mono: z.boolean().optional(),
 });
 
 export const pillarsBlockSchema = z.object({
@@ -182,6 +199,12 @@ export const pillarsBlockSchema = z.object({
       image: z.string().optional(),
       /** Alt text for `image`. Falls back to the pillar's title. */
       imageAlt: z.string().optional(),
+      /**
+       * Makes the whole card a link to the domain's own page. The anchor sits
+       * on the title and stretches over the card, so the accessible name is the
+       * pillar's name rather than "read more".
+       */
+      href: z.string().optional(),
       tagsLabel: z.string().optional(),
       tags: z.array(z.string()).optional(),
     }),
@@ -265,6 +288,13 @@ export const mediaTextBlockSchema = z.object({
    * stripe, whereas the same frames side by side stay near native size.
    */
   images: z.array(z.object(image)).optional(),
+  /**
+   * Run the single image full width beneath the copy instead of beside it, at
+   * its own aspect ratio. For artwork that carries its own internal structure
+   * — a diagram, a labelled figure, a process panel — which a half-width
+   * column shrinks past the point where its parts can be read.
+   */
+  imageWide: z.boolean().optional(),
   /** Put the media on the left instead of the right. */
   flip: z.boolean().optional(),
   buttons: z.array(blockButtonSchema).optional(),
@@ -443,6 +473,8 @@ export const videoBlockSchema = z.object({
   /** Portrait sources get a narrower frame instead of a letterboxed one. */
   orientation: z.enum(["landscape", "portrait"]).optional(),
   body: z.string().optional(),
+  /** Put the film on the right and the copy on the left. */
+  flip: z.boolean().optional(),
   buttons: z.array(blockButtonSchema).optional(),
 });
 

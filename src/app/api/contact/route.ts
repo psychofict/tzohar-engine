@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #1B3A5C;">New ${escapeHtml(type || "General")} Inquiry</h2>
-          <div style="background: #F8F8F6; padding: 20px; border-radius: 8px; line-height: 1.8;">
+          <div style="background: #F7F7F7; padding: 20px; border-radius: 8px; line-height: 1.8;">
             ${emailBody}
           </div>
           <p style="color: #999; font-size: 12px; margin-top: 20px;">
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
               We've received your ${escapeHtml(type || "general")} inquiry and will get back to you as soon as possible.
             </p>
           </div>
-          <div style="background: #F0F0EC; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
+          <div style="background: #F0F0F0; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
             <p style="color: #999; font-size: 12px; margin: 0;">
               &copy; ${new Date().getFullYear()} ${escapeHtml(site.legalName ?? site.name)}. All rights reserved.
             </p>

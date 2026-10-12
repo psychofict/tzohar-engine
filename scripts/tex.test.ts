@@ -1,4 +1,4 @@
-import { tokenizeMath, splitTex, hasTex, texToPlain } from "../src/lib/tex";
+import { tokenizeMath, splitTex, hasTex, texToPlain } from "@tzohar/schema";
 
 let fails = 0;
 const check = (label: string, got: unknown, want: unknown) => {

@@ -150,12 +150,15 @@ function Plate({
   positionMobile,
   scrim,
   className,
+  priority,
 }: {
   src: string;
   position?: string;
   positionMobile?: string;
   scrim: { wide: string; mobile: string } | null;
   className?: string;
+  /** Set for the page's leading hero only — see SectionBackground. */
+  priority?: boolean;
 }) {
   return (
     <div className={clsx("absolute inset-0", className)}>
@@ -163,6 +166,7 @@ function Plate({
         src={src}
         alt=""
         fill
+        priority={priority}
         sizes="100vw"
         className="object-cover object-[var(--bg-pos-mobile)] sm:object-[var(--bg-pos)]"
         style={
@@ -191,7 +195,21 @@ function Plate({
  * the root mode is. Doing the swap in CSS rather than from a theme hook keeps
  * this a server component and means the first paint is already correct.
  */
-function SectionBackground({ bg, tone }: { bg: BlockBackground; tone: BlockTone }) {
+function SectionBackground({
+  bg,
+  tone,
+  priority,
+}: {
+  bg: BlockBackground;
+  tone: BlockTone;
+  /**
+   * The leading hero's photograph is the largest thing on first paint, and
+   * next/image lazy-loads by default — so it arrived after the copy and the band
+   * showed empty dark for a beat. Only the first hero opts in; preloading every
+   * section's backdrop would trade one late image for six.
+   */
+  priority?: boolean;
+}) {
   const darkPlate = (
     <Plate
       src={bg.image}
@@ -199,6 +217,7 @@ function SectionBackground({ bg, tone }: { bg: BlockBackground; tone: BlockTone 
       positionMobile={bg.positionMobile}
       scrim={scrimPair(bg.overlay, tone, false)}
       className={bg.imageLight ? "hidden dark:block" : undefined}
+      priority={priority}
     />
   );
   return (
@@ -216,6 +235,7 @@ function SectionBackground({ bg, tone }: { bg: BlockBackground; tone: BlockTone 
           positionMobile={bg.positionMobileLight ?? bg.positionLight ?? bg.positionMobile}
           scrim={scrimPair(bg.overlayLight ?? "light", tone, true)}
           className="dark:hidden"
+          priority={priority}
         />
       )}
       {darkPlate}
@@ -355,12 +375,16 @@ function BlockShell({
         // last focusable element of every section.
         (hasBg || block.textured) && "overflow-hidden",
         TONE_BG[tone],
-        // `flex-col` + `mt-auto` on the body, NOT `items-end`. With
-        // `align-items: flex-end` a copy block taller than the band's content box
+        // `flex-col` + `my-auto` on the body, NOT `items-center`. With
+        // `align-items: center` a copy block taller than the band's content box
         // overflows past `padding-top` instead of being held by it, so a hero
         // with a record row and a signature line pushed its eyebrow up under the
-        // fixed navbar. `mt-auto` collapses to zero once the content fills the
+        // fixed navbar. `my-auto` collapses to zero once the content fills the
         // space, which is exactly the behaviour wanted.
+        //
+        // Centred, not bottom-anchored, and the bottom pad is deeper than the
+        // top: anchored to the floor, the copy left ~300px of empty band under
+        // the header and the block read as though it had slipped down the page.
         /*
          * Mobile is deliberately shorter and tighter than it was. 82svh with the
          * fact row hidden left the band mostly empty and pushed the credibility
@@ -368,7 +392,7 @@ function BlockShell({
          * its full-height cinematic band.
          */
         heroBleed
-          ? "flex min-h-[74svh] flex-col pb-8 pt-24 sm:min-h-[84vh] sm:pb-18 sm:pt-32"
+          ? "flex min-h-[74svh] flex-col pb-14 pt-20 sm:min-h-[84vh] sm:pb-28 sm:pt-24"
           : "band",
         !heroBleed && continuesBand && "band-top-tight",
         !heroBleed && continuedBelow && "band-bottom-tight",
@@ -378,12 +402,22 @@ function BlockShell({
         block.type === "logoStrip" && "!py-6 sm:!py-9",
       )}
     >
-      {block.background && <SectionBackground bg={block.background} tone={tone} />}
+      {block.background && <SectionBackground bg={block.background} tone={tone} priority={first && isHero} />}
       {/* Never both. Ruled lines drawn over a photograph read as a rendering
           artifact laid on top of the image, not as a surface — the photo is
           already the band's texture. */}
       {block.textured && !hasBg && <Texture />}
-      <div className={clsx("relative w-full", heroBleed && "mt-auto")}>
+      {/*
+        `data-nav-collide` marks the block of copy the fixed header can actually
+        collide with, so Navbar can keep floating transparently over the hero and
+        fade its scrim in exactly as this content reaches the bar — rather than
+        guessing with a scroll threshold, which is what put a headline under the
+        nav with nothing behind it. Only the page's leading hero is a float target.
+      */}
+      <div
+        data-nav-collide={first && isHero ? "" : undefined}
+        className={clsx("relative w-full", heroBleed && "my-auto")}
+      >
         {continuesBand && <BandSeam />}
         {body}
       </div>

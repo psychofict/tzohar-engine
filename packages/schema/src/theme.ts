@@ -347,7 +347,8 @@ export interface PaperPreset {
   dark: Neutrals;
 }
 
-/** The engine's baked-in defaults (globals.css) — the "warm" paper. */
+/** The "warm" paper preset. No longer the engine default: globals.css ships
+ *  the "pure" values, because cream grounds are banned (founder 2026-09-11). */
 export const NEUTRALS_LIGHT: Neutrals = {
   bg: "#FAFAF7", surface: "#F2EEE7", surface2: "#E7E1D6", elevated: "#FFFFFF",
   ink: "#15121C", ink2: "#4A4456", ink3: "#67616F",
@@ -365,7 +366,7 @@ export const NEUTRALS_DARK: Neutrals = {
  * brand hue at low saturation.
  */
 export const PAPER_PRESETS: Record<Exclude<PaperChoice, "tinted">, PaperPreset> = {
-  warm: { label: "Warm", vibe: "Cream · default", light: NEUTRALS_LIGHT, dark: NEUTRALS_DARK },
+  warm: { label: "Warm", vibe: "Cream", light: NEUTRALS_LIGHT, dark: NEUTRALS_DARK },
   pure: {
     label: "Pure",
     vibe: "Clean white / true black",
@@ -592,7 +593,8 @@ export function resolveAccents(config: ThemeableConfig, mode: "light" | "dark"):
  * neutrals from the resolved accent so surfaces/ink carry the brand hue.
  */
 export function resolvePaper(config: ThemeableConfig, mode: "light" | "dark"): Neutrals {
-  const choice = config.appearance?.paper ?? "warm";
+  // Default is pure white. A client can still choose warm, sand or noir.
+  const choice = config.appearance?.paper ?? "pure";
   if (choice !== "tinted") return PAPER_PRESETS[choice][mode];
 
   const accent = resolveAccents(config, mode).primary;
