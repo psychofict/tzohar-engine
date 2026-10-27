@@ -230,16 +230,17 @@ export function getEbenworksOrganizationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": "https://ebenworks.co/#org",
+    "@id": "https://ebenworks.co/#organization",
     name: "Ebenworks",
     url: "https://ebenworks.co",
-    foundingDate: "2026",
-    foundingLocation: {
-      "@type": "Place",
-      name: "Seoul, South Korea",
+    foundingDate: "2026-05-29",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Bulawayo",
+      addressCountry: "ZW",
     },
     description:
-      "Ebenworks is a Seoul software studio building AI products for markets the industry overlooks. Nine products are live, among them Imali (a WhatsApp business OS for Africa's informal merchants, live in five countries) and Chingu (a Korean-native voice AI for seniors).",
+      "Ebenworks is an AI product company for the people who keep the world running: the shop owner, the nurse, the family carer, the contractor, the organiser and the artist.",
     founder: {
       "@type": "Person",
       "@id": `${site.url}/#person`,
@@ -251,15 +252,15 @@ export function getEbenworksOrganizationSchema() {
     subOrganization: [
       {
         "@type": "Organization",
-        name: "Imali",
-        url: "https://imali.ebenworks.co",
-        description: "WhatsApp business OS for Africa's informal merchants, live in five countries",
+        name: "Imali AI",
+        url: "https://imali-ai.ebenworks.co",
+        description: "Africa's smartest AI Business OS.",
       },
       {
         "@type": "Organization",
-        name: "Chingu",
+        name: "Chingu Care AI",
         url: "https://chingu-ai.ebenworks.co",
-        description: "Korean-native voice AI that checks on seniors daily",
+        description: "The world's smartest Korean AI care companion.",
       },
     ],
   };

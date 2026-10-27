@@ -32,8 +32,8 @@ export type PathOwner = "engine" | "client" | "excluded";
  * engine code, so the next sync overwrote it or it had to be merged into the
  * engine, which is what happened to the first bespoke build in engine 2.0.0.
  * Either way it ended up under the engine paths the NOTICE licenses as
- * Apache-2.0 and jointly owned, which is not what a client paying for its own
- * feature was promised. This directory sits outside every NOTICE path on
+ * Apache-2.0, which is not what a client paying for its own feature was
+ * promised. This directory sits outside every NOTICE path on
  * purpose; keep it there.
  *
  * The engine reaches it through one optional entry, `src/custom/pages.tsx` (see

@@ -23,15 +23,14 @@ export default function Error({
         <div className="measure">
           <div className="mb-7 flex items-center gap-3.5">
             <span className="accent-rule" aria-hidden />
-            <Eyebrow>Error</Eyebrow>
+            <Eyebrow>Page unavailable</Eyebrow>
             <span className="bg-line h-px flex-1" aria-hidden />
           </div>
           <h1 className="type-display text-ink leading-[1.1] text-[calc(clamp(2rem,4vw,3rem)*var(--display-scale))]">
-            This page didn&apos;t load
+            We could not load this page
           </h1>
           <p className="text-ink-2 mt-5 text-[17px] leading-relaxed">
-            Something failed on our side, not yours. Trying again usually works; if it doesn&apos;t, the
-            contact page still does.
+            Sorry, this page is unavailable just now. Please try again. If the problem continues, you can reach us through the contact page.
           </p>
           {/* A digest is what support can actually act on — showing it beats
               asking someone to describe a blank screen. */}

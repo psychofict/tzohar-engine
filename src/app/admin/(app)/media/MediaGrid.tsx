@@ -4,7 +4,7 @@ import { useState } from "react";
 
 const VIDEO = /\.(mp4|mov|webm)$/i;
 
-export default function MediaGrid({ files }: { files: { path: string; size: number }[] }) {
+export default function MediaGrid({ files }: { files: { path: string; size: number; thumb?: string }[] }) {
   const [copied, setCopied] = useState<string | null>(null);
 
   const copy = async (path: string) => {
@@ -50,7 +50,7 @@ export default function MediaGrid({ files }: { files: { path: string; size: numb
                 // client-uploaded paths, and next/image would demand each one be
                 // a configured, optimisable source.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={file.path} alt="" loading="lazy" />
+                <img src={file.thumb ?? file.path} alt="" loading="lazy" />
               )}
             </button>
             <figcaption>

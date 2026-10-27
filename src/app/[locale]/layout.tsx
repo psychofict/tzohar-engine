@@ -267,8 +267,10 @@ export default async function LocaleLayout({
 
   // Custom accent/radius overrides (empty string for preset-only sites → no <style>).
   const appearanceCss = appearanceStyle(site);
-  // Forced default color mode for the no-flash script ("system" preserves today's behavior).
-  const forcedMode = site.appearance?.mode ?? "system";
+  // Default color mode for the no-flash script. A site that sets nothing opens
+  // light and never follows the visitor's OS (engine 2.8.5: light is the default
+  // everywhere; "system" has to be chosen on purpose).
+  const forcedMode = site.appearance?.mode ?? "light";
   // Whether visitors get a light/dark switch. "system" always does; a pinned
   // mode does only when the site opts in — then the pinned mode is just the
   // first-visit default. Must stay in lockstep with the pre-paint script below
@@ -324,6 +326,7 @@ export default async function LocaleLayout({
             storage. Keep this in lockstep with ThemeProvider and not-found.tsx. */}
         <script
           dangerouslySetInnerHTML={{
+            // light-theme:allow a client's own appearance.mode ("system" only when the site sets it; Tzohar's default is light)
             __html: `(function(){try{var m=${JSON.stringify(forcedMode)},c=${JSON.stringify(allowToggle)};var s=c?localStorage.getItem('theme'):null;if(s==='dark'||(s!=='light'&&(m==='dark'||(m==='system'&&window.matchMedia('(prefers-color-scheme:dark)').matches)))){document.documentElement.classList.add('dark')}document.documentElement.classList.add('js-on')}catch(e){}})()`,
           }}
         />

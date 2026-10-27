@@ -23,10 +23,11 @@ export const STARTER_TEMPLATES: readonly StarterTemplate[] = [
   {
     id: "musician",
     label: "Musician",
-    blurb: "Dark stage, loud type, springy motion — releases, tour, gallery.",
+    blurb: "Loud type, high contrast, springy motion — releases, tour, gallery.",
     kind: "musician",
     theme: "violet",
-    appearance: { font: "unbounded", paper: "noir", typeScale: "expressive", motion: "kinetic", radius: "soft", mode: "dark" },
+    // Starts light like every template (SO-6, 17 Oct 2026); the client can switch the site to dark.
+    appearance: { font: "unbounded", paper: "noir", typeScale: "expressive", motion: "kinetic", radius: "soft" },
     layout: { hero: "photo", sections: "cards" },
     modules: ["music", "gallery", "tour", "press", "links", "merch"],
   },
@@ -77,7 +78,8 @@ export const STARTER_TEMPLATES: readonly StarterTemplate[] = [
     kind: "person",
     theme: "default",
     appearance: { font: "inter", paper: "noir", typeScale: "expressive", motion: "still", radius: "soft" },
-    layout: { hero: "split", sections: "editorial", heroTone: "dark" },
+    // No dark hero band by default (SO-6, 17 Oct 2026); heroTone "dark" stays a client's choice.
+    layout: { hero: "split", sections: "editorial" },
     modules: ["research", "innovation", "engagements", "biography", "links", "pages"],
   },
 ] as const;

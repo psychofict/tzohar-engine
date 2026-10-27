@@ -38,7 +38,7 @@ const label = IBM_Plex_Mono({
  */
 export default function RootNotFound() {
   const appearanceCss = appearanceStyle(site);
-  const forcedMode = site.appearance?.mode ?? "system";
+  const forcedMode = site.appearance?.mode ?? "light";
   const allowToggle = site.appearance?.toggle === true || forcedMode === "system";
 
   return (
@@ -63,7 +63,7 @@ export default function RootNotFound() {
           dangerouslySetInnerHTML={{
             // Same precedence as the root layout: a stored choice wins only when a
             // toggle is offered (appearance.toggle, or mode 'system'); a locked
-            // pinned mode ignores storage.
+            // pinned mode ignores storage. light-theme:allow a client's own appearance.mode ("system" only when the site sets it; Tzohar's default is light)
             __html: `(function(){try{var m=${JSON.stringify(forcedMode)},c=${JSON.stringify(allowToggle)};var s=c?localStorage.getItem('theme'):null;if(s==='dark'||(s!=='light'&&(m==='dark'||(m==='system'&&window.matchMedia('(prefers-color-scheme:dark)').matches)))){document.documentElement.classList.add('dark')}}catch(e){}})()`,
           }}
         />
@@ -78,11 +78,10 @@ export default function RootNotFound() {
               <span className="bg-line h-px flex-1" aria-hidden />
             </div>
             <h1 className="type-display text-ink text-balance leading-[1.08] text-[calc(clamp(2.25rem,6vw,3.75rem)*var(--display-scale))]">
-              That page isn&apos;t here
+              We could not find this page
             </h1>
             <p className="text-ink-2 measure mt-6 text-[17px] leading-relaxed">
-              The address may be mistyped, or the page may have moved. The home page is a good place to
-              pick the thread back up.
+              The page may have moved, or the address may be out of date. Please return to the homepage to continue.
             </p>
             <Link
               href="/"

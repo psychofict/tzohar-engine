@@ -82,11 +82,13 @@ function applyAppearance(config: SiteConfig) {
   const root = document.documentElement;
   root.setAttribute("data-theme", config.theme ?? "default");
 
-  // Mode: an explicit light/dark in the draft wins, mirroring the server's
-  // `forcedMode`. `system` leaves whatever the visitor's OS says.
+  // Mode, mirroring the server's `forcedMode`: dark only when the draft says
+  // dark, the OS only when it says `system`, and light when it says nothing.
   const mode = config.appearance?.mode;
   if (mode === "dark") root.classList.add("dark");
-  else if (mode === "light") root.classList.remove("dark");
+  // light-theme:allow a client's own appearance.mode ("system" only when the site sets it; Tzohar's default is light)
+  else if (mode === "system") root.classList.toggle("dark", window.matchMedia("(prefers-color-scheme: dark)").matches);
+  else root.classList.remove("dark");
 
   /*
    * The font pairing MUST be written inline on <html>, because that is where the

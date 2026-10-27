@@ -73,7 +73,7 @@ export const appearanceSchema = z.object({
   motion: z.enum(MOTION_CHOICES).optional(),
   /** Corner radius scale. */
   radius: z.enum(RADIUS_CHOICES).optional(),
-  /** Default color mode for visitors. `system` follows the OS. */
+  /** Default color mode for visitors. Absent means light; `system` follows the OS and has to be chosen. */
   mode: z.enum(MODE_CHOICES).optional(),
   /**
    * Offer visitors a light/dark switch, remembering their choice.

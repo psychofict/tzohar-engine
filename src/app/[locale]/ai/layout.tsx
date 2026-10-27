@@ -16,12 +16,12 @@ export async function generateMetadata({
   
   return {
     title: fitTitle(`AI/ML & Software Engineer — ${site.name}`, site.name),
-    description: clampDescription("AI/ML and Software Engineer. Published at IJCNN & Neural Networks, MSc AI from Korea University. 10+ shipped products, production CV/ML for smart cities."),
+    description: clampDescription("AI/ML and Software Engineer. Published at IJCNN & Neural Networks, MSc AI from Korea University. 10+ shipped products."),
     alternates: routeAlternates(path, locale),
     openGraph: {
       title: `AI/ML & Software Engineer — ${site.name}`,
       description:
-        "AI/ML and Software Engineer. Published at IJCNN & Neural Networks, MSc AI from Korea University. 10+ shipped products, production CV/ML for smart cities.",
+        "AI/ML and Software Engineer. Published at IJCNN & Neural Networks, MSc AI from Korea University. 10+ shipped products.",
       url: canonicalUrl(locale, path),
       ...(heroes.ai
         ? { images: [{ url: heroes.ai.image, width: 1200, height: 630, alt: `${site.name} — AI/ML engineering` }] }

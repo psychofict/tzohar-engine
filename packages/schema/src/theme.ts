@@ -30,6 +30,7 @@ export const FONT_CHOICES = [
   "dmserif",
 ] as const;
 export const RADIUS_CHOICES = ["sharp", "soft", "round"] as const;
+// light-theme:allow a client's own appearance.mode ("system" only when the site sets it; Tzohar's default is light)
 export const MODE_CHOICES = ["light", "dark", "system"] as const;
 export const PAPER_CHOICES = ["warm", "pure", "cool", "sand", "noir", "tinted"] as const;
 export const TYPESCALE_CHOICES = ["classic", "expressive", "statement"] as const;

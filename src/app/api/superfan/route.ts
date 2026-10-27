@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { site } from "@/config/site";
+import { innerCircleWelcome } from "@/lib/email/siteMail";
+import { carryInline } from "@/lib/email/inline";
 
 function escapeHtml(str: string): string {
   return str
@@ -68,36 +70,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Welcome email to the new member.
+    // Welcome email to the new member, in the site's own name and colours with the Tzohar Sites
+    // footer block, a text part and a way off the list (src/lib/email/siteMail.ts, 20 Oct 2026).
+    const welcome = innerCircleWelcome(site);
+    const inline = carryInline(welcome.html); // the joint stamp and our logo inside the message (EBE-4891)
     await resend.emails.send({
       from: `${site.name} <${site.email}>`,
       to: email,
-      subject: "You're in the Inner Circle",
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #0E0E10; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">The Vault</h1>
-            <p style="color: rgba(255,255,255,0.7); margin-top: 8px; letter-spacing: 2px; text-transform: uppercase; font-size: 12px;">${escapeHtml(site.name)} · Inner Circle</p>
-          </div>
-          <div style="padding: 30px 20px; background: #FFFFFF;">
-            <h2 style="color: #15121C;">Welcome in.</h2>
-            <p style="color: #555; line-height: 1.6;">
-              You'll get first listens, presale codes, behind-the-scenes drops and invite-only moments &mdash; before they go public. We'll only reach out when there's something worth it.
-            </p>
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${site.url}/vault"
-                 style="background: #1F5FE0; color: white; padding: 12px 30px; border-radius: 30px; text-decoration: none; display: inline-block;">
-                Open the Vault
-              </a>
-            </div>
-          </div>
-          <div style="background: #F0F0F0; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
-            <p style="color: #999; font-size: 12px; margin: 0;">
-              &copy; ${new Date().getFullYear()} ${escapeHtml(site.name)}.
-            </p>
-          </div>
-        </div>
-      `,
+      subject: welcome.subject,
+      html: inline.html,
+      text: welcome.text,
+      headers: welcome.headers,
+      attachments: inline.attachments,
     });
 
     // Notify the artist with everything captured.

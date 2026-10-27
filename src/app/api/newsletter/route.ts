@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { site } from "@/config/site";
+import { newsletterWelcome } from "@/lib/email/siteMail";
+import { carryInline } from "@/lib/email/inline";
 
 function escapeHtml(str: string): string {
   return str
@@ -54,29 +56,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
     }
 
-    // Send welcome email
+    // The welcome, in the site's own name and colours with the Tzohar Sites footer block, a text part
+    // and a way off the list (src/lib/email/siteMail.ts; customer email design, 20 Oct 2026).
+    const welcome = newsletterWelcome(site);
+    const inline = carryInline(welcome.html); // the joint stamp and our logo inside the message (EBE-4891)
     await resend.emails.send({
       from: `${site.name} <${site.email}>`,
       to: email,
-      subject: `Welcome — updates from ${site.name}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #1B3A5C; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">${escapeHtml(site.name)}</h1>
-          </div>
-          <div style="padding: 30px 20px; background: #FFFFFF;">
-            <h2 style="color: #1A1A2E;">Thanks for subscribing!</h2>
-            <p style="color: #555; line-height: 1.6;">
-              You'll be the first to know about new research, public diplomacy engagements, and updates from ${escapeHtml(site.name)}.
-            </p>
-          </div>
-          <div style="background: #F0F0F0; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
-            <p style="color: #999; font-size: 12px; margin: 0;">
-              &copy; ${new Date().getFullYear()} ${escapeHtml(site.legalName ?? site.name)}. All rights reserved.
-            </p>
-          </div>
-        </div>
-      `,
+      subject: welcome.subject,
+      html: inline.html,
+      text: welcome.text,
+      headers: welcome.headers,
+      attachments: inline.attachments,
     });
 
     // Notify site owner of new subscriber

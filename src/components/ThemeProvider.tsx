@@ -54,7 +54,7 @@ export function useTheme() {
  */
 export default function ThemeProvider({
   children,
-  mode = "system",
+  mode = "light",
   toggle = false,
 }: {
   children: React.ReactNode;
@@ -78,6 +78,7 @@ export default function ThemeProvider({
     } else if (mode === "light") {
       setTheme("light");
     } else {
+      // light-theme:allow a client's own appearance.mode ("system" only when the site sets it; Tzohar's default is light)
       setTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     }
     setMounted(true);

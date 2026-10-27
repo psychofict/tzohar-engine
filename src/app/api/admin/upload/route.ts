@@ -1,16 +1,20 @@
 import { NextResponse, type NextRequest } from "next/server";
 import sharp from "sharp";
 import { hasCrmSession } from "@/lib/crm/auth";
-import { writeFiles } from "@/lib/crm/store";
+import { CLOUDINARY_MAX_BYTES, cloudinaryConfig, uploadImage } from "@/lib/cloudinary";
 
 /**
- * Image upload. Re-encodes rather than storing the original bytes.
+ * Image upload. Re-encodes rather than storing the original bytes, then stores the result
+ * on Cloudinary (engine 2.8.7; until then it was committed into the site's repository).
  *
- * Three reasons, all of which have bitten this project's asset set already:
- * a phone photograph arrives at 6000px and 15MB and would be committed at that
- * size; EXIF orientation means it renders sideways unless baked in; and passing
- * an uploaded file through an image encoder is what guarantees the committed file
- * really is an image rather than something with a `.jpg` on the end.
+ * Three reasons for re-encoding, all of which have bitten this project's asset set already:
+ * a phone photograph arrives at 6000px and 15MB and would be stored at that size; EXIF
+ * orientation means it renders sideways unless baked in; and passing an uploaded file
+ * through an image encoder is what guarantees the stored file really is an image rather
+ * than something with a `.jpg` on the end.
+ *
+ * Without the Cloudinary settings (src/lib/cloudinary.ts) the route answers 501 and the
+ * site still builds and runs; an image address can be pasted instead.
  */
 
 const MAX_BYTES = 25 * 1024 * 1024;
@@ -29,6 +33,18 @@ function safeName(name: string): string {
 export async function POST(req: NextRequest) {
   if (!(await hasCrmSession())) {
     return NextResponse.json({ success: false, error: "Not signed in." }, { status: 401 });
+  }
+
+  const cfg = cloudinaryConfig();
+  if (!cfg) {
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "Image upload isn't set up on this site yet (it needs the Cloudinary settings). Paste an image address instead.",
+      },
+      { status: 501 },
+    );
   }
 
   const form = await req.formData();
@@ -53,21 +69,16 @@ export async function POST(req: NextRequest) {
       .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: "inside", withoutEnlargement: true })
       .jpeg({ quality: 82, mozjpeg: true, progressive: true })
       .toBuffer();
+    if (out.length > CLOUDINARY_MAX_BYTES) throw new Error("That image is still over 10MB after resizing.");
 
     // Timestamped so a re-upload of the same filename can't silently replace an
     // image other pages are already pointing at.
-    const stamp = new Date().toISOString().slice(0, 10);
-    const name = `${stamp}-${safeName(file.name)}.jpg`;
-    const repoPath = `public/images/uploads/${name}`;
-
-    const result = await writeFiles(
-      [{ path: repoPath, content: out.toString("base64"), encoding: "base64" }],
-      `crm: upload ${name}`,
-    );
+    const name = `${new Date().toISOString().slice(0, 10)}-${Date.now().toString(36)}-${safeName(file.name)}`;
+    const stored = await uploadImage(cfg, out, name, "image/jpeg");
 
     return NextResponse.json({
       success: true,
-      data: { ...result, path: `/images/uploads/${name}`, bytes: out.length },
+      data: { driver: "cloudinary", path: stored.url, bytes: stored.bytes },
     });
   } catch (err) {
     const error = err instanceof Error ? err.message : "Upload failed.";

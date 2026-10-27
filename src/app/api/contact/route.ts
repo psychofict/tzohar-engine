@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { site } from "@/config/site";
+import { contactAcknowledgement } from "@/lib/email/supportDesk";
+import { carryInline } from "@/lib/email/inline";
 
 function escapeHtml(str: string): string {
   return str
@@ -78,8 +80,9 @@ export async function POST(req: NextRequest) {
       .map(([k, v]) => `<strong>${escapeHtml(k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1'))}:</strong> ${escapeHtml(String(v))}`)
       .join("<br><br>");
 
-    // Send notification
-    await resend.emails.send({
+    // Send notification. The SDK reports a refused send in `error` rather than throwing, so it is
+    // read: the acknowledgement below tells the visitor their message was passed on.
+    const notified = await resend.emails.send({
       from: `${site.name} Website <${site.email}>`,
       to: site.email,
       subject,
@@ -96,30 +99,26 @@ export async function POST(req: NextRequest) {
       `,
     });
 
-    // Send auto-reply confirmation to sender
-    await resend.emails.send({
-      from: `${site.name} <${site.email}>`,
+    if (notified.error) {
+      console.error("Email error (notification):", notified.error);
+      return NextResponse.json({ error: "Failed to send email" }, { status: 502 });
+    }
+
+    // Auto-reply to the sender, on the support desk format and signature (SO-11, EBE-2278). From an
+    // ebenworks.co site address it goes out as Tzohar Sites Support; a site with its own mail domain
+    // keeps its own name (src/lib/email/supportDesk.ts).
+    const ack = contactAcknowledgement(site, { type, name, artistName: rest.artistName });
+    const inline = carryInline(ack.html); // the joint stamp and our logo inside the message (EBE-4891)
+    const acked = await resend.emails.send({
+      from: ack.from,
       to: email,
-      subject: `Thank you for reaching out! — ${site.name}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #1B3A5C; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">${escapeHtml(site.name)}</h1>
-          </div>
-          <div style="padding: 30px 20px; background: #FFFFFF;">
-            <h2 style="color: #1A1A2E;">Thank you for your message!</h2>
-            <p style="color: #555; line-height: 1.6;">
-              We've received your ${escapeHtml(type || "general")} inquiry and will get back to you as soon as possible.
-            </p>
-          </div>
-          <div style="background: #F0F0F0; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
-            <p style="color: #999; font-size: 12px; margin: 0;">
-              &copy; ${new Date().getFullYear()} ${escapeHtml(site.legalName ?? site.name)}. All rights reserved.
-            </p>
-          </div>
-        </div>
-      `,
+      replyTo: ack.replyTo,
+      subject: ack.subject,
+      html: inline.html,
+      text: ack.text,
+      attachments: inline.attachments,
     });
+    if (acked.error) console.error("Email error (acknowledgement):", acked.error);
 
     return NextResponse.json({ success: true });
   } catch (error) {

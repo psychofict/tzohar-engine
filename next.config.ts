@@ -88,10 +88,13 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
-      {
-        protocol: "https",
-        hostname: "*.public.blob.vercel-storage.com",
-      },
+      // Images uploaded through Studio or this site's CRM (engine 2.8.7). Pinned to the one
+      // product environment, not the whole host: Vercel Blob's `*.public.blob.vercel-storage.com`
+      // stood here until 13 Oct 2026 and let any Blob store anyone runs through the optimizer.
+      // A site with its own Cloudinary account (CLOUDINARY_CLOUD_NAME) gets its own entry.
+      ...[...new Set(["qjbtaukm", process.env.CLOUDINARY_CLOUD_NAME?.trim()].filter(Boolean))].map(
+        (cloud) => ({ protocol: "https" as const, hostname: "res.cloudinary.com", pathname: `/${cloud}/image/upload/**` }),
+      ),
     ],
   },
   async redirects() {
