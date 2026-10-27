@@ -1,9 +1,11 @@
 import { site } from "@/config/site";
 import SettingsForm from "./SettingsForm";
+import { requireCrm } from "@/lib/crm/guard";
 
 export const dynamic = "force-dynamic";
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  await requireCrm();
   return (
     <SettingsForm
       initial={{

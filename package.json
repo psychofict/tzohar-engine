@@ -20,10 +20,14 @@
     "test:csp-report": "npx --yes tsx scripts/csp-report.test.ts",
     "test:contact-ack": "npx --yes tsx scripts/contact-acknowledgement.test.ts",
     "test:mail-inline": "npx --yes tsx scripts/mail-inline-images.test.ts",
-    "prebuild": "node scripts/gen-cjk-fonts.mjs",
+    "test:crm-access": "npx --yes tsx scripts/crm-access.test.ts",
+    "test:route-hardening": "npx --yes tsx scripts/route-hardening.test.ts",
+    "test:members-only": "npx --yes tsx scripts/members-only.test.ts",
+    "test:mail-limits": "npx --yes tsx scripts/mail-limits.test.ts",
+    "prebuild": "node scripts/gen-cjk-fonts.mjs && node scripts/split-gallery-blur.mjs",
     "cjk-fonts": "node scripts/gen-cjk-fonts.mjs",
     "cjk-fonts:check": "node scripts/gen-cjk-fonts.mjs --check",
-    "predev": "node scripts/gen-cjk-fonts.mjs"
+    "predev": "node scripts/gen-cjk-fonts.mjs && node scripts/split-gallery-blur.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",

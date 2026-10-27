@@ -174,3 +174,25 @@ export function innerCircleWelcome(site: SiteForMail): SiteMessage {
   });
   return { subject, html, text, headers: unsubscribeHeaders(site) };
 }
+
+/** The confirm-your-address mail a newsletter or Inner Circle sign-up gets first: nothing else is
+ *  sent and no list holds the address until its button is pressed (TZS-4, EBE-6326). It carries
+ *  no unsubscribe line, because the address is on no list yet. */
+export function signupConfirmation(site: SiteForMail, kind: "newsletter" | "superfan", link: string): SiteMessage {
+  const what = kind === "superfan" ? `the ${site.name} Inner Circle` : `the ${site.name} mailing list`;
+  const subject = `Confirm your address for ${site.name}`;
+  const { html, text } = siteMail(site, {
+    title: subject,
+    preheader: `One step left: confirm your address to join ${what}.`,
+    strip: { top: kind === "superfan" ? "THE VAULT" : "NEWSLETTER", bottom: "CONFIRM" },
+    heading: "Confirm your address.",
+    blocks: [
+      R.lead(esc(`Someone asked to add this address to ${what}. If that was you, confirm below and you're in.`)),
+      R.button("tenant", "Confirm my address", link, { over: siteColours(site) }),
+      R.spacer(16),
+      R.small(esc("The link works for two days. If you didn't ask for this, ignore this email: you won't be added and you won't hear from us again.")),
+    ],
+    why: `This address was entered in a sign-up form on ${host(site.url)}.`,
+  });
+  return { subject, html, text, headers: {} };
+}

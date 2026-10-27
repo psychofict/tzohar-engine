@@ -9,6 +9,7 @@
  * Run after adding/replacing photos:  npm run generate-blur
  */
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "node:fs";
+import { writeBlurMaps, GALLERY_MAP } from "./split-gallery-blur.mjs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import sharp from "sharp";
@@ -103,7 +104,12 @@ async function blurDataUrl(absPath) {
 
 async function main() {
   const paths = collectImagePaths();
-  const existing = existsSync(outPath) ? JSON.parse(readFileSync(outPath, "utf-8")) : {};
+  // Both maps are the cache: gallery-only photos live in GALLERY_MAP (split-gallery-blur.mjs).
+  const galleryPath = join(root, GALLERY_MAP);
+  const existing = {
+    ...(existsSync(outPath) ? JSON.parse(readFileSync(outPath, "utf-8")) : {}),
+    ...(existsSync(galleryPath) ? JSON.parse(readFileSync(galleryPath, "utf-8")) : {}),
+  };
   const existingSizes = existsSync(sizeOutPath) ? JSON.parse(readFileSync(sizeOutPath, "utf-8")) : {};
   const out = {};
   const sizes = {};
@@ -125,11 +131,12 @@ async function main() {
     generated++;
   }
 
-  writeFileSync(outPath, JSON.stringify(out, null, 2) + "\n");
-  writeFileSync(sizeOutPath, JSON.stringify(sizes, null, 2) + "\n");
+  // The browser's map leaves out photos only the members-only gallery shows (TZS-2, EBE-6325).
+  const { galleryCount } = writeBlurMaps(out, sizes);
   console.log(
     `generate-blur: ${Object.keys(out).length} placeholders (${generated} new, ` +
-      `${Object.keys(out).length - generated} cached${skippedMissing ? `, ${skippedMissing} source files missing` : ""}) → ${outPath.replace(root + "/", "")}`,
+      `${Object.keys(out).length - generated} cached${skippedMissing ? `, ${skippedMissing} source files missing` : ""}) → ${outPath.replace(root + "/", "")}` +
+      `, ${galleryCount} of them gallery-only → ${GALLERY_MAP}`,
   );
   console.log(`generate-blur: ${Object.keys(sizes).length} intrinsic sizes → ${sizeOutPath.replace(root + "/", "")}`);
 }

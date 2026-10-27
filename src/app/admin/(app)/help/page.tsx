@@ -1,10 +1,12 @@
 import { storeStatus } from "@/lib/crm/store";
 import { ENGINE_VERSION, ENGINE_NAME } from "@/lib/engine-version";
 import { site } from "@/config/site";
+import { requireCrm } from "@/lib/crm/guard";
 
 export const dynamic = "force-dynamic";
 
-export default function AdminHelpPage() {
+export default async function AdminHelpPage() {
+  await requireCrm();
   const store = storeStatus();
   const supportEmail = site.crm?.supportEmail;
   return (

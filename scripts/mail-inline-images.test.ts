@@ -13,6 +13,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { NextRequest } from "next/server";
 import { POST as contact } from "../src/app/api/contact/route";
 import { POST as newsletter } from "../src/app/api/newsletter/route";
+import { POST as confirm } from "../src/app/api/newsletter/confirm/route";
 import { MAIL_IMAGE_SOURCES } from "../src/lib/email/mail-images.generated";
 
 let fails = 0;
@@ -57,9 +58,23 @@ async function main() {
   await contact(post("/api/contact", { type: "general", name: "Tendai Moyo", email: "visitor@example.invalid", message: "hello" }, "203.0.113.40"));
   checkInline("acknowledgement", sent[1]);
 
-  console.log("newsletter welcome");
+  // A sign-up sends a confirm mail first; the welcome follows its button (TZS-4, EBE-6326).
+  const confirmLink = (mail: Record<string, unknown> | undefined) =>
+    new URL(String(mail?.text ?? "").match(/https?:\/\/\S+\/api\/newsletter\/confirm\?t=[A-Za-z0-9_-]+/)?.[0] ?? "https://x.invalid/");
+  const pressConfirm = (link: URL, ip: string) =>
+    confirm(new NextRequest(`https://example.com/api/newsletter/confirm`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded", "x-real-ip": ip },
+      body: new URLSearchParams({ t: link.searchParams.get("t") ?? "" }).toString(),
+    }));
+
+  console.log("newsletter confirm mail and welcome");
   sent = [];
   await newsletter(post("/api/newsletter", { email: "reader@example.invalid" }, "203.0.113.41"));
+  const readerConfirm = sent.find((m) => String(m.to) === "reader@example.invalid");
+  checkInline("newsletter confirm mail", readerConfirm);
+  sent = [];
+  await pressConfirm(confirmLink(readerConfirm), "203.0.113.41");
   checkInline("newsletter welcome", sent.find((m) => String(m.to) === "reader@example.invalid"));
 
   console.log("Inner Circle welcome");
@@ -70,6 +85,10 @@ async function main() {
     const { POST: superfan } = (await import(route)) as { POST: (req: NextRequest) => Promise<Response> };
     sent = [];
     await superfan(post("/api/superfan", { email: "fan@example.invalid", city: "Harare" }, "203.0.113.42"));
+    const fanConfirm = sent.find((m) => String(m.to) === "fan@example.invalid");
+    checkInline("Inner Circle confirm mail", fanConfirm);
+    sent = [];
+    await pressConfirm(confirmLink(fanConfirm), "203.0.113.42");
     checkInline("Inner Circle welcome", sent.find((m) => String(m.to) === "fan@example.invalid"));
   } else {
     console.log("  - skipped: this site has no vault module, so no Inner Circle welcome");

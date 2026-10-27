@@ -3,10 +3,12 @@ import { mediaGroups } from "@/lib/crm/media";
 import { cloudinaryConfig, listFolder } from "@/lib/cloudinary";
 import Uploader from "./Uploader";
 import MediaGrid from "./MediaGrid";
+import { requireCrm } from "@/lib/crm/guard";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminMediaPage() {
+  await requireCrm();
   // Since engine 2.8.7 uploads go to Cloudinary when it is configured; the repository's
   // uploads folder then only holds what was added before, and is hidden while empty.
   const cloud = cloudinaryConfig();

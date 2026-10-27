@@ -239,6 +239,12 @@ export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = {
   "src/components/CaseStudyLayout.tsx": [
     "innovation"
   ],
+  "src/components/GalleryGate.tsx": [
+    "gallery"
+  ],
+  "src/components/GalleryView.tsx": [
+    "gallery"
+  ],
   "src/components/HeroConstellation.tsx": [
     "vault"
   ],
@@ -284,6 +290,9 @@ export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = {
     "press",
     "tour"
   ],
+  "src/components/VaultView.tsx": [
+    "vault"
+  ],
   "src/data/artist.ts": [
     "ai",
     "gallery",
@@ -298,6 +307,9 @@ export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = {
   "src/data/engagements.ts": [
     "biography",
     "engagements"
+  ],
+  "src/data/gallery-blur.ts": [
+    "gallery"
   ],
   "src/data/gallery.ts": [
     "gallery"
@@ -336,6 +348,10 @@ export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = {
   "src/lib/mediaKit.ts": [
     "biography"
   ],
+  "src/lib/membership-server.ts": [
+    "gallery",
+    "vault"
+  ],
   "src/lib/modules.ts": [
     "ai",
     "biography",
@@ -373,6 +389,9 @@ export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = {
   ],
   "src/lib/tex.tsx": [
     "research"
+  ],
+  "src/lib/vault-gate.ts": [
+    "vault"
   ]
 };
 

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { allPosts, postCategories } from "@/data/posts";
 import { formatPostDate } from "@/lib/posts-format";
+import { requireCrm } from "@/lib/crm/guard";
 
 export const dynamic = "force-dynamic";
 
-export default function AdminPostsPage() {
+export default async function AdminPostsPage() {
+  await requireCrm();
   const sorted = [...allPosts].sort((a, b) => (a.date < b.date ? 1 : -1));
   const label = (key?: string) =>
     key ? (postCategories.find((c) => c.key === key)?.label ?? key) : "—";

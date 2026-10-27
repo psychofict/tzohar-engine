@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { site } from "@/config/site";
 import { contactAcknowledgement } from "@/lib/email/supportDesk";
 import { carryInline } from "@/lib/email/inline";
+import { allowCaller, allowRecipient, allowSiteSend, readJsonCapped, recipientHasRoom, typedEmail } from "@/lib/mail-guard";
 
 function escapeHtml(str: string): string {
   return str
@@ -12,44 +13,43 @@ function escapeHtml(str: string): string {
     .replace(/"/g, "&quot;");
 }
 
-// Simple in-memory rate limiter
-const rateLimit = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_MAX = 5;
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+// The fields the engine's contact forms send (src/app/[locale]/contact/page.tsx), each with its
+// longest accepted length; anything else is dropped before the owner's note is written (TZS-4).
+const FIELDS: Record<string, number> = {
+  type: 40, name: 120, message: 5000, outlet: 120, artistName: 120,
+  eventType: 200, date: 40, location: 200, deadline: 40, topic: 2000,
+  collabType: 200, links: 1000, genre: 120, musicLinks: 1000,
+};
+// The field caps add up to about 10,200 characters, about 31 KB of UTF-8 in Korean, Japanese or Chinese.
+const MAX_BODY_BYTES = 32 * 1024;
 
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  // Purge expired entries to prevent unbounded memory growth
-  if (rateLimit.size > 500) {
-    for (const [key, val] of rateLimit) {
-      if (now > val.resetAt) rateLimit.delete(key);
-    }
-  }
-  const entry = rateLimit.get(ip);
-  if (!entry || now > entry.resetAt) {
-    rateLimit.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
-  }
-  entry.count++;
-  return entry.count > RATE_LIMIT_MAX;
-}
+const busy = () => NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
+const unavailable = () => NextResponse.json({ error: "Please try again in a few minutes." }, { status: 503 });
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    if (isRateLimited(ip)) {
+    // Every limit counts in the site's store (src/lib/mail-guard.ts): the caller first, then the
+    // site's daily ceiling for the owner's note; the acknowledgement also needs its recipient's.
+    const caller = await allowCaller(req, "contact");
+    if (!caller.ok) return caller.status === 429 ? busy() : unavailable();
+
+    const read = await readJsonCapped(req, MAX_BODY_BYTES);
+    if (!read.ok) {
       return NextResponse.json(
-        { error: "Too many requests. Please try again later." },
-        { status: 429 }
+        { error: read.status === 413 ? "Your message is too long" : "Invalid request" },
+        { status: read.status },
       );
     }
-
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const body = await req.json();
-    const { type, name, email, message, ...rest } = body;
+    const fields: Record<string, string> = {};
+    for (const [k, max] of Object.entries(FIELDS)) {
+      const v = read.body[k];
+      if (typeof v === "string" && v.trim()) fields[k] = v.trim().slice(0, max);
+    }
+    const { type, name, message, ...rest } = fields;
+    const email = typedEmail(read.body.email);
 
     // Validate required fields
-    if (!email || !message) {
+    if (!read.body.email || !message) {
       return NextResponse.json(
         { error: "Email and message are required" },
         { status: 400 }
@@ -57,12 +57,17 @@ export async function POST(req: NextRequest) {
     }
 
     // Basic email validation
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email) {
       return NextResponse.json(
         { error: "Invalid email address" },
         { status: 400 }
       );
     }
+
+    const siteDay = await allowSiteSend("owner");
+    if (!siteDay.ok) return siteDay.status === 429 ? busy() : unavailable();
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     // Build subject based on inquiry type
     const subjectMap: Record<string, string> = {
@@ -72,7 +77,7 @@ export async function POST(req: NextRequest) {
       general: `General Inquiry from ${escapeHtml(name || email)}`,
     };
 
-    const subject = subjectMap[type] || `New Inquiry from ${escapeHtml(email)}`;
+    const subject = subjectMap[type ?? ""] || `New Inquiry from ${escapeHtml(email)}`;
 
     // Format the email body with all fields — sanitized
     const emailBody = Object.entries({ type, name, email, message, ...rest })
@@ -103,6 +108,13 @@ export async function POST(req: NextRequest) {
       console.error("Email error (notification):", notified.error);
       return NextResponse.json({ error: "Failed to send email" }, { status: 502 });
     }
+
+    // The acknowledgement goes to the typed address only within that address's daily allowance and
+    // the site's; past either, the owner still has the message and the visitor is told it arrived.
+    // The recipient first: an address past its share costs the site's daily ceiling nothing.
+    const ackAllowed =
+      (await recipientHasRoom(email, "contact")).ok && (await allowSiteSend("visitor")).ok && (await allowRecipient(email, "contact")).ok;
+    if (!ackAllowed) return NextResponse.json({ success: true });
 
     // Auto-reply to the sender, on the support desk format and signature (SO-11, EBE-2278). From an
     // ebenworks.co site address it goes out as Tzohar Sites Support; a site with its own mail domain

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { membership } from "@/config/membership";
+import { hubSessionCookie } from "@/lib/hub-cookie";
 
 // Same-origin proxy to the accounts hub's checkout. The browser holds the shared
 // `.ebenworks.co` session cookie; we forward it server-side to the hub's cookie-authed
@@ -34,7 +35,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing plan." }, { status: 400 });
   }
 
-  const cookie = req.headers.get("cookie") ?? "";
+  // Only the hub's own session cookie goes to the hub (TZS-12).
+  const cookie = hubSessionCookie(req.headers.get("cookie"));
   if (!cookie) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   }
@@ -51,11 +53,22 @@ export async function POST(req: NextRequest) {
     if (r.status === 401 || r.status === 403) {
       return NextResponse.json({ error: "Not signed in." }, { status: 401 });
     }
-    if (!r.ok) {
+    // A plan already running (or a price that changed) and too many attempts are the fan's
+    // to act on, so they keep their status, in the engine's own words.
+    if (r.status === 409) {
+      console.error("Checkout proxy: hub answered 409", data?.error || data?.data?.error || "");
       return NextResponse.json(
-        { error: data?.error || data?.data?.error || "Checkout is unavailable right now." },
-        { status: r.status },
+        { error: "You may already have this plan, or its price has changed. Reload the page and check your account." },
+        { status: 409 },
       );
+    }
+    if (r.status === 429) {
+      return NextResponse.json({ error: "Too many attempts. Try again in a few minutes." }, { status: 429 });
+    }
+    if (!r.ok) {
+      // The hub's own text and status stay in the log (TZS-12).
+      console.error("Checkout proxy: hub answered", r.status, data?.error || data?.data?.error || "");
+      return NextResponse.json({ error: "Checkout is unavailable right now." }, { status: 502 });
     }
 
     const redirectUrl = data?.redirectUrl ?? data?.data?.redirectUrl;

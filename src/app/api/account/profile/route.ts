@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { membership } from "@/config/membership";
+import { hubSessionCookie } from "@/lib/hub-cookie";
 
 // Same-origin proxy to the hub's per-product profile KV
 // (GET/PUT /api/userdata/<hubProduct> — cookie-authed). The browser holds the
-// shared .ebenworks.co session cookie; we forward it server-side. No secrets here.
+// shared .ebenworks.co session cookie; we forward that one cookie server-side, never the
+// site's others (src/lib/hub-cookie.ts). No secrets here.
 // The stored blob is this site's own profile prefs, e.g.
 //   { displayName?: string, notify?: { releases, tour, drops } }
 
@@ -29,8 +31,18 @@ async function relay(r: Response): Promise<NextResponse> {
   if (r.status === 401 || r.status === 403) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   }
+  // A profile too large or not an object is the visitor's to change: keep the status.
+  if (r.status === 400 || r.status === 413) {
+    console.error("Profile proxy: hub answered", r.status, j?.error ?? "");
+    return NextResponse.json(
+      { error: r.status === 413 ? "That profile is too large to save." : "That profile couldn't be saved as it is." },
+      { status: r.status },
+    );
+  }
   if (!r.ok) {
-    return NextResponse.json({ error: j?.error || "Couldn't reach your profile." }, { status: r.status });
+    // The hub's own text and status stay in the log (TZS-12).
+    console.error("Profile proxy: hub answered", r.status, j?.error ?? "");
+    return NextResponse.json({ error: "Couldn't reach your profile." }, { status: 502 });
   }
   // Hub wraps in { success, data } — return the bare blob.
   return NextResponse.json(j?.data ?? {});
@@ -38,7 +50,7 @@ async function relay(r: Response): Promise<NextResponse> {
 
 export async function GET(req: NextRequest) {
   if (!HUB || !PRODUCT) return NextResponse.json({ error: "Profile is not configured." }, { status: 503 });
-  const cookie = req.headers.get("cookie") ?? "";
+  const cookie = hubSessionCookie(req.headers.get("cookie")); // only the hub session (TZS-12)
   if (!cookie) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   try {
     return await relay(await hubFetch("GET", cookie));
@@ -50,7 +62,7 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   if (!HUB || !PRODUCT) return NextResponse.json({ error: "Profile is not configured." }, { status: 503 });
-  const cookie = req.headers.get("cookie") ?? "";
+  const cookie = hubSessionCookie(req.headers.get("cookie")); // only the hub session (TZS-12)
   if (!cookie) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   const body = await req.text();
   try {

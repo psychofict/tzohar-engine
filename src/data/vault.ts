@@ -6,6 +6,14 @@
 // `type` drives the icon + accent. `cta` is optional; when present the unlocked
 // card shows a button linking to `href` (use a real URL, an internal path, or
 // "#" as a placeholder until the asset is ready).
+//
+// Insider drops are members-only on the SERVER (src/lib/vault-gate.ts, engine
+// 2.8.11): a non-member's page carries only an insider drop's type and date,
+// never its title, description, link or file. A paid file belongs in `file`, a
+// PRIVATE Cloudinary asset, never in `href` or public/: members get a signed
+// link that stops working after ten minutes. Keep paid files on the site's own Cloudinary
+// account, never the shared Ebenworks one (FLEET.md): each opening of a download link costs
+// twice the file's size in that account's credits.
 
 export type DropType = "unreleased" | "presale" | "bts" | "download" | "event";
 
@@ -19,6 +27,12 @@ export interface VaultDrop {
   href?: string;
   /** "free" drops are public; "insider" drops unlock only for paid members. */
   tier: "free" | "insider";
+  /**
+   * A paid download kept as a private Cloudinary asset (upload type `private`). Members get a
+   * short-lived signed link as the button's address; without Cloudinary settings the button
+   * is left out.
+   */
+  file?: { publicId: string; format?: string; resourceType?: "image" | "video" | "raw" };
 }
 
 export const vaultDrops: VaultDrop[] = [

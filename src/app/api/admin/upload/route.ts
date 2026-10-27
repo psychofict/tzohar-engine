@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import sharp from "sharp";
-import { hasCrmSession } from "@/lib/crm/auth";
+import { refuseCrmRequest } from "@/lib/crm/guard";
 import { CLOUDINARY_MAX_BYTES, cloudinaryConfig, uploadImage } from "@/lib/cloudinary";
 
 /**
@@ -31,9 +31,8 @@ function safeName(name: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await hasCrmSession())) {
-    return NextResponse.json({ success: false, error: "Not signed in." }, { status: 401 });
-  }
+  const refused = refuseCrmRequest(req, { body: "multipart" });
+  if (refused) return refused;
 
   const cfg = cloudinaryConfig();
   if (!cfg) {
@@ -61,15 +60,30 @@ export async function POST(req: NextRequest) {
 
   try {
     const input = Buffer.from(await file.arrayBuffer());
-    const image = sharp(input, { failOn: "none" }).rotate();
-    const meta = await image.metadata();
-    if (!meta.width || !meta.height) throw new Error("That file isn't a readable image.");
+    // sharp throws at once on an empty buffer, so build it where that is the file's fault.
+    let image: ReturnType<typeof sharp> | null = null;
+    try {
+      image = input.length ? sharp(input, { failOn: "none" }).rotate() : null;
+    } catch {
+      image = null;
+    }
+    const meta = image ? await image.metadata().catch(() => null) : null;
+    if (!image || !meta?.width || !meta?.height) {
+      return NextResponse.json({ success: false, error: "That file isn't a readable image." }, { status: 400 });
+    }
 
+    // A header that reads over data that does not decode (a truncated JPEG) is the file's fault.
     const out = await image
       .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: "inside", withoutEnlargement: true })
       .jpeg({ quality: 82, mozjpeg: true, progressive: true })
-      .toBuffer();
-    if (out.length > CLOUDINARY_MAX_BYTES) throw new Error("That image is still over 10MB after resizing.");
+      .toBuffer()
+      .catch(() => null);
+    if (!out) {
+      return NextResponse.json({ success: false, error: "That file isn't a readable image." }, { status: 400 });
+    }
+    if (out.length > CLOUDINARY_MAX_BYTES) {
+      return NextResponse.json({ success: false, error: "That image is still over 10MB after resizing." }, { status: 413 });
+    }
 
     // Timestamped so a re-upload of the same filename can't silently replace an
     // image other pages are already pointing at.
@@ -81,7 +95,8 @@ export async function POST(req: NextRequest) {
       data: { driver: "cloudinary", path: stored.url, bytes: stored.bytes },
     });
   } catch (err) {
-    const error = err instanceof Error ? err.message : "Upload failed.";
-    return NextResponse.json({ success: false, error }, { status: 400 });
+    // Cloudinary's or sharp's own answer stays in the log (TZS-12).
+    console.error("[crm] upload failed:", err);
+    return NextResponse.json({ success: false, error: "The upload failed. Try again in a minute." }, { status: 502 });
   }
 }

@@ -1,5 +1,6 @@
 import { readFile, writeFile, readdir, stat, mkdir } from "node:fs/promises";
 import path from "node:path";
+import { CrmConfigError } from "./errors";
 
 /**
  * CRM storage seam — one interface, two drivers.
@@ -128,7 +129,7 @@ export async function writeFiles(files: FileWrite[], message: string): Promise<C
   // Fail with the actual cause, before touching a filesystem that will only
   // return EROFS and send whoever reads the error hunting in the wrong place.
   const reason = misconfigurationReason();
-  if (reason) throw new Error(`${reason} Nothing was saved. See docs/crm.md.`);
+  if (reason) throw new CrmConfigError(`${reason} Nothing was saved. See docs/crm.md.`);
 
   for (const f of files) {
     if (!isWritable(f.path)) throw new Error(`Not a CRM-writable path: ${f.path}`);
@@ -150,7 +151,11 @@ function ghConfig() {
   const token = process.env.GITHUB_TOKEN;
   const repo = process.env.GITHUB_REPO; // "owner/name"
   const branch = process.env.GITHUB_BRANCH ?? "main";
-  if (!token || !repo) throw new Error("GITHUB_TOKEN and GITHUB_REPO are required for the github driver.");
+  if (!token || !repo) {
+    throw new CrmConfigError(
+      "Publishing is not configured: GITHUB_TOKEN and GITHUB_REPO are required for the github driver. Nothing was saved. See docs/crm.md.",
+    );
+  }
   return { token, repo, branch };
 }
 

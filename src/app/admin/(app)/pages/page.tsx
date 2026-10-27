@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { composedPages } from "@/data/pages";
+import { requireCrm } from "@/lib/crm/guard";
 
 export const dynamic = "force-dynamic";
 
-export default function AdminPagesPage() {
+export default async function AdminPagesPage() {
+  await requireCrm();
   return (
     <>
       <header className="crm-head">

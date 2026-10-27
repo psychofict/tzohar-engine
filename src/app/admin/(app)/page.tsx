@@ -4,10 +4,12 @@ import { composedPages } from "@/data/pages";
 import { listPublicDir, storeStatus } from "@/lib/crm/store";
 import { mediaGroups } from "@/lib/crm/media";
 import { site } from "@/config/site";
+import { requireCrm } from "@/lib/crm/guard";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
+  await requireCrm();
   const drafts = allPosts.filter((p) => p.draft).length;
   // Counted across whatever directories this site actually declares, so the
   // tile is right on every build rather than only on the one it was written for.

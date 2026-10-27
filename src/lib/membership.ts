@@ -185,7 +185,9 @@ export function useMembership(): MembershipState {
 
   const signedIn = !!info?.signedIn;
   const m = info?.membership;
-  const member = signedIn && !!m?.active;
+  // A FREE plan is not a paid membership: the hub answers active FREE when a paid period ends.
+  // The server check (membership-server.ts) reads it the same way, so the two never disagree.
+  const member = signedIn && !!m?.active && !!m?.plan && m.plan !== "FREE";
 
   return {
     loading,

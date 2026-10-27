@@ -103,3 +103,31 @@ export async function listFolder(
     return [];
   }
 }
+
+/**
+ * A short-lived link to a PRIVATE asset (upload type `private`), for paid files such as a vault
+ * download (FLEET.md, "Security baseline": paid files live in private storage behind short-lived
+ * signed links). A private asset has no public address; this download-API link is signed with
+ * the secret and Cloudinary refuses it after `expires_at` (401). Null when Cloudinary is not
+ * configured, so a caller never hands out an unsigned address. Raw files omit `format`.
+ */
+export function privateFileUrl(
+  cfg: CloudinaryConfig,
+  file: { publicId: string; format?: string; resourceType?: "image" | "video" | "raw" },
+  opts: { expiresInSeconds?: number; now?: number } = {},
+): string {
+  const timestamp = Math.floor((opts.now ?? Date.now()) / 1000);
+  const ttl = Math.min(3600, Math.max(30, Math.floor(opts.expiresInSeconds ?? 600)));
+  const resourceType = file.resourceType ?? "raw";
+  const params: Record<string, string> = {
+    public_id: file.publicId,
+    type: "private",
+    attachment: "true",
+    timestamp: String(timestamp),
+    expires_at: String(timestamp + ttl),
+    ...(file.format && resourceType !== "raw" ? { format: file.format } : {}),
+  };
+  const signature = signParams(params, cfg.secret);
+  const query = new URLSearchParams({ ...params, api_key: cfg.key, signature });
+  return `https://api.cloudinary.com/v1_1/${encodeURIComponent(cfg.cloud)}/${resourceType}/download?${query.toString()}`;
+}

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { pagesSchema, type SitePage } from "@tzohar/schema";
-import { hasCrmSession } from "@/lib/crm/auth";
+import { refuseCrmRequest } from "@/lib/crm/guard";
+import { checkEdit, crmFailure } from "@/lib/crm/errors";
 import { readJson, writeFiles } from "@/lib/crm/store";
 
 const FILE = "src/data/pages.json";
@@ -20,15 +21,17 @@ const FILE = "src/data/pages.json";
  */
 
 export async function POST(req: NextRequest) {
-  if (!(await hasCrmSession())) {
-    return NextResponse.json({ success: false, error: "Not signed in." }, { status: 401 });
-  }
+  const refused = refuseCrmRequest(req, { body: "json" });
+  if (refused) return refused;
 
   let body: { slug?: string; page?: SitePage };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ success: false, error: "Expected a JSON body." }, { status: 400 });
+  }
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    return NextResponse.json({ success: false, error: "Expected a JSON object." }, { status: 400 });
   }
 
   const { slug, page } = body;
@@ -45,14 +48,13 @@ export async function POST(req: NextRequest) {
     const pages = [...doc.pages];
     pages[at] = page;
 
-    const next = pagesSchema.parse({ ...doc, pages });
+    const next = checkEdit(() => pagesSchema.parse({ ...doc, pages }));
     const result = await writeFiles(
       [{ path: FILE, content: JSON.stringify(next, null, 2) + "\n" }],
       `crm: update page "${slug}"`,
     );
     return NextResponse.json({ success: true, data: result });
   } catch (err) {
-    const error = err instanceof Error ? err.message : "Unknown error.";
-    return NextResponse.json({ success: false, error }, { status: 400 });
+    return crmFailure(err, "page");
   }
 }

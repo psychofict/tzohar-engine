@@ -25,7 +25,11 @@ export default function LoginForm({ next, error }: { next?: string; error?: stri
       </label>
       {error && (
         <div className="crm-note crm-note--bad" style={{ marginBottom: 14 }}>
-          That password wasn&apos;t right.
+          {error === "locked"
+            ? "Too many wrong passwords. Sign-in is paused for up to 15 minutes; try again then."
+            : error === "refused"
+              ? "That sign-in didn\u2019t come from this page. Reload it and try again."
+              : "That password wasn\u2019t right."}
         </div>
       )}
       <button type="submit" className="crm-btn crm-btn--primary" disabled={busy} style={{ width: "100%" }}>

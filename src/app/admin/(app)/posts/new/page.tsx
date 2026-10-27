@@ -1,5 +1,6 @@
 import { postCategories } from "@/data/posts";
 import PostEditor from "../PostEditor";
+import { requireCrm } from "@/lib/crm/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +9,8 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default function NewPostPage() {
+export default async function NewPostPage() {
+  await requireCrm();
   return (
     <PostEditor
       isNew

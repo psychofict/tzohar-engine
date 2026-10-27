@@ -1,15 +1,36 @@
 {
-  "version": "2.8.10",
-  "name": "Joint stamp",
-  "released": "2026-10-27",
+  "version": "2.8.14",
+  "name": "Confirmed",
+  "released": "2026-10-28",
   "highlights": [
-    "The small Tzohar Sites block under each mail your site sends its visitors (the contact-form reply, the newsletter welcome and the Inner Circle welcome) now carries the joint stamp of Ebenworks and Statotech Systems. Its line reads \"The (your site) website is built with Tzohar Sites.\" The rest of each mail, in your site's own name and colours, is unchanged.",
-    "The pictures in your visitors' mails (the joint stamp and the Tzohar Sites logo) now travel inside the message, so they show even when an outside address is slow or down.",
-    "Behind the scenes: new client sites are created under the ebenworks-systems organisation on GitHub, and the engine's sample content and the Ebenworks company record in its page data are up to date. Your own pages, content and settings are not touched."
+    "Your contact, newsletter and Inner Circle forms can no longer be used to mail strangers again and again. Every visitor's connection, every email address and the site as a whole have a daily limit on the mail the forms send, and the contact form now accepts only its own fields, each at a sensible length.",
+    "Newsletter and Inner Circle sign-ups now get a short email asking the person to confirm their address. The welcome, the note to you and (for the Inner Circle) the mailing-list add follow only when they press Confirm, so nobody can be signed up by someone else.",
+    "For limits that hold across all of your site's servers, add a Redis store: UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (Upstash, or Vercel's Redis integration). Without one each server counts on its own. MAIL_DAILY_CAP sets how many acknowledgements and confirm emails the forms send a day (60 if unset).",
+    "In your site's admin, changing CRM_PASSWORD now also ends the \"signed in here before\" status that lets a known browser past a site-wide sign-in pause, and that status can no longer be replayed from many addresses to keep guessing."
   ],
-  "breaking": [],
+  "breaking": [
+    "A newsletter or Inner Circle sign-up is complete only when the person presses Confirm in the email they receive; the form now says \"Check your inbox\". The note telling you about a new subscriber arrives at that moment, not at sign-up."
+  ],
   "addsModules": [],
   "previous": {
+    "2.8.13": [
+      "When a save, upload or checkout on your site fails, visitors and editors now see a short plain message, and the technical detail behind it (which can name your site's code repository) stays in your site's server log. A content mistake in the admin still says which field to fix, and a missing setting is named.",
+      "Your site's checkout and fan profile now pass only the fan's Ebenworks Accounts sign-in to our service, never your site's other cookies such as the admin session or analytics.",
+      "A newsletter or Inner Circle signup now reports a failure when the note to you could not be sent, instead of saying it worked, and the welcome goes to the fan only once the note to you has gone. The example settings file no longer lists the old Stripe settings, which nothing reads."
+    ],
+    "2.8.12": [
+      "Members-only content is checked on the server. While it builds the Vault and the gallery, the site asks Ebenworks Accounts whether the visitor holds a paid plan, and a non-member's page carries only what the free tier shows: an insider drop appears as its type, its date and \"An Inner Circle drop\", and the gallery shows the photo count over a blurred preview. Members see everything, as before.",
+      "A paid download can live in private storage. Give a Vault drop a `file` (a private Cloudinary asset on your site's own account) and members get a download link that stops working after ten minutes; non-members never get the address.",
+      "A visitor on the Free plan is no longer counted as a member anywhere on the site.",
+      "Photos that only the members' gallery shows are left out of the image lists every page sends to the browser. Photos kept in public/ can still be opened by anyone who has the exact address; sell files through the Vault's private `file` instead.",
+      "Breaking: Members see the Vault and the gallery only where the site runs on an ebenworks.co address, because the members check now runs on the site's server and only those addresses receive the Ebenworks Accounts sign-in. Checkout already needed this. On any other address every visitor sees the free tier."
+    ],
+    "2.8.11": [
+      "Your site's admin (/admin) is harder to get into without the password. Every admin page now checks that you are signed in on its own, instead of relying on the frame around it, and every save, upload, sign-in and sign-out is accepted only from your site's own address, so a page somewhere else cannot make a signed-in browser change your site.",
+      "Sign-in is stricter. Five wrong passwords from one address within 15 minutes pause sign-in from there for 15 minutes, a burst of wrong passwords from many addresses pauses it for everyone except browsers that have signed in before, changing CRM_PASSWORD signs everyone out at once, and the session cookie is Secure and kept to your site alone in every setup.",
+      "Breaking: everyone signed in to the admin is signed out once when the site takes this release, because the session cookie has a new name; sign in again as usual. The admin needs https (or localhost when you work locally), and a link to /admin opened from another site asks for the password again.",
+      "Breaking: Everyone signed in to the admin is signed out once (the session cookie is renamed), and the admin needs https or localhost."
+    ],
     "2.8.7": [
       "Images you upload in your site's admin (Media, Add an image) are stored on Cloudinary now, which resizes and converts them as it serves them, instead of being committed into your site's code. The repository stops growing with every photograph, and an upload no longer triggers a rebuild. The Media page lists your uploads with the address to copy; anything uploaded before keeps working and is listed under Earlier uploads.",
       "Uploading needs three settings on the site: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET (see .env.example). Without them the site builds and runs as before, and the upload asks for an image address instead.",

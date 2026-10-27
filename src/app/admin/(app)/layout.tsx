@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
-import { hasCrmSession } from "@/lib/crm/auth";
 import { storeStatus } from "@/lib/crm/store";
-import { requireModule } from "@/lib/modules";
+import { requireCrm } from "@/lib/crm/guard";
 import { site } from "@/config/site";
 import AdminShell from "../AdminShell";
 
@@ -15,8 +13,9 @@ export default async function AdminGuardedLayout({ children }: { children: React
   // asked for it. Module-gated, not env-gated: whether the routes are reachable
   // is a config decision Studio publishes, separate from whether the
   // credentials that make them usable have been set on the deployment.
-  requireModule("crm");
-  if (!(await hasCrmSession())) redirect("/admin/login");
+  // Not the access check (a navigation can render a page without its layout): every
+  // page under here calls requireCrm() itself. This one keeps the shell from showing.
+  await requireCrm();
   return (
     <AdminShell store={storeStatus()} siteName={site.name}>
       {children}
