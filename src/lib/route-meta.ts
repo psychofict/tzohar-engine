@@ -46,7 +46,7 @@ const MAX_DESCRIPTION = 158;
  * Fits a title and the site name into the search slot, and returns `{ absolute }`.
  *
  * Three rules, in order. If the title already names the site, it is left exactly
- * as written — that is what a client means by typing "About JAFTER" into an SEO
+ * as written — that is what a client means by typing "About Kopje Light" into an SEO
  * title field, and what the engine's own `Research — <site>` layouts already say.
  * Otherwise the name is appended when the pair fits. When it does not, the name
  * is dropped rather than allowed to fall off the end: Google cuts on pixel width
@@ -57,7 +57,7 @@ const MAX_DESCRIPTION = 158;
  * `title.template = "%s | <site>"`, which Next applies to any page setting a
  * plain string — so a fitted title had the name it had just dropped put straight
  * back on the end, one separator later, and a title that already named the site
- * rendered it twice ("About JAFTER | JAFTER", in every locale). `absolute` is the
+ * rendered it twice ("About Kopje Light | Kopje Light", in every locale). `absolute` is the
  * one form the parent template cannot reach, so the fix does not depend on each
  * call site remembering to opt out.
  */

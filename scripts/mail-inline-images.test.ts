@@ -9,11 +9,10 @@
  * No network: global fetch is replaced, so nothing reaches Resend.
  */
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { NextRequest } from "next/server";
 import { POST as contact } from "../src/app/api/contact/route";
 import { POST as newsletter } from "../src/app/api/newsletter/route";
-import { POST as superfan } from "../src/app/api/superfan/route";
 import { MAIL_IMAGE_SOURCES } from "../src/lib/email/mail-images.generated";
 
 let fails = 0;
@@ -64,12 +63,28 @@ async function main() {
   checkInline("newsletter welcome", sent.find((m) => String(m.to) === "reader@example.invalid"));
 
   console.log("Inner Circle welcome");
-  sent = [];
-  await superfan(post("/api/superfan", { email: "fan@example.invalid", city: "Harare" }, "203.0.113.42"));
-  checkInline("Inner Circle welcome", sent.find((m) => String(m.to) === "fan@example.invalid"));
+  // The superfan route belongs to the vault module, which a client site without it does not have.
+  if (existsSync(new URL("../src/app/api/superfan/route.ts", import.meta.url))) {
+    // A plain string, so the type checker does not resolve it in a site without the file.
+    const route: string = "../src/app/api/superfan/route";
+    const { POST: superfan } = (await import(route)) as { POST: (req: NextRequest) => Promise<Response> };
+    sent = [];
+    await superfan(post("/api/superfan", { email: "fan@example.invalid", city: "Harare" }, "203.0.113.42"));
+    checkInline("Inner Circle welcome", sent.find((m) => String(m.to) === "fan@example.invalid"));
+  } else {
+    console.log("  - skipped: this site has no vault module, so no Inner Circle welcome");
+  }
 
   console.log("the logo module matches its source");
+  // A client repo has no Studio, so the source pictures are not there to compare: skip, say so.
+  // studio/engine.release.json exists only in the engine (a client may keep a studio/ folder of
+  // its own). In the engine a missing source still fails, because readFileSync throws.
+  const inEngine = existsSync(new URL("../studio/engine.release.json", import.meta.url));
   for (const src of MAIL_IMAGE_SOURCES) {
+    if (!inEngine) {
+      console.log(`  - skipped: ${src.source} (no Studio in a client repo; checked in the engine)`);
+      continue;
+    }
     const sha = createHash("sha256").update(readFileSync(new URL(`../${src.source}`, import.meta.url))).digest("hex");
     check(`${src.source} unchanged since scripts/build-mail-images.py ran`, sha === src.sourceSha256);
   }

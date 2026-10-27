@@ -24,7 +24,7 @@ const check = (label: string, ok: boolean, detail = "") => {
 };
 
 const reference = { name: "Ebstar", email: "contact@ebenworks.co", url: "https://ebstar.co" };
-const client = { name: "JAFTER", email: "studio@jafter.example", url: "https://jafter.studio.ebenworks.co" };
+const client = { name: "Kopje Light Ceramics", email: "hello@kopje-light.example", url: "https://kopje-light.example" };
 const gold = { ...client, appearance: { accent: "#E8B23A" } };
 
 let sent: Record<string, unknown>[] = [];
@@ -62,9 +62,9 @@ async function main() {
 
   console.log("a client's own domain: the client's paper with the Tzohar Sites footer block");
   const c = contactAcknowledgement(client, { type: "booking", name: "Ana Kim" });
-  check("From the client", c.from === "JAFTER <studio@jafter.example>", c.from);
-  check("the client's name heads the text", c.text.startsWith("JAFTER\n"), c.text.split("\n")[0]);
-  check("the footer block names Tzohar Sites once", (c.text.match(/Tzohar Sites/g) ?? []).length === 1 && c.html.includes("The JAFTER website is built with Tzohar Sites"));
+  check("From the client", c.from === "Kopje Light Ceramics <hello@kopje-light.example>", c.from);
+  check("the client's name heads the text", c.text.startsWith("KOPJE LIGHT CERAMICS\n"), c.text.split("\n")[0]);
+  check("the footer block names Tzohar Sites once", (c.text.match(/Tzohar Sites/g) ?? []).length === 1 && c.html.includes("The Kopje Light Ceramics website is built with Tzohar Sites"));
   check("no Ebenworks wordmark or strip", !/EBEN<\/span>WORKS|ebenworks-email-strip/.test(c.html));
   // SO-39: the joint stamp, once, inside the footer block and in the text part.
   check("the joint stamp once, in the footer block", (c.html.match(/joint-stamp-ebenworks-statotech\.png/g) ?? []).length === 1
@@ -84,14 +84,14 @@ async function main() {
 
   console.log("the welcomes");
   for (const [label, m] of [["newsletter", newsletterWelcome(client)], ["Inner Circle", innerCircleWelcome(client)]] as const) {
-    check(`${label}: a text part`, m.text.length > 100 && m.text.startsWith("JAFTER\n"));
+    check(`${label}: a text part`, m.text.length > 100 && m.text.startsWith("KOPJE LIGHT CERAMICS\n"));
     check(`${label}: a way off the list in both parts and the header`,
-      m.html.includes("mailto:studio@jafter.example?subject=Unsubscribe") && m.text.includes("Unsubscribe: mailto:studio@jafter.example")
-        && m.headers["List-Unsubscribe"] === "<mailto:studio@jafter.example?subject=Unsubscribe>");
+      m.html.includes("mailto:hello@kopje-light.example?subject=Unsubscribe") && m.text.includes("Unsubscribe: mailto:hello@kopje-light.example")
+        && m.headers["List-Unsubscribe"] === "<mailto:hello@kopje-light.example?subject=Unsubscribe>");
     check(`${label}: the Tzohar Sites footer block`, m.html.includes("is built with Tzohar Sites.") && m.html.includes("joint-stamp-ebenworks-statotech.png"));
   }
-  check("newsletter subject", newsletterWelcome(client).subject === "You're on the JAFTER mailing list");
-  check("the Vault link", innerCircleWelcome(client).html.includes("https://jafter.studio.ebenworks.co/vault"));
+  check("newsletter subject", newsletterWelcome(client).subject === "You're on the Kopje Light Ceramics mailing list");
+  check("the Vault link", innerCircleWelcome(client).html.includes("https://kopje-light.example/vault"));
   const lum = (hex: string) => { const v = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((x) => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4)); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
   const ratio = (x: string, y: string) => { const [hi, lo] = [lum(x), lum(y)].sort((p, q) => q - p); return (hi + 0.05) / (lo + 0.05); };
   for (const s of [client, gold] as Array<{ name: string; email: string; url: string; appearance?: { accent: string } }>) {

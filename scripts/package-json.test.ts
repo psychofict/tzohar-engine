@@ -23,7 +23,7 @@ check("engine test ships", scriptShips("npx --yes tsx scripts/bibtex.test.ts"), 
 check("OUR vercel tooling is withheld", scriptShips("node scripts/private/vercel-quota.mjs"), false);
 check("a client-owned path is withheld", scriptShips("git config core.hooksPath .githooks"), false);
 
-// ── the real case: what a sync would have done to jafter-site ───────────────
+// ── the real case: what a sync would have done to a client site ───────────────
 const ENGINE = JSON.stringify({
   name: "tzohar-sites",
   private: true,
@@ -43,7 +43,7 @@ const ENGINE = JSON.stringify({
 });
 
 const CLIENT = JSON.stringify({
-  name: "jafter-site",
+  name: "kopje-light-site",
   private: true,
   scripts: { dev: "next dev", build: "next build", "check-messages": "node scripts/check-messages.mjs" },
   dependencies: { next: "16.1.6", react: "19.2.3" },
@@ -59,7 +59,7 @@ check("our Vercel tooling does NOT reach the client", "quota" in out.scripts, fa
 check("nor does a hook pointing at a directory they lack", "hooks:install" in out.scripts, false);
 check("nor prepare, for the same reason", "prepare" in out.scripts, false);
 check("engine scripts they should have do arrive", out.scripts["test:tex"], "npx --yes tsx scripts/tex.test.ts");
-check("the repo keeps its own name", out.name, "jafter-site");
+check("the repo keeps its own name", out.name, "kopje-light-site");
 check("no licence is asserted on their behalf", "license" in out, false);
 check("what was withheld is reported", m.droppedScripts, ["hooks:install", "prepare", "quota"]);
 check("no dependency drift, so the release lockfile is exactly right", m.clientOnlyDependencies, []);
