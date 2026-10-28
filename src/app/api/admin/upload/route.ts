@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import sharp from "sharp";
 import { refuseCrmRequest } from "@/lib/crm/guard";
-import { CLOUDINARY_MAX_BYTES, cloudinaryConfig, uploadImage } from "@/lib/cloudinary";
+import { CLOUDINARY_MAX_BYTES, cloudinaryConfig, cloudinaryFolderMissing, folderMissingMessage, uploadImage } from "@/lib/cloudinary";
 
 /**
  * Image upload. Re-encodes rather than storing the original bytes, then stores the result
@@ -35,6 +35,11 @@ export async function POST(req: NextRequest) {
   if (refused) return refused;
 
   const cfg = cloudinaryConfig();
+  if (!cfg && cloudinaryFolderMissing()) {
+    // Never a folder guessed from the site's name, which another site may share (EBE-6352).
+    console.warn("[crm upload] CLOUDINARY_FOLDER is not set: uploads are off until it is.");
+    return NextResponse.json({ success: false, error: folderMissingMessage() }, { status: 501 });
+  }
   if (!cfg) {
     return NextResponse.json(
       {

@@ -24,6 +24,7 @@ process.env.GITHUB_REPO = "kopje-light-org/secret-repo-name";
 process.env.CLOUDINARY_CLOUD_NAME = "made-up-cloud";
 process.env.CLOUDINARY_API_KEY = "made-up-key";
 process.env.CLOUDINARY_API_SECRET = "made-up-secret";
+process.env.CLOUDINARY_FOLDER = "tzohar-sites/kopje-light/crm";
 process.env.ACCOUNTS_URL = "https://hub.example";
 process.env.RESEND_API_KEY = "re_made_up";
 process.env.RESEND_AUDIENCE_ID = "";

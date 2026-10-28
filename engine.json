@@ -1,18 +1,29 @@
 {
-  "version": "2.8.14",
-  "name": "Confirmed",
-  "released": "2026-10-28",
+  "version": "2.8.16",
+  "name": "Own folder",
+  "released": "2026-10-29",
   "highlights": [
-    "Your contact, newsletter and Inner Circle forms can no longer be used to mail strangers again and again. Every visitor's connection, every email address and the site as a whole have a daily limit on the mail the forms send, and the contact form now accepts only its own fields, each at a sensible length.",
-    "Newsletter and Inner Circle sign-ups now get a short email asking the person to confirm their address. The welcome, the note to you and (for the Inner Circle) the mailing-list add follow only when they press Confirm, so nobody can be signed up by someone else.",
-    "For limits that hold across all of your site's servers, add a Redis store: UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (Upstash, or Vercel's Redis integration). Without one each server counts on its own. MAIL_DAILY_CAP sets how many acknowledgements and confirm emails the forms send a day (60 if unset).",
-    "In your site's admin, changing CRM_PASSWORD now also ends the \"signed in here before\" status that lets a known browser past a site-wide sign-in pause, and that status can no longer be replayed from many addresses to keep guessing."
+    "Image uploads in your site's admin now go into the folder set for your site, never one guessed from the site's name that another site could share. Tzohar Studio sets that folder for you when it sets up your admin or changes its password.",
+    "If the folder is not set, the admin says so in plain words and points to your site's support address instead of offering an upload that fails. Private Vault links need only your Cloudinary keys."
   ],
   "breaking": [
-    "A newsletter or Inner Circle sign-up is complete only when the person presses Confirm in the email they receive; the form now says \"Check your inbox\". The note telling you about a new subscriber arrives at that moment, not at sign-up."
+    "A site with the Cloudinary keys and no CLOUDINARY_FOLDER stops taking admin image uploads until the folder is set. A site that already uploaded images sets CLOUDINARY_FOLDER to its old folder, tzohar-sites/<site name, lowercased with hyphens>/crm, so its earlier uploads stay in the media library."
   ],
   "addsModules": [],
   "previous": {
+    "2.8.15": [
+      "Your Vault and members' gallery can now ask Ebenworks Accounts about a visitor with a key of their own, so a busy day on your site no longer runs into the limit shared by everything on your server's address. Ebenworks gives you the key when you turn the Vault or a gated gallery on: set it as HUB_SESSION_INFO_KEY on your site's server only, never as a NEXT_PUBLIC_ setting. Without it nothing changes.",
+      "If that key is ever wrong or out of date, your site's server log says so (never the key itself) and the site leaves the key out for five minutes at a time, so your members still see their content while the key is fixed.",
+      "The live preview now takes drafts only from Tzohar Studio framing the page; opening the site elsewhere with the preview parameter shows the published site.",
+      "Your music pages' Spotify lookups now answer only for the artists and releases your site itself names, keep a cache of fixed size and age, and stop any one visitor's connection after 30 Spotify lookups an hour, so nobody can use your site as a free Spotify service and push it into Spotify's limits. When Spotify is busy or asks the site to slow down, the site waits before asking it again."
+    ],
+    "2.8.14": [
+      "Your contact, newsletter and Inner Circle forms can no longer be used to mail strangers again and again. Every visitor's connection, every email address and the site as a whole have a daily limit on the mail the forms send, and the contact form now accepts only its own fields, each at a sensible length.",
+      "Newsletter and Inner Circle sign-ups now get a short email asking the person to confirm their address. The welcome, the note to you and (for the Inner Circle) the mailing-list add follow only when they press Confirm, so nobody can be signed up by someone else.",
+      "For limits that hold across all of your site's servers, add a Redis store: UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (Upstash, or Vercel's Redis integration). Without one each server counts on its own. MAIL_DAILY_CAP sets how many acknowledgements and confirm emails the forms send a day (60 if unset).",
+      "In your site's admin, changing CRM_PASSWORD now also ends the \"signed in here before\" status that lets a known browser past a site-wide sign-in pause, and that status can no longer be replayed from many addresses to keep guessing.",
+      "Breaking: A newsletter or Inner Circle sign-up is complete only when the person presses Confirm in the email they receive; the form now says \"Check your inbox\". The note telling you about a new subscriber arrives at that moment, not at sign-up."
+    ],
     "2.8.13": [
       "When a save, upload or checkout on your site fails, visitors and editors now see a short plain message, and the technical detail behind it (which can name your site's code repository) stays in your site's server log. A content mistake in the admin still says which field to fix, and a missing setting is named.",
       "Your site's checkout and fan profile now pass only the fan's Ebenworks Accounts sign-in to our service, never your site's other cookies such as the admin session or analytics.",

@@ -32,6 +32,41 @@ import { fontVarStyle } from "./font-vars";
  */
 
 export const PREVIEW_PARAM = "tzohar-preview";
+
+/**
+ * The only window allowed to drive the preview (TZS-7): Studio, framing this page. A page that
+ * opens the site in a window of its own keeps a handle to it, and before this check could post
+ * its own draft into it and show invented text under the client's real address. Development may
+ * add the local Studio's origin through NEXT_PUBLIC_TZOHAR_STUDIO_DEV_ORIGIN, which a production
+ * build ignores.
+ */
+export const STUDIO_ORIGIN = "https://studio.ebenworks.co";
+
+export function studioOrigins(): string[] {
+  if (process.env.NODE_ENV === "production") return [STUDIO_ORIGIN];
+  let dev = "";
+  try {
+    // As a browser writes ev.origin: lowercase, no path, no default port.
+    dev = new URL((process.env.NEXT_PUBLIC_TZOHAR_STUDIO_DEV_ORIGIN || "").trim()).origin;
+  } catch {
+    return [STUDIO_ORIGIN];
+  }
+  return dev !== STUDIO_ORIGIN && /^https?:\/\/[a-z0-9.-]+(:\d+)?$/.test(dev) ? [STUDIO_ORIGIN, dev] : [STUDIO_ORIGIN];
+}
+
+/** True when this page is inside a frame (Studio's preview), not a window or tab of its own. */
+function framed(): boolean {
+  try {
+    return window.parent !== window;
+  } catch {
+    return true;
+  }
+}
+
+/** A message the preview may act on: sent by the framing window, from a Studio origin. */
+export function fromStudio(ev: Pick<MessageEvent, "origin" | "source">): boolean {
+  return framed() && ev.source === window.parent && studioOrigins().includes(ev.origin);
+}
 const STYLE_ID = "tzohar-preview-appearance";
 
 export interface PreviewDraft {
@@ -68,9 +103,10 @@ export function getPreviewServerSnapshot(): PreviewDraft {
 }
 const EMPTY: PreviewDraft = {};
 
-/** True when this page was opened by Studio as a preview surface. */
+/** True when this page was opened by Studio as a preview surface: framed, with the preview parameter. */
 export function previewRequested(): boolean {
   if (typeof window === "undefined") return false;
+  if (!framed()) return false;
   return new URLSearchParams(window.location.search).has(PREVIEW_PARAM);
 }
 
@@ -150,6 +186,8 @@ export function installPreviewBridge(): void {
   active = true;
 
   window.addEventListener("message", (ev: MessageEvent) => {
+    // Only Studio, framing this page, drives the preview (TZS-7).
+    if (!fromStudio(ev)) return;
     const data = ev.data as { type?: string; [k: string]: unknown } | null;
     if (!data || typeof data.type !== "string" || !data.type.startsWith("tzohar:")) return;
 
@@ -183,11 +221,14 @@ export function installPreviewBridge(): void {
   // Tell Studio the real site is live. Studio waits for this and falls back to
   // its sketch renderer if it never arrives (site not deployed yet, or the host
   // refuses to be framed) rather than showing an empty rectangle.
+  // Addressed to Studio's origin only, so no other framing page learns the address (TZS-7).
   const announce = () => {
-    try {
-      window.parent?.postMessage({ type: "tzohar:preview:ready", href: window.location.href }, "*");
-    } catch {
-      /* not framed */
+    for (const origin of studioOrigins()) {
+      try {
+        window.parent?.postMessage({ type: "tzohar:preview:ready", href: window.location.href }, origin);
+      } catch {
+        /* not framed */
+      }
     }
   };
   announce();

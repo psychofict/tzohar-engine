@@ -11,30 +11,59 @@ import { site } from "@/config/site";
  * still builds and runs; only the upload reports that it is not configured.
  *
  *   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET   (server only)
- *   CLOUDINARY_FOLDER   optional; default tzohar-sites/<site name>/crm
+ *   CLOUDINARY_FOLDER   the CRM's upload folder, tzohar-sites/<studio slug>/crm-<vercel project id>
+ *
+ * The folder is required for the CRM's uploads and media library. It used to default to
+ * tzohar-sites/<site name>/crm, from the editable display name, so two sites whose names
+ * slugify alike shared one folder and each CRM listed the other's images (EBE-6352). Tzohar
+ * Studio sets it when it sets up a client's CRM; without it the upload answers 501 with the
+ * reason. Private vault files need only the three keys (cloudinaryKeys).
  *
  * Every call is signed with SHA-1 over the sorted parameters plus the secret. There is no
  * unsigned upload preset, and the key never reaches the browser.
  */
 
-export interface CloudinaryConfig {
+export interface CloudinaryKeys {
   cloud: string;
   key: string;
   secret: string;
+}
+
+export interface CloudinaryConfig extends CloudinaryKeys {
   folder: string;
 }
 
-const slugify = (s: string) =>
-  s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "site";
-
-/** The settings, or null when any of the three keys is missing. */
-export function cloudinaryConfig(env: NodeJS.ProcessEnv = process.env): CloudinaryConfig | null {
+/** The three keys, or null when any is missing. Enough for signed links to private files. */
+export function cloudinaryKeys(env: NodeJS.ProcessEnv = process.env): CloudinaryKeys | null {
   const cloud = env.CLOUDINARY_CLOUD_NAME?.trim();
   const key = env.CLOUDINARY_API_KEY?.trim();
   const secret = env.CLOUDINARY_API_SECRET?.trim();
   if (!cloud || !key || !secret) return null;
-  const folder = (env.CLOUDINARY_FOLDER?.trim() || `tzohar-sites/${slugify(site.name)}/crm`).replace(/^\/+|\/+$/g, "");
-  return { cloud, key, secret, folder };
+  return { cloud, key, secret };
+}
+
+/** The configured CRM folder, or "" when CLOUDINARY_FOLDER is unset or only slashes. */
+function crmFolder(env: NodeJS.ProcessEnv): string {
+  return (env.CLOUDINARY_FOLDER ?? "").trim().replace(/^\/+|\/+$/g, "");
+}
+
+/** The CRM's upload settings, or null when a key or the folder is missing: never a guessed folder. */
+export function cloudinaryConfig(env: NodeJS.ProcessEnv = process.env): CloudinaryConfig | null {
+  const keys = cloudinaryKeys(env);
+  const folder = crmFolder(env);
+  return keys && folder ? { ...keys, folder } : null;
+}
+
+/** What a CRM user is told while the folder is missing: plain words, the site's support address. */
+export function folderMissingMessage(): string {
+  const help = site.crm?.supportEmail ? ` or write to ${site.crm.supportEmail}` : "";
+  return `Image upload isn't finished on this site yet. Paste an image address instead${help}.`;
+}
+
+/** True when the keys are set but CLOUDINARY_FOLDER is not: the upload says so, rather than
+ *  "not set up". */
+export function cloudinaryFolderMissing(env: NodeJS.ProcessEnv = process.env): boolean {
+  return Boolean(cloudinaryKeys(env)) && !crmFolder(env);
 }
 
 /** The free plan's limit for one image file. */
@@ -112,7 +141,7 @@ export async function listFolder(
  * configured, so a caller never hands out an unsigned address. Raw files omit `format`.
  */
 export function privateFileUrl(
-  cfg: CloudinaryConfig,
+  cfg: CloudinaryKeys,
   file: { publicId: string; format?: string; resourceType?: "image" | "video" | "raw" },
   opts: { expiresInSeconds?: number; now?: number } = {},
 ): string {

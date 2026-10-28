@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
+import { BoundedCache, SPOTIFY_MISS_TTL_MS, allowSpotifyCall, knownArtistIds, noteSpotifyAnswer, spotifyResting } from "@/lib/spotify-guard";
 
 let tokenCache: { token: string; expiry: number } | null = null;
 
-const artistDetailCache = new Map<string, { data: unknown; expiry: number }>();
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+// Only the roster's artists are ever stored, so the cap is a backstop (TZS-11).
+const artistDetailCache = new BoundedCache<unknown>(200, CACHE_DURATION);
+// Artists Spotify says do not exist (400 or 404), left alone for an hour.
+const artistMisses = new BoundedCache<true>(200, SPOTIFY_MISS_TTL_MS);
 
 async function getAccessToken(): Promise<string | null> {
   if (tokenCache && Date.now() < tokenCache.expiry) {
@@ -32,7 +36,7 @@ async function getAccessToken(): Promise<string | null> {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
@@ -41,12 +45,28 @@ export async function GET(
     return NextResponse.json({ error: "Invalid artist ID" }, { status: 400 });
   }
 
+  // Only an artist on the site's own roster is looked up: the site's Spotify app is not a proxy
+  // for anyone's ids (TZS-11).
+  if (!knownArtistIds().has(id) || artistMisses.get(id)) {
+    return NextResponse.json({ error: "Artist not found" }, { status: 404 });
+  }
+
   // Return cached data if fresh
   const cached = artistDetailCache.get(id);
-  if (cached && Date.now() < cached.expiry) {
-    return NextResponse.json(cached.data, {
+  if (cached !== undefined) {
+    return NextResponse.json(cached, {
       headers: { "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=172800" },
     });
+  }
+
+  // While Spotify is limiting the site's app, nobody's request goes to it.
+  if (spotifyResting()) return NextResponse.json({ error: "Temporarily unavailable." }, { status: 503, headers: { "retry-after": "60" } });
+  const allowed = await allowSpotifyCall(request);
+  if (!allowed.ok) {
+    return NextResponse.json(
+      { error: allowed.status === 429 ? "Too many requests. Try again later." : "Temporarily unavailable." },
+      { status: allowed.status, headers: allowed.status === 429 ? { "retry-after": "600" } : undefined },
+    );
   }
 
   const token = await getAccessToken();
@@ -64,10 +84,16 @@ export async function GET(
       fetch(`https://api.spotify.com/v1/artists/${id}/related-artists`, { headers }),
     ]);
 
+    for (const r of [artistRes, tracksRes, albumsRes, relatedRes]) noteSpotifyAnswer(r);
     if (!artistRes.ok) {
+      if (artistRes.status === 400 || artistRes.status === 404) artistMisses.set(id, true);
       return NextResponse.json({ error: "Artist not found" }, { status: 404 });
     }
 
+    // A passing failure (429, 5xx) of one of the three lists makes the answer partial: sent, but
+    // not cached here or at the edge. A 404 is a real "none" (Spotify no longer serves related
+    // artists to new apps), so it does not.
+    const partial = [tracksRes, albumsRes, relatedRes].some((r) => r.status === 429 || r.status >= 500);
     const [artistData, tracksData, albumsData, relatedData] = await Promise.all([
       artistRes.json(),
       tracksRes.ok ? tracksRes.json() : { tracks: [] },
@@ -132,7 +158,8 @@ export async function GET(
       ),
     };
 
-    artistDetailCache.set(id, { data: result, expiry: Date.now() + CACHE_DURATION });
+    if (partial) return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
+    artistDetailCache.set(id, result);
 
     return NextResponse.json(result, {
       headers: { "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=172800" },

@@ -19,6 +19,19 @@ import { membership as cfg } from "@/config/membership";
 //
 // Fails CLOSED: no provider, no hub address, no product key, no session cookie, a slow or
 // failed hub, an unreadable answer, or a FREE plan all read as not a member.
+//
+// The server key (EBE-6346, the hub's EBE-6342). Every call from here comes from this server's one
+// address, and the hub limits session-info per address. When the server-only variable
+// HUB_SESSION_INFO_KEY holds the key ew-platform made for this site's hub product, it goes to the
+// hub in X-Ebenworks-Session-Key and the call counts against the product's allowance instead. The
+// key never stands in for the visitor: without the hub cookie the answer is still signed out. It
+// is never a NEXT_PUBLIC_ variable, never logged, and goes only to the hub address below, over
+// https (or to a local hub). A 403 means the hub refused the key (wrong, stale, another
+// product's, or sent for a hub product the hub does not know): a setup fault, logged without the
+// key and never cached. The hub is asked once more without the key, and the key is set aside for
+// five minutes, so a broken key costs about one refused call per five minutes (one per lookup
+// already in flight when it is refused) instead of signing every
+// member out or halving the per-address limit (the hub counts a refused call against it too).
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface ServerMembership {
@@ -90,10 +103,49 @@ export interface MembershipLookup {
   provider?: string;
   hub?: string;
   product?: string;
+  /** The hub product's session-info server key; HUB_SESSION_INFO_KEY when not given. */
+  serverKey?: string;
   fetchImpl?: typeof fetch;
   timeoutMs?: number;
   now?: number;
+  /** Where a setup fault is logged; console.error when not given. */
+  logError?: (message: string) => void;
 }
+
+/** The header the hub reads the server key from (accounts-hub src/lib/session-info-key.ts). */
+export const SESSION_KEY_HEADER = "X-Ebenworks-Session-Key";
+
+/** The key goes only over https, or to a hub on this machine (local development). */
+function keyMayGoTo(hub: string): boolean {
+  try {
+    const u = new URL(hub);
+    return u.protocol === "https:" || (u.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(u.hostname));
+  } catch {
+    return false;
+  }
+}
+
+/*
+ * A setup fault is said at most once per kind every five minutes per instance, so a wrong key on
+ * a busy day does not flood the log. The message names the variable and the product, never the key.
+ */
+const FAULT_LOG_MS = 5 * 60_000;
+const faultSaid = new Map<string, number>();
+function sayFault(kind: string, message: string, now: number, log: (m: string) => void): void {
+  const last = faultSaid.get(kind);
+  if (last !== undefined && now - last < FAULT_LOG_MS) return;
+  faultSaid.set(kind, now);
+  log(message);
+}
+
+/** When the hub last refused this instance's key for a product; the key is not sent for five minutes after. */
+const KEY_SET_ASIDE_MS = 5 * 60_000;
+const keyRefusedAt = new Map<string, number>();
+
+/** A header value carries visible ASCII only; anything else would make fetch throw for every visitor. */
+const KEY_SHAPE = /^[\x21-\x7e]+$/;
+/** The hub never matches a key shorter than this and quietly counts the call per address (SESSION_INFO_KEY_MIN_LENGTH). */
+const KEY_MIN_LENGTH = 43;
 
 /** The membership a Cookie header proves, asked of the hub. Never throws. */
 export async function membershipForCookie(cookieHeader: string | null | undefined, opts: MembershipLookup = {}): Promise<ServerMembership> {
@@ -108,14 +160,57 @@ export async function membershipForCookie(cookieHeader: string | null | undefine
   const hit = cache.get(key);
   if (hit && now - hit.at < CACHE_MS) return hit.value;
   const fallback = (): ServerMembership => (hit && now - hit.at < STALE_OK_MS ? hit.value : NOT_A_MEMBER);
+  const log = opts.logError ?? ((m: string) => console.error(m));
+  let serverKey = (opts.serverKey ?? process.env.HUB_SESSION_INFO_KEY ?? "").trim();
+  if (serverKey && !KEY_SHAPE.test(serverKey)) {
+    sayFault(`shape:${product}`, `membership: HUB_SESSION_INFO_KEY holds a space, a line break or a character outside ASCII; the key is not sent (product ${product})`, now, log);
+    serverKey = "";
+  }
+  if (serverKey && serverKey.length < KEY_MIN_LENGTH) {
+    sayFault(`short:${product}`, `membership: HUB_SESSION_INFO_KEY is too short (under ${KEY_MIN_LENGTH} characters, perhaps cut off when pasted); the key is not sent (product ${product})`, now, log);
+    serverKey = "";
+  }
+  if (serverKey && !keyMayGoTo(hub)) {
+    sayFault(`insecure:${product}`, `membership: HUB_SESSION_INFO_KEY is set but the hub address is not https; the key is not sent (product ${product})`, now, log);
+    serverKey = "";
+  }
+  const refusedKey = `${hub}\n${product}`;
+  const refused = keyRefusedAt.get(refusedKey);
+  if (serverKey && refused !== undefined && now - refused < KEY_SET_ASIDE_MS) serverKey = "";
   try {
-    const r = await (opts.fetchImpl ?? fetch)(`${hub}/api/session-info?product=${encodeURIComponent(product)}`, {
-      headers: { accept: "application/json", cookie },
-      cache: "no-store",
-      redirect: "error",
-      signal: AbortSignal.timeout(opts.timeoutMs ?? 4000),
-    });
-    if (!r.ok) return fallback();
+    // One deadline for the whole lookup, the retry without the key included.
+    const signal = AbortSignal.timeout(opts.timeoutMs ?? 4000);
+    const ask = (withKey: boolean) =>
+      (opts.fetchImpl ?? fetch)(`${hub}/api/session-info?product=${encodeURIComponent(product)}`, {
+        headers: withKey ? { accept: "application/json", cookie, [SESSION_KEY_HEADER]: serverKey } : { accept: "application/json", cookie },
+        cache: "no-store",
+        redirect: "error",
+        signal,
+      });
+    let r = await ask(!!serverKey);
+    if (r.status === 403) {
+      // Not "signed out": a setup fault. Nothing about this answer is cached.
+      if (serverKey) {
+        keyRefusedAt.set(refusedKey, now);
+        sayFault(
+          `key:${product}`,
+          `membership: the hub refused HUB_SESSION_INFO_KEY for product ${product} (403): the key is wrong, stale or another product's, or hubProduct in src/config/membership.ts is not a product the hub knows; the key is set aside for five minutes at a time until it is fixed`,
+          now,
+          log,
+        );
+        // Release the refused answer's connection before asking again.
+        await r.body?.cancel().catch(() => {});
+        r = await ask(false);
+      }
+      if (r.status === 403) {
+        // The hub itself never answers 403 without a key, so something in front of it refused.
+        sayFault(`refused:${product}`, `membership: the hub address, or a proxy in front of it, refused session-info for product ${product} with 403`, now, log);
+      }
+    }
+    if (!r.ok) {
+      await r.body?.cancel().catch(() => {});
+      return fallback();
+    }
     const body = await r.json().catch(() => undefined);
     if (body === undefined) return fallback();
     const value = memberFromSessionInfo(body);

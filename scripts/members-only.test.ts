@@ -13,6 +13,10 @@
  *      no link at all without Cloudinary settings.
  *   4. The server membership check forwards only the hub's session cookie, and reads a FREE
  *      plan, a hub error, a slow hub or a missing cookie as "not a member".
+ *   5. The hub's session-info server key (EBE-6346) goes in X-Ebenworks-Session-Key from the
+ *      server-only HUB_SESSION_INFO_KEY, only when set, only to the hub over https and only when
+ *      it can be a header; a 403 is logged without the key, never cached, and a refused key is
+ *      set aside for five minutes after one more ask without it.
  *
  * scripts/members-only-html.ts checks the same thing on a running build, over HTTP.
  *
@@ -81,6 +85,19 @@ async function main() {
       })
       .map((f) => path.relative(ROOT, f));
     check(`no client component imports the ${mod} data`, offenders.length === 0, offenders.join(", "));
+  }
+  {
+    // The hub's server key is read in membership-server.ts; a client component importing it
+    // would put the module (and the variable's name) in a browser bundle.
+    const srvImports = files
+      .filter((f) => {
+        const src = readFileSync(f, "utf8");
+        return isClient(src) && /from\s+["'](?:@\/lib\/|(?:\.\.?\/)+(?:[\w-]+\/)*lib\/)membership-server(?:\.ts)?["']/.test(src);
+      })
+      .map((f) => path.relative(ROOT, f));
+    check("no client component imports the server membership check", srvImports.length === 0, srvImports.join(", "));
+    const pub = files.filter((f) => /NEXT_PUBLIC_HUB_SESSION_INFO_KEY/.test(readFileSync(f, "utf8"))).map((f) => path.relative(ROOT, f));
+    check("no code reads a NEXT_PUBLIC_ server key", pub.length === 0, pub.join(", "));
   }
   if (hasVault) check("the vault page is a server component", !isClient(readFileSync(path.join(ROOT, VAULT_PAGE), "utf8")));
   if (hasGallery) check("the gallery page is a server component", !isClient(readFileSync(path.join(ROOT, GALLERY_PAGE), "utf8")));
@@ -172,6 +189,11 @@ async function main() {
 
   if (hasVault || hasGallery) {
     console.log("Server membership check");
+    // A real key in this shell (a site's server, a secret-run) must never reach the stubs or a
+    // failure's printout: every case here runs without it, and it is put back at the end.
+    const savedEnv = { key: process.env.HUB_SESSION_INFO_KEY, pub: process.env.NEXT_PUBLIC_HUB_SESSION_INFO_KEY };
+    delete process.env.HUB_SESSION_INFO_KEY;
+    delete process.env.NEXT_PUBLIC_HUB_SESSION_INFO_KEY;
     let srv: ServerModule | null = null;
     try {
       srv = await import(serverMod);
@@ -190,10 +212,11 @@ async function main() {
       check("signed out is not a member", !srv.memberFromSessionInfo({ signedIn: false, membership: { active: true, plan: "STARTER" } }).member);
       check("an odd body is not a member", !srv.memberFromSessionInfo("yes").member && !srv.memberFromSessionInfo(null).member);
 
-      const calls: { url: string; cookie: string }[] = [];
+      const calls: { url: string; cookie: string; key: string | null }[] = [];
       const stub = (answer: () => Response | Promise<Response>) =>
         (async (url: string | URL | Request, init?: RequestInit) => {
-          calls.push({ url: String(url), cookie: String((init?.headers as Record<string, string>)?.cookie ?? "") });
+          const h = new Headers(init?.headers);
+          calls.push({ url: String(url), cookie: h.get("cookie") ?? "", key: h.get("x-ebenworks-session-key") });
           return answer();
         }) as typeof fetch;
       const base = { provider: "hub", hub: "https://hub.example.invalid/", product: "KOPJE_SITE" };
@@ -247,7 +270,119 @@ async function main() {
       check("no product key is not a member", !noProduct.member);
       const none = await srv.membershipForCookie("ebenworks-session=none", { ...base, provider: "none", fetchImpl: stub(paid) });
       check('provider "none" is not a member', !none.member);
+
+      console.log("Server key for the hub (EBE-6346)");
+      // An invented key: 64 characters, as ew-platform makes them.
+      const KEY = "K".repeat(32) + "e".repeat(32);
+      const logged: string[] = [];
+      const logError = (m: string) => logged.push(m);
+      // A fresh product name per case, so the fault log's five-minute quiet spell is per case.
+      let n = 0;
+      const fresh = () => ({ ...base, product: `KEY_CASE_${++n}`, logError });
+
+      calls.length = 0;
+      await srv.membershipForCookie("ebenworks-session=k1", { ...fresh(), fetchImpl: stub(paid) });
+      check("no key set: no key header is sent", calls.length === 1 && calls[0].key === null, JSON.stringify(calls[0]));
+
+      process.env.NEXT_PUBLIC_HUB_SESSION_INFO_KEY = KEY;
+      calls.length = 0;
+      await srv.membershipForCookie("ebenworks-session=k2", { ...fresh(), fetchImpl: stub(paid) });
+      check("a NEXT_PUBLIC_ key is never read", calls[0]?.key === null);
+      delete process.env.NEXT_PUBLIC_HUB_SESSION_INFO_KEY;
+
+      process.env.HUB_SESSION_INFO_KEY = `${KEY}\n`;
+      calls.length = 0;
+      const keyed = await srv.membershipForCookie("ebenworks-session=k3", { ...fresh(), fetchImpl: stub(paid) });
+      check(
+        "HUB_SESSION_INFO_KEY goes in X-Ebenworks-Session-Key, trimmed, to the hub's session-info with the cookie",
+        keyed.member && calls.length === 1 && calls[0].key === KEY && calls[0].cookie === "ebenworks-session=k3" &&
+          calls[0].url.startsWith("https://hub.example.invalid/api/session-info?product=KEY_CASE_"),
+        JSON.stringify(calls[0]),
+      );
+
+      calls.length = 0;
+      await srv.membershipForCookie("ebenworks-session=k4", { ...fresh(), hub: "http://hub.example.invalid", fetchImpl: stub(paid) });
+      check("the key is not sent to a hub over plain http", calls.length === 1 && calls[0].key === null);
+      calls.length = 0;
+      await srv.membershipForCookie("ebenworks-session=k5", { ...fresh(), hub: "http://localhost:3000", fetchImpl: stub(paid) });
+      check("the key is sent to a local hub", calls[0]?.key === KEY);
+
+      // A key pasted with a line break inside: fetch would throw for every visitor.
+      logged.length = 0;
+      calls.length = 0;
+      const broken = await srv.membershipForCookie("ebenworks-session=k5b", { ...fresh(), serverKey: `${KEY.slice(0, 32)}\n${KEY.slice(32)}`, fetchImpl: stub(paid) });
+      check(
+        "a key that cannot be a header is not sent, the member is still a member, and it is logged without the key",
+        broken.member && calls.length === 1 && calls[0].key === null && logged.length === 1 && !logged[0].includes(KEY.slice(0, 32)),
+        logged.join(" | "),
+      );
+      logged.length = 0;
+      calls.length = 0;
+      const short = await srv.membershipForCookie("ebenworks-session=k5c", { ...fresh(), serverKey: KEY.slice(0, 42), fetchImpl: stub(paid) });
+      check(
+        "a key shorter than the hub's 43 characters is not sent and is logged",
+        short.member && calls.length === 1 && calls[0].key === null && logged.length === 1 && /short/.test(logged[0]),
+        logged.join(" | "),
+      );
+
+      calls.length = 0;
+      const noCookieKeyed = await srv.membershipForCookie("theme=dark", { ...fresh(), fetchImpl: stub(paid) });
+      check("the key never stands in for the visitor: no cookie, no member, no call", !noCookieKeyed.member && calls.length === 0);
+
+      // A refused key: 403 to the keyed call, the normal answer without the key.
+      const refusesKey = () => () => (calls[calls.length - 1].key ? new Response(JSON.stringify({ signedIn: false }), { status: 403 }) : paid());
+      logged.length = 0;
+      calls.length = 0;
+      const p403 = fresh();
+      const retried = await srv.membershipForCookie("ebenworks-session=k6", { ...p403, fetchImpl: stub(refusesKey()) });
+      check(
+        "a 403 to the key is asked again without it, and the member is still a member",
+        retried.member && calls.length === 2 && calls[0].key === KEY && calls[1].key === null,
+        JSON.stringify(calls),
+      );
+      check("the refused key is logged as a key fault, without the key", logged.length === 1 && /HUB_SESSION_INFO_KEY/.test(logged[0]) && /403/.test(logged[0]) && !logged.join().includes(KEY), logged.join(" | "));
+      calls.length = 0;
+      const aside = await srv.membershipForCookie("ebenworks-session=k7", { ...p403, fetchImpl: stub(refusesKey()) });
+      check(
+        "a refused key is set aside: the next lookup makes one call, without it, and says nothing new",
+        aside.member && calls.length === 1 && calls[0].key === null && logged.length === 1,
+        JSON.stringify(calls),
+      );
+      calls.length = 0;
+      const retryKey = await srv.membershipForCookie("ebenworks-session=k7b", { ...p403, now: Date.now() + 5 * 60_000 + 1000, fetchImpl: stub(paid) });
+      check("after five minutes the key is tried again", retryKey.member && calls.length === 1 && calls[0].key === KEY);
+
+      // 403 every time: not a member, nothing cached, and the next answer is asked for again.
+      logged.length = 0;
+      calls.length = 0;
+      const p403b = fresh();
+      const forbidden = () => new Response(JSON.stringify({ signedIn: false }), { status: 403 });
+      const all403 = await srv.membershipForCookie("ebenworks-session=k8", { ...p403b, fetchImpl: stub(forbidden) });
+      check("403 with and without the key: not a member, both logged", !all403.member && calls.length === 2 && logged.length === 2);
+      calls.length = 0;
+      const after403 = await srv.membershipForCookie("ebenworks-session=k8", { ...p403b, fetchImpl: stub(paid) });
+      check("a 403 is not cached: the next lookup asks the hub and gets the member", after403.member && calls.length === 1);
+      calls.length = 0;
+      const cachedAfter = await srv.membershipForCookie("ebenworks-session=k8", { ...p403b, fetchImpl: stub(paid) });
+      check("the member answer after it is cached as usual", cachedAfter.member && calls.length === 0);
+      const stale403 = await srv.membershipForCookie("ebenworks-session=k8", { ...p403b, now: Date.now() + 5 * 60_000, fetchImpl: stub(forbidden) });
+      check("a 403 does not end a recent member's access (it is a setup fault, not \"signed out\")", stale403.member);
+      const fresh403 = await srv.membershipForCookie("ebenworks-session=k8", { ...p403b, now: Date.now() + 5 * 60_000 + 1, fetchImpl: stub(paid) });
+      // Two calls by the 403 lookup, then this ask: one call, without the key the 403 set aside again.
+      check("and is not cached either: the hub is asked again", fresh403.member && calls.length === 3 && calls[2].key === null, JSON.stringify(calls));
+
+      // Without a key a 403 can only come from in front of the hub: logged, not cached, no second ask.
+      delete process.env.HUB_SESSION_INFO_KEY;
+      logged.length = 0;
+      calls.length = 0;
+      const pNoKey = fresh();
+      const unknown = await srv.membershipForCookie("ebenworks-session=k9", { ...pNoKey, fetchImpl: stub(forbidden) });
+      check("no key and a 403: not a member, one call, logged as a refused call", !unknown.member && calls.length === 1 && logged.length === 1 && /refused/.test(logged[0]), logged.join(" | "));
+
+      delete process.env.HUB_SESSION_INFO_KEY;
     }
+    if (savedEnv.key !== undefined) process.env.HUB_SESSION_INFO_KEY = savedEnv.key;
+    if (savedEnv.pub !== undefined) process.env.NEXT_PUBLIC_HUB_SESSION_INFO_KEY = savedEnv.pub;
   }
 
   clearInterval(keepAlive);

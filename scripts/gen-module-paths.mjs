@@ -44,7 +44,7 @@ const OUT = "packages/schema/src/module-paths.ts";
 /** API routes have no importers, so they cannot be derived. Keep in sync by hand. */
 const API_OWNERS = {
   "src/app/api/spotify-albums/": ["music"],
-  "src/app/api/spotify-artist/": ["music"],
+  "src/app/api/spotify-artist/": ["label", "music"], // its caller is the label's artist page
   "src/app/api/spotify-artists/": ["music"],
   "src/app/api/membership/": ["membership"],
   "src/app/api/account/": ["membership"],
@@ -94,10 +94,14 @@ for (const f of files) {
   nsOf.set(f, new Set([...src.matchAll(NS_CALL)].map((m) => m[1] ?? m[2])));
 }
 
-// module -> gated subtrees, from requireModule() in the source
+// module -> gated subtrees, from requireModule() in a route's source. The CRM's pages gate through
+// requireCrm() (src/lib/crm/guard.ts, TZS-5), which is requireModule("crm") and a session check;
+// the guard's own file is not a route and gates nothing.
 const gates = new Map();
 for (const f of files) {
-  const m = readFileSync(f, "utf8").match(/requireModule\(\s*["']([a-z]+)["']/);
+  if (!/(^|\/)src\/app\//.test(f)) continue;
+  const src = readFileSync(f, "utf8");
+  const m = src.match(/requireModule\(\s*["']([a-z]+)["']/) ?? (/\brequireCrm\(\s*\)/.test(src) ? [null, "crm"] : null);
   if (!m) continue;
   let dir = path.dirname(f);
   if (/\/\(app\)$/.test(dir)) dir = path.dirname(dir); // route groups aren't URL segments

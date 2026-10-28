@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
@@ -24,12 +25,32 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 //     nobody. Each report becomes one "[csp]" line in the site's function log.
 // To enforce: read the "[csp]" lines, fix what they report, then merge this value into
 // Content-Security-Policy.
-const contentSecurityPolicyReportOnly = [
+// Studio frames the site for its live preview. A local Studio may be added in development only
+// (NEXT_PUBLIC_TZOHAR_STUDIO_DEV_ORIGIN, an http(s) origin; src/lib/preview-store.ts accepts its
+// messages under the same rule, TZS-7). Only `next dev` (PHASE_DEVELOPMENT_SERVER) adds it: any
+// build, whatever NODE_ENV says, lists Studio alone.
+/** The dev setting as a browser writes an origin (lowercase, no path, no default port), or "". */
+function devStudioOrigin(): string {
+  try {
+    const origin = new URL(process.env.NEXT_PUBLIC_TZOHAR_STUDIO_DEV_ORIGIN?.trim() ?? "").origin;
+    return /^https?:\/\/[a-z0-9.-]+(:\d+)?$/.test(origin) ? origin : "";
+  } catch {
+    return "";
+  }
+}
+
+function frameAncestors(devServer: boolean): string {
+  const dev = devServer ? devStudioOrigin() : "";
+  const extra = dev ? ` ${dev}` : "";
+  return `frame-ancestors 'self' https://studio.ebenworks.co${extra}`;
+}
+
+const contentSecurityPolicyReportOnly = (devServer: boolean) => [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "form-action 'self'",
-  "frame-ancestors 'self' https://studio.ebenworks.co",
+  frameAncestors(devServer),
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
@@ -57,7 +78,8 @@ const contentSecurityPolicyReportOnly = [
   "report-uri /api/csp-report",
 ].join("; ");
 
-const nextConfig: NextConfig = {
+// A function of the phase, so each load's headers() reads its own phase, never shared state.
+const nextConfigFor = (devServer: boolean): NextConfig => ({
   images: {
     // ONE format, not two. Next picks the first entry the browser accepts, but the
     // transformation cache key includes the format, so offering avif and webp caches
@@ -122,7 +144,7 @@ const nextConfig: NextConfig = {
            * every browser that supports it, and listing 'self' + Studio keeps
            * every other host exactly as locked out as before.
            */
-          { key: "Content-Security-Policy", value: "frame-ancestors 'self' https://studio.ebenworks.co" },
+          { key: "Content-Security-Policy", value: frameAncestors(devServer) },
           { key: "X-Content-Type-Options", value: "nosniff" },
           // The strict form also withholds the origin on an https -> http downgrade.
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -134,11 +156,13 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
-          { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicyReportOnly },
+          { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicyReportOnly(devServer) },
         ],
       },
     ];
   },
-};
+});
 
-export default withNextIntl(nextConfig);
+export default function config(phase: string): NextConfig {
+  return withNextIntl(nextConfigFor(phase === PHASE_DEVELOPMENT_SERVER));
+}

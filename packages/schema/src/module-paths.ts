@@ -225,6 +225,7 @@ export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = {
     "music"
   ],
   "src/app/api/spotify-artist/[id]/route.ts": [
+    "label",
     "music"
   ],
   "src/app/api/spotify-artists/route.ts": [
@@ -350,26 +351,6 @@ export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = {
   ],
   "src/lib/membership-server.ts": [
     "gallery",
-    "vault"
-  ],
-  "src/lib/modules.ts": [
-    "ai",
-    "biography",
-    "crm",
-    "engagements",
-    "gallery",
-    "influencer",
-    "innovation",
-    "label",
-    "links",
-    "membership",
-    "merch",
-    "music",
-    "pages",
-    "posts",
-    "press",
-    "research",
-    "tour",
     "vault"
   ],
   "src/lib/payments/marks.generated.ts": [

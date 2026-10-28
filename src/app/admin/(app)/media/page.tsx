@@ -1,6 +1,6 @@
 import { listPublicDir } from "@/lib/crm/store";
 import { mediaGroups } from "@/lib/crm/media";
-import { cloudinaryConfig, listFolder } from "@/lib/cloudinary";
+import { cloudinaryConfig, cloudinaryFolderMissing, folderMissingMessage, listFolder } from "@/lib/cloudinary";
 import Uploader from "./Uploader";
 import MediaGrid from "./MediaGrid";
 import { requireCrm } from "@/lib/crm/guard";
@@ -37,7 +37,8 @@ export default async function AdminMediaPage() {
         </div>
       </header>
 
-      <Uploader />
+      {/* Keys without the upload folder: say so here, before anyone picks a file (EBE-6352). */}
+      {cloudinaryFolderMissing() ? <div className="crm-note">{folderMissingMessage()}</div> : <Uploader />}
 
       {uploaded && (
         <section style={{ marginTop: 26 }}>

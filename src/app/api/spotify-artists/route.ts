@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { rosterArtists } from "@/data/roster";
+import { allowSpotifyCall, noteSpotifyAnswer, spotifyResting } from "@/lib/spotify-guard";
 
 interface SpotifyArtistResult {
   name: string;
@@ -37,12 +38,16 @@ async function getAccessToken(): Promise<string | null> {
   return data.access_token;
 }
 
-async function searchArtist(token: string, name: string): Promise<SpotifyArtistResult> {
+// `run.failed` is set when a search failed for a moment (429 or 5xx): that answer is then not
+// cached (TZS-11).
+async function searchArtist(token: string, name: string, run: { failed: boolean }): Promise<SpotifyArtistResult> {
   const res = await fetch(
     `https://api.spotify.com/v1/search?q=${encodeURIComponent(name)}&type=artist&limit=3`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
 
+  noteSpotifyAnswer(res);
+  if (res.status === 429 || res.status >= 500) run.failed = true;
   if (!res.ok) return { name, image: null, url: null };
 
   const data = await res.json();
@@ -62,7 +67,7 @@ async function searchArtist(token: string, name: string): Promise<SpotifyArtistR
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   // Return cached data if fresh
   if (artistCache && Date.now() < artistCache.expiry) {
     return NextResponse.json(artistCache.data, {
@@ -87,19 +92,32 @@ export async function GET() {
     });
   }
 
+  // A cold cache searches Spotify once per roster artist: counted per caller (TZS-11), and not
+  // while Spotify is limiting the site's app.
+  if (spotifyResting()) return NextResponse.json({ error: "Temporarily unavailable." }, { status: 503, headers: { "retry-after": "60" } });
+  const allowed = await allowSpotifyCall(request);
+  if (!allowed.ok) {
+    return NextResponse.json(
+      { error: allowed.status === 429 ? "Too many requests. Try again later." : "Temporarily unavailable." },
+      { status: allowed.status, headers: allowed.status === 429 ? { "retry-after": "600" } : undefined },
+    );
+  }
+
   const results: Record<string, SpotifyArtistResult> = {};
+  const run = { failed: false };
 
   // Fetch in batches of 5 to avoid rate limits
   for (let i = 0; i < roster.length; i += 5) {
     const batch = roster.slice(i, i + 5);
     const batchResults = await Promise.all(
-      batch.map((name) => searchArtist(token, name))
+      batch.map((name) => searchArtist(token, name, run))
     );
     batch.forEach((name, j) => {
       results[name] = batchResults[j];
     });
   }
 
+  if (run.failed) return NextResponse.json(results, { headers: { "Cache-Control": "no-store" } });
   artistCache = { data: results, expiry: Date.now() + CACHE_DURATION };
 
   return NextResponse.json(results, {

@@ -1,5 +1,5 @@
 import type { DropType, VaultDrop } from "@/data/vault";
-import { cloudinaryConfig, privateFileUrl, type CloudinaryConfig } from "@/lib/cloudinary";
+import { cloudinaryKeys, privateFileUrl, type CloudinaryKeys } from "@/lib/cloudinary";
 
 /**
  * What one vault drop may show the visitor, decided on the server (security review TZS-2,
@@ -26,9 +26,9 @@ export const VAULT_FILE_TTL_SECONDS = 600;
 export function visibleDrops(
   drops: readonly VaultDrop[],
   member: boolean,
-  opts: { cloudinary?: CloudinaryConfig | null; now?: number } = {},
+  opts: { cloudinary?: CloudinaryKeys | null; now?: number } = {},
 ): VisibleDrop[] {
-  const cloud = opts.cloudinary === undefined ? cloudinaryConfig() : opts.cloudinary;
+  const cloud = opts.cloudinary === undefined ? cloudinaryKeys() : opts.cloudinary;
   return drops.map((d, i): VisibleDrop => {
     if (d.tier !== "free" && !member) {
       // The id is by position: a drop's own id ("next-single-first-listen") describes it.
