@@ -43,7 +43,6 @@ import {
   getSiteNavigationSchema,
 } from "@/lib/structured-data";
 import Analytics from "@/components/Analytics";
-import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import ScrollProgress from "@/components/ScrollProgress";
 import ThemeProvider from "@/components/ThemeProvider";
 import PreviewBridge from "@/components/preview/PreviewBridge";
@@ -365,8 +364,8 @@ export default async function LocaleLayout({
             </AudioPlayerProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
+        {/* Every analytics tool, Vercel Web Analytics included (src/lib/analytics.ts). */}
         <Analytics />
-        <VercelAnalytics />
       </body>
     </html>
   );

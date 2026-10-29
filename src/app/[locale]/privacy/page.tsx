@@ -1,6 +1,7 @@
 import { Link } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
 import { site, hasModule } from "@/config/site";
+import { analyticsTools, joinWithAnd } from "@/lib/analytics";
 
 // Single-language legal page (matches the hub's legal pages, which are English-only).
 const HUB = (process.env.NEXT_PUBLIC_ACCOUNTS_URL || "https://accounts.ebenworks.co").replace(/\/+$/, "");
@@ -8,6 +9,8 @@ const SITE_HOST = new URL(site.url).host;
 
 export default function PrivacyPage() {
   const membership = hasModule("membership");
+  // Exactly the analytics this site loads (src/lib/analytics.ts, decision EBE-7056).
+  const analytics = analyticsTools();
   return (
     <main id="main-content" className="min-h-screen bg-bg text-ink">
       <Container size="sm" className="pt-28 sm:pt-32 pb-20">
@@ -56,8 +59,8 @@ export default function PrivacyPage() {
                 </>
               )}
               <li>
-                <strong>Analytics &amp; cookies</strong> — we use Google Analytics, Plausible and Naver
-                Analytics to understand traffic (pages viewed, device, approximate location). Your theme and
+                <strong>Analytics &amp; cookies</strong> — we use {joinWithAnd(analytics.map((a) => a.name))}{" "}
+                to understand traffic (pages viewed, device, approximate location). Your theme and
                 language choices are stored in your browser. We do <strong>not</strong> sell your data or
                 use it for third-party advertising.
               </li>
@@ -81,7 +84,7 @@ export default function PrivacyPage() {
             <ul>
               <li><strong>Resend</strong> — email delivery (newsletter, contact).</li>
               {membership && <li><strong>Ebenworks Accounts</strong> &amp; <strong>Paynow</strong> — account and billing.</li>}
-              <li><strong>Google, Plausible, Naver</strong> — analytics.</li>
+              <li><strong>{analytics.map((a) => a.company).join(", ")}</strong> — analytics.</li>
             </ul>
             <p>We do not sell your personal information.</p>
           </section>
