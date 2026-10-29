@@ -51,8 +51,9 @@ export async function generateMetadata({
       publishedTime: post.date,
       images: post.coverImage ? [{ url: post.coverImage }] : undefined,
     },
-    // A draft is reachable by link for review; it must not be indexed.
-    robots: post.draft ? { index: false, follow: false } : undefined,
+    // A draft is reachable by link for review; it must not be indexed. Only a draft sets the key: an
+    // undefined robots would replace the layout's (a preview build's noindex included).
+    ...(post.draft ? { robots: { index: false, follow: false } } : {}),
   };
 }
 

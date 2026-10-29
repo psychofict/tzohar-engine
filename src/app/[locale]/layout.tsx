@@ -62,6 +62,7 @@ import { fontVarStyle } from "@/lib/font-vars";
 import { cjkVariableForLocale } from "@/lib/cjk-fonts.generated";
 import BottomNav from "@/components/BottomNav";
 import { clampDescription, routeAlternates } from "@/lib/route-meta";
+import { isPreviewBuild } from "@/lib/preview-build";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-body",
@@ -219,12 +220,13 @@ export async function generateMetadata({
     manifest: "/manifest.webmanifest",
     // The root layout IS the home route, so the path is empty.
     alternates: routeAlternates("", locale),
+    // A preview build (TZOHAR_PREVIEW=1, src/lib/preview-build.ts) asks not to be indexed.
     robots: {
-      index: true,
-      follow: true,
+      index: !isPreviewBuild,
+      follow: !isPreviewBuild,
       googleBot: {
-        index: true,
-        follow: true,
+        index: !isPreviewBuild,
+        follow: !isPreviewBuild,
         "max-video-preview": -1,
         "max-image-preview": "large",
         "max-snippet": -1,

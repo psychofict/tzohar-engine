@@ -157,6 +157,8 @@ const nextConfigFor = (devServer: boolean): NextConfig => ({
             value: "max-age=63072000; includeSubDomains; preload",
           },
           { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicyReportOnly(devServer) },
+          // A preview build (TZOHAR_PREVIEW=1) keeps every response out of search indexes.
+          ...(process.env.TZOHAR_PREVIEW === "1" ? [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] : []),
         ],
       },
     ];

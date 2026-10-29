@@ -1,16 +1,24 @@
 {
-  "version": "2.8.16",
-  "name": "Own folder",
-  "released": "2026-10-29",
+  "version": "2.8.18",
+  "name": "Own links",
+  "released": "2026-10-30",
   "highlights": [
-    "Image uploads in your site's admin now go into the folder set for your site, never one guessed from the site's name that another site could share. Tzohar Studio sets that folder for you when it sets up your admin or changes its password.",
-    "If the folder is not set, the admin says so in plain words and points to your site's support address instead of offering an upload that fails. Private Vault links need only your Cloudinary keys."
+    "Your links page now shows only the places you list in your site's settings, and its latest-release button opens the release your home page features. A platform you have not added, or a section your site does not run, is left out instead of showing an empty link.",
+    "The music page's Listen button opens your own first listening platform, and the members' Vault sample drop no longer carries a sample streaming link.",
+    "Your site's privacy notice describes the newsletter as news and updates from your site, in plain words that fit any site."
   ],
-  "breaking": [
-    "A site with the Cloudinary keys and no CLOUDINARY_FOLDER stops taking admin image uploads until the folder is set. A site that already uploaded images sets CLOUDINARY_FOLDER to its old folder, tzohar-sites/<site name, lowercased with hyphens>/crm, so its earlier uploads stay in the media library."
-  ],
+  "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.17": [
+      "Your site's front page can now be a page designed for you alone: when your own code (src/custom/pages.tsx) offers a front page, the site shows it in place of the composed or standard home, inside your usual header and footer.",
+      "A site built as a preview (TZOHAR_PREVIEW=1) now asks search engines to leave it out, in its page tags and headers, and its robots file names no sitemap, so you can share it by link before launch.",
+      "A site with no mailing list can drop the newsletter sign-up from its footer (layout.footerNewsletter set to false)."
+    ],
+    "2.8.16": [
+      "Image uploads in your site's admin now go into the folder set for your site, never one guessed from the site's name that another site could share. Tzohar Studio sets that folder for you when it sets up your admin or changes its password.",
+      "If the folder is not set, the admin says so in plain words and points to your site's support address instead of offering an upload that fails. Private Vault links need only your Cloudinary keys."
+    ],
     "2.8.15": [
       "Your Vault and members' gallery can now ask Ebenworks Accounts about a visitor with a key of their own, so a busy day on your site no longer runs into the limit shared by everything on your server's address. Ebenworks gives you the key when you turn the Vault or a gated gallery on: set it as HUB_SESSION_INFO_KEY on your site's server only, never as a NEXT_PUBLIC_ setting. Without it nothing changes.",
       "If that key is ever wrong or out of date, your site's server log says so (never the key itself) and the site leaves the key out for five minutes at a time, so your members still see their content while the key is fixed.",

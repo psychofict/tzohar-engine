@@ -109,9 +109,13 @@ export default function MusicPage() {
         imagePosition="center 30%"
         actions={
           <>
-            <ButtonLink href="https://open.spotify.com/artist/4mH71Zjiq36Q3SI7IZIBQK" target="_blank" rel="noopener noreferrer" variant="primary" size="md">
-              {tc("listenNow")}
-            </ButtonLink>
+            {/* The site's own first listening platform (src/lib/streaming.ts); this used to be the
+                reference build's artist for every site (EBE-7032). */}
+            {streamingPlatforms[0] && (
+              <ButtonLink href={streamingPlatforms[0].url} target="_blank" rel="noopener noreferrer" variant="primary" size="md">
+                {tc("listenNow")}
+              </ButtonLink>
+            )}
             <ButtonLink href="#discography" variant="outline-inverse" size="md">
               {t("browseDiscography")}
             </ButtonLink>

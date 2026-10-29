@@ -44,8 +44,6 @@ export const vaultDrops: VaultDrop[] = [
     title: "First listen — the next single",
     description:
       "A 60-second preview of the unreleased single, shared with the Inner Circle before anyone else. Pre-save unlocks the full drop on release day.",
-    cta: "Pre-save on Spotify",
-    href: "https://open.spotify.com/artist/4mH71Zjiq36Q3SI7IZIBQK",
   },
   {
     id: "tour-presale",

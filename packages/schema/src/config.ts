@@ -129,6 +129,12 @@ export const layoutSchema = z.object({
    * why it stays on by default.
    */
   footerSitemap: z.boolean().optional(),
+  /**
+   * Drop the footer's newsletter sign-up (engine 2.8.17). A one-page Starter
+   * site with no mailing list otherwise shows a form that has nowhere to send.
+   * On by default.
+   */
+  footerNewsletter: z.boolean().optional(),
 });
 
 // ── Contact — which inquiry forms this site offers ─────────────────────────

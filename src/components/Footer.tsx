@@ -163,6 +163,7 @@ export default function Footer() {
             */}
           </div>
 
+          {site.layout?.footerNewsletter !== false && (
           <div className="md:max-w-sm md:justify-self-end w-full">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-3 mb-4">{t("newsletter")}</h3>
             <p className="mb-4 text-[15px] text-ink-2 leading-relaxed">{t("newsletterDesc")}</p>
@@ -194,6 +195,7 @@ export default function Footer() {
             )}
             <LegalConsent className="mt-3 text-[12px] leading-relaxed text-ink-3" />
           </div>
+          )}
         </div>
 
         {/* Categorised sitemap */}
