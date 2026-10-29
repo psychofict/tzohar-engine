@@ -9,7 +9,7 @@ import { ArrowRight, Users, Eye, Handshake, Building2, ChevronDown } from "lucid
 import { macroInfluencer, brandPartnerships, eventAppearances } from "@/data/artist";
 import { travelPosts, culturePosts, instagramPosts } from "@/data/instagram";
 import { site } from "@/config/site";
-import { orgLogos, instagramHandle, influencerHeroImage, influencerHeroAlt, influencerHeroTags } from "@/data/influencer";
+import { orgLogos, instagramHandle, influencerHeroImage, influencerHeroAlt, influencerHeroTags, influencerStats } from "@/data/influencer";
 import { InstagramPostGrid } from "@/components/InstagramPostCard";
 import SectionDivider from "@/components/SectionDivider";
 import PageHero from "@/components/ui/PageHero";
@@ -65,6 +65,17 @@ const sortedCategories = categoryOrder.filter((c) => brandCategories[c]);
 const compactCategoryNames = new Set(["Tech", "Lifestyle", "Fashion", "Beauty & Wellness"]);
 const fullWidthCategories = sortedCategories.filter((c) => !compactCategoryNames.has(c));
 const compactCategories = sortedCategories.filter((c) => compactCategoryNames.has(c));
+
+// Stats bar: the audience figures come from the site's own influencer.json (EBE-7131); a stat
+// without a value is left out, and the bar goes when none is left.
+const stats = [
+  { value: influencerStats.followers, labelKey: "followersStat", icon: Users },
+  { value: influencerStats.socialViews, labelKey: "socialViews", icon: Eye },
+  { value: influencerStats.brandPartners, labelKey: "brandPartners", icon: Handshake },
+  { value: macroInfluencer.length > 0 ? `${macroInfluencer.length}+` : "", labelKey: "govAppointments", icon: Building2 },
+].filter((stat) => stat.value.trim() !== "");
+// Fewer stats sit closer together instead of spreading across the full width.
+const statColumns = ["", "grid-cols-1 max-w-xs mx-auto", "grid-cols-2 max-w-xl mx-auto", "grid-cols-3 max-w-3xl mx-auto", "grid-cols-4"][stats.length];
 
 // Category accent colors
 const categoryColors: Record<string, { border: string; bg: string; text: string }> = {
@@ -133,22 +144,19 @@ export default function MacroInfluencerPage() {
       </PageHero>
 
       {/* ─── Stats Bar ─── */}
-      <Section variant="muted" className="!py-14">
-        <Container size="lg">
-          <motion.div className="grid grid-cols-4 gap-3 sm:gap-7 md:gap-10" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger}>
-            {[
-              { value: "200K+", labelKey: "followersStat", icon: Users },
-              { value: "15M+", labelKey: "socialViews", icon: Eye },
-              { value: "50+", labelKey: "brandPartners", icon: Handshake },
-              { value: `${macroInfluencer.length}+`, labelKey: "govAppointments", icon: Building2 },
-            ].map((stat) => (
-              <motion.div key={stat.labelKey} variants={fadeUp}>
-                <Stat value={stat.value} label={t(stat.labelKey)} icon={<stat.icon size={18} className="text-sunset" />} accent="sunset" />
-              </motion.div>
-            ))}
-          </motion.div>
-        </Container>
-      </Section>
+      {stats.length > 0 && (
+        <Section variant="muted" className="!py-14">
+          <Container size="lg">
+            <motion.div className={`grid ${statColumns} gap-3 sm:gap-7 md:gap-10`} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger}>
+              {stats.map((stat) => (
+                <motion.div key={stat.labelKey} variants={fadeUp}>
+                  <Stat value={stat.value} label={t(stat.labelKey)} icon={<stat.icon size={18} className="text-sunset" />} accent="sunset" />
+                </motion.div>
+              ))}
+            </motion.div>
+          </Container>
+        </Section>
+      )}
 
       {/* ─── Brand Partnerships (pill layout by category) ─── */}
       <section id="partnerships" className="scroll-mt-20 bg-surface py-10 md:py-20">

@@ -31,6 +31,24 @@ export const instagramPostSchema = z.object({
   highlight: z.string().default(""),
 });
 
+/**
+ * The audience figures in the influence page's stats bar, written as the site shows them
+ * ("200K+"). They lived in `macro-influencer/page.tsx` as the reference build's own numbers,
+ * so every site with the module on showed them as its own (EBE-7131). An empty value hides
+ * its stat; the labels stay in `messages` (`followersStat`, `socialViews`, `brandPartners`).
+ */
+/** A figure typed into the JSON by hand as a number (50) is shown as written ("50"); null hides it. */
+const statValue = z
+  .union([z.string(), z.number(), z.null()])
+  .transform((v) => (v == null ? "" : String(v).trim()))
+  .default("");
+
+export const influencerStatsSchema = z.object({
+  followers: statValue,
+  socialViews: statValue,
+  brandPartners: statValue,
+});
+
 export const influencerSchema = z.object({
   /** Without the "@" — the page adds it. */
   instagramHandle: z.string().default(""),
@@ -40,8 +58,13 @@ export const influencerSchema = z.object({
   heroTags: z.array(z.string()).default([]),
   /** Organisation name → logo path, for the partnership and event tables. */
   orgLogos: z.record(z.string(), z.string()).default({}),
+  /** Audience figures for the stats bar; a content file from before 2.8.25 has none. */
+  stats: influencerStatsSchema
+    .nullish()
+    .transform((v) => v ?? { followers: "", socialViews: "", brandPartners: "" }),
   posts: z.array(instagramPostSchema).default([]),
 });
 
 export type InstagramPost = z.infer<typeof instagramPostSchema>;
+export type InfluencerStats = z.infer<typeof influencerStatsSchema>;
 export type InfluencerContent = z.infer<typeof influencerSchema>;

@@ -1,13 +1,16 @@
 {
-  "version": "2.8.24",
-  "name": "Full credit",
+  "version": "2.8.25",
+  "name": "Own figures",
   "released": "2026-10-30",
   "highlights": [
-    "The footer credit on every site now gives the product's full name and its maker: \"A Tzohar Sites site, built by Ebenworks with Statotech Systems.\""
+    "The Influence page's stats bar now shows your own audience figures: followers, social views and brand partners, set in Studio's Influence section. A figure you leave empty is hidden, and the bar is left out when none is set. Before, every site with the Influence page showed the engine's sample figures (200K+, 15M+ and 50+) as its own."
   ],
   "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.24": [
+      "The footer credit on every site now gives the product's full name and its maker: \"A Tzohar Sites site, built by Ebenworks with Statotech Systems.\""
+    ],
     "2.8.23": [
       "A site with the CRM, membership or the members' Vault switched off now passes its type check and build: the engine's own checks skip the parts for features your site does not use, instead of stopping the build. With a feature switched on, every check runs as before."
     ],
