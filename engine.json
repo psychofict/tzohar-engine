@@ -1,15 +1,18 @@
 {
-  "version": "2.8.18",
-  "name": "Own links",
+  "version": "2.8.19",
+  "name": "Quiet preview",
   "released": "2026-10-30",
   "highlights": [
-    "Your links page now shows only the places you list in your site's settings, and its latest-release button opens the release your home page features. A platform you have not added, or a section your site does not run, is left out instead of showing an empty link.",
-    "The music page's Listen button opens your own first listening platform, and the members' Vault sample drop no longer carries a sample streaming link.",
-    "Your site's privacy notice describes the newsletter as news and updates from your site, in plain words that fit any site."
+    "A site built as a preview (TZOHAR_PREVIEW=1) no longer takes messages through its contact form. Its contact page shows your email address in place of the form, so nothing a visitor writes before launch goes to an inbox you are not watching or fails to send. Built without the flag, the form works as before."
   ],
   "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.18": [
+      "Your links page now shows only the places you list in your site's settings, and its latest-release button opens the release your home page features. A platform you have not added, or a section your site does not run, is left out instead of showing an empty link.",
+      "The music page's Listen button opens your own first listening platform, and the members' Vault sample drop no longer carries a sample streaming link.",
+      "Your site's privacy notice describes the newsletter as news and updates from your site, in plain words that fit any site."
+    ],
     "2.8.17": [
       "Your site's front page can now be a page designed for you alone: when your own code (src/custom/pages.tsx) offers a front page, the site shows it in place of the composed or standard home, inside your usual header and footer.",
       "A site built as a preview (TZOHAR_PREVIEW=1) now asks search engines to leave it out, in its page tags and headers, and its robots file names no sitemap, so you can share it by link before launch.",

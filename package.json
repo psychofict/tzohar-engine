@@ -24,6 +24,7 @@
     "test:route-hardening": "npx --yes tsx scripts/route-hardening.test.ts",
     "test:members-only": "npx --yes tsx scripts/members-only.test.ts",
     "test:mail-limits": "npx --yes tsx scripts/mail-limits.test.ts",
+    "test:preview-contact": "npx --yes tsx scripts/preview-contact.test.ts",
     "test:preview-bridge": "npx --yes tsx scripts/preview-bridge.test.ts",
     "test:spotify-routes": "npx --yes tsx scripts/spotify-routes.test.ts",
     "test:cloudinary-folder": "npx --yes tsx scripts/cloudinary-folder.test.ts",

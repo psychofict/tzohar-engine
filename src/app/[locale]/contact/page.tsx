@@ -10,6 +10,16 @@ import FormFeedback from "@/components/FormFeedback";
 import JsonLd from "@/components/JsonLd";
 import { getFAQSchema } from "@/lib/structured-data";
 import PageHero from "@/components/ui/PageHero";
+import { isPreviewBuild } from "@/lib/preview-build";
+
+/**
+ * The note a preview build shows in place of the form. The key is optional: a client's
+ * messages files are client-owned and may not have it, so the page asks `t.has` first and
+ * falls back to English. Held in a constant so check-messages counts it as unverified
+ * rather than demanding it from every site.
+ */
+const PREVIEW_NOTE_KEY = "previewFormNote";
+const PREVIEW_NOTE_FALLBACK = "The contact form opens when this site launches. Until then, please write by email.";
 
 /**
  * Every inquiry type the engine can render. WHICH of them a site shows is a
@@ -364,6 +374,26 @@ export default function ContactPage() {
 
             {/* Form Column */}
             <div>
+              {isPreviewBuild ? (
+                /*
+                 * A preview build's form is closed (src/lib/preview-build.ts): /api/contact
+                 * refuses there, so the page offers the site's own address instead of a form
+                 * that would fail or mail an inbox nobody reads before launch.
+                 */
+                <div className="rounded-[var(--radius-card)] border border-line-strong bg-elevated p-5 sm:p-8">
+                  <h2 className="text-xl font-semibold mb-4 text-ink">{t("contactLabel")}</h2>
+                  <p className="text-base text-ink-2 leading-relaxed">
+                    {t.has(PREVIEW_NOTE_KEY) ? t(PREVIEW_NOTE_KEY) : PREVIEW_NOTE_FALLBACK}
+                  </p>
+                  <a
+                    href={`mailto:${site.email}`}
+                    className="mt-4 inline-block text-ocean-strong font-medium hover:underline break-all"
+                  >
+                    {site.email}
+                  </a>
+                </div>
+              ) : (
+              <>
               {/* Tab Selector — dropdown on mobile, pills on sm+ */}
               <motion.div
                 className="mb-6 md:mb-10"
@@ -413,6 +443,8 @@ export default function ContactPage() {
                   <ActiveForm />
                 </motion.div>
               </AnimatePresence>
+              </>
+              )}
             </div>
 
             {/* Sidebar */}

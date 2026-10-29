@@ -4,6 +4,7 @@ import { site } from "@/config/site";
 import { contactAcknowledgement } from "@/lib/email/supportDesk";
 import { carryInline } from "@/lib/email/inline";
 import { allowCaller, allowRecipient, allowSiteSend, readJsonCapped, recipientHasRoom, typedEmail } from "@/lib/mail-guard";
+import { isPreviewBuild } from "@/lib/preview-build";
 
 function escapeHtml(str: string): string {
   return str
@@ -27,6 +28,11 @@ const busy = () => NextResponse.json({ error: "Too many requests. Please try aga
 const unavailable = () => NextResponse.json({ error: "Please try again in a few minutes." }, { status: 503 });
 
 export async function POST(req: NextRequest) {
+  // A preview build's contact form is closed (src/lib/preview-build.ts): nothing is read,
+  // counted or mailed.
+  if (isPreviewBuild) {
+    return NextResponse.json({ error: "The contact form opens when this site launches." }, { status: 404 });
+  }
   try {
     // Every limit counts in the site's store (src/lib/mail-guard.ts): the caller first, then the
     // site's daily ceiling for the owner's note; the acknowledgement also needs its recipient's.
