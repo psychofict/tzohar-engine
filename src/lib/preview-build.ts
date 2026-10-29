@@ -7,7 +7,9 @@
  * form of a preview is mailed (EBE-7044). It takes no sign-ups either: the footer
  * drops its newsletter form, the join page shows a note in place of its free sign-up,
  * and /api/newsletter and /api/superfan answer 404, so no confirm mail goes to an
- * address a visitor types (EBE-7062). Read at build time; next.config.ts's `env` copies
+ * address a visitor types (EBE-7062). It sells nothing: the join page shows the same note in
+ * place of the paid plans' checkout buttons and /api/checkout answers 404 before any call to the
+ * hub, since no licence or payout terms are in place before launch (EBE-7066). Read at build time; next.config.ts's `env` copies
  * the flag into the browser code as well. A launched site is built without it.
  */
 export const isPreviewBuild = process.env.TZOHAR_PREVIEW === "1";

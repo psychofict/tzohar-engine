@@ -1,13 +1,16 @@
 {
-  "version": "2.8.20",
-  "name": "Quiet sign-ups",
+  "version": "2.8.21",
+  "name": "Quiet checkout",
   "released": "2026-10-30",
   "highlights": [
-    "A site built as a preview (TZOHAR_PREVIEW=1) no longer takes newsletter or membership sign-ups. Its footer leaves out the newsletter form, the join page shows a short note where the free sign-up was, and no confirmation email goes to an address a visitor types before launch. Built without the flag, sign-ups work as before."
+    "A site built as a preview (TZOHAR_PREVIEW=1) no longer sells memberships. Its join page shows the short preview note in place of every plan button, and its checkout answers nothing, so no visitor can pay for a membership before the site launches. Built without the flag, the join page and checkout work as before."
   ],
   "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.20": [
+      "A site built as a preview (TZOHAR_PREVIEW=1) no longer takes newsletter or membership sign-ups. Its footer leaves out the newsletter form, the join page shows a short note where the free sign-up was, and no confirmation email goes to an address a visitor types before launch. Built without the flag, sign-ups work as before."
+    ],
     "2.8.19": [
       "A site built as a preview (TZOHAR_PREVIEW=1) no longer takes messages through its contact form. Its contact page shows your email address in place of the form, so nothing a visitor writes before launch goes to an inbox you are not watching or fails to send. Built without the flag, the form works as before."
     ],

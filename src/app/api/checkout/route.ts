@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { membership } from "@/config/membership";
 import { hubSessionCookie } from "@/lib/hub-cookie";
+import { isPreviewBuild } from "@/lib/preview-build";
 
 // Same-origin proxy to the accounts hub's checkout. The browser holds the shared
 // `.ebenworks.co` session cookie; we forward it server-side to the hub's cookie-authed
@@ -24,6 +25,12 @@ const HUB = (process.env.ACCOUNTS_URL || process.env.NEXT_PUBLIC_ACCOUNTS_URL ||
 const PRODUCT = membership.hubProduct ?? "";
 
 export async function POST(req: NextRequest) {
+  // A preview build sells nothing (src/lib/preview-build.ts, EBE-7066): before launch no licence
+  // or payout terms are in place, so the request is refused before anything is read or sent to
+  // the hub, and no checkout page is ever opened from a preview.
+  if (isPreviewBuild) {
+    return NextResponse.json({ error: "Memberships open when this site launches." }, { status: 404 });
+  }
   if (!HUB || !PRODUCT) {
     return NextResponse.json({ error: "Membership is not configured." }, { status: 503 });
   }

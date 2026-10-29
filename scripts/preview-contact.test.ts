@@ -1,10 +1,11 @@
 /**
- * A preview build's contact form and sign-ups are closed (EBE-7044, EBE-7062,
- * src/lib/preview-build.ts).
+ * A preview build's contact form, sign-ups and paid checkout are closed (EBE-7044, EBE-7062,
+ * EBE-7066, src/lib/preview-build.ts).
  *
  * Before the fixes a site built with TZOHAR_PREVIEW=1 still took contact messages and sign-ups:
  * /api/contact mailed the preview's configured address, and /api/newsletter and /api/superfan
- * sent a confirm-your-address mail to whatever address a visitor typed. This test builds each
+ * sent a confirm-your-address mail to whatever address a visitor typed, and /api/checkout sent a
+ * signed-in visitor on to the hub's Paynow checkout for a membership. This test builds each
  * route as a preview and checks that a well-formed request gets 404 and that nothing is fetched
  * (no mail provider, no counter store), and that a confirm link from an earlier build completes
  * nothing. The launched-site paths are covered by scripts/mail-limits.test.ts.
@@ -34,6 +35,8 @@ process.env.CONTACT_EMAIL = "owner@example.invalid";
 // (without it, src/lib/mail-guard.ts counts in memory and fetches nothing).
 process.env.UPSTASH_REDIS_REST_URL = "https://store.example.invalid";
 process.env.UPSTASH_REDIS_REST_TOKEN = "not-a-token";
+// A made-up hub, so a checkout forwarded to the hub would show up as a fetch (EBE-7066).
+process.env.ACCOUNTS_URL = "https://hub.example.invalid";
 
 type Post = (req: NextRequest) => Promise<Response>;
 
@@ -71,6 +74,32 @@ async function main() {
   await refused("join (Inner Circle) sign-up closed", superfan.POST, "/api/superfan", {
     email: "fan@example.invalid", source: "join-free",
   }, "203.0.113.9");
+
+  // A paid membership: a signed-in visitor (made-up hub session cookie) asks for a checkout.
+  // membership.ts is the site's own file and a new site sells nothing, so the test names a made-up
+  // hub product before the route reads it: without the preview guard the request would then reach
+  // the hub in every repository, not only on a site that sells memberships.
+  const { membership } = await import("../src/config/membership");
+  membership.hubProduct = "MADE_UP_PRODUCT";
+  const checkout = await import("../src/app/api/checkout/route");
+  console.log("preview build: paid checkout closed");
+  {
+    const before = fetched.length;
+    const res = await checkout.POST(new NextRequest("https://preview.example.invalid/api/checkout", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie: "__Secure-ebenworks-session=made-up-session",
+        "x-forwarded-for": "203.0.113.11",
+      },
+      body: JSON.stringify({ plan: "made-up-plan", interval: "month" }),
+    }));
+    const answer = (await res.json()) as { redirectUrl?: string };
+    check("a signed-in checkout request is refused with 404", res.status === 404, `status ${res.status}`);
+    check("no checkout address comes back", !answer.redirectUrl, JSON.stringify(answer));
+    const calls = fetched.slice(before);
+    check("nothing was fetched (no hub checkout)", calls.length === 0, calls.join(", "));
+  }
 
   const confirm = await import("../src/app/api/newsletter/confirm/route");
   console.log("preview build: confirm link completes nothing");
