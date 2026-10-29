@@ -4,6 +4,7 @@ import { siteColours } from "@/lib/email/siteMail";
 import { CONFIRM_TTL_SECONDS, openSignup } from "@/lib/mail-confirm";
 import { allowCaller, firstUse, isDone, markDone, readTextCapped, releaseUse } from "@/lib/mail-guard";
 import { completeSignup } from "@/lib/signup";
+import { isPreviewBuild } from "@/lib/preview-build";
 
 // The page the confirm mail links to (TZS-4, EBE-6326). Opening the link only shows a button: mail
 // scanners follow links, so the sign-up completes on the button's POST, once per link.
@@ -56,7 +57,13 @@ ${action}
 const expired = () =>
   page(400, "This link has expired", "Confirm links work for two days. Sign up again on the site and we'll send you a new one.");
 
+// A preview build takes no sign-ups (src/lib/preview-build.ts), so a confirm link from an earlier
+// build of the site completes nothing there: no welcome, no owner's note, no list entry.
+const closed = () =>
+  page(404, "Sign-ups open when this site launches", "This site is not open for sign-ups yet. Please come back after it launches.");
+
 export async function GET(req: NextRequest) {
+  if (isPreviewBuild) return closed();
   const token = req.nextUrl.searchParams.get("t") ?? "";
   const signup = openSignup(token);
   if (!signup) return expired();
@@ -65,6 +72,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (isPreviewBuild) return closed();
   try {
     const caller = await allowCaller(req, "confirm");
     if (!caller.ok) return page(caller.status, "Please try again shortly", "Too many requests from this connection. Try again in a few minutes.");

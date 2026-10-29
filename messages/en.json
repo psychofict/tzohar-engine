@@ -81,7 +81,7 @@
     "researchInterests": "Research Interests",
     "researchPublications": "Publications",
     "researchCredentials": "Credentials",
-    "engagements": "Public Diplomacy",
+    "engagements": "Engagements",
     "innovation": "Innovation",
     "biography": "Biography"
   },
@@ -385,7 +385,7 @@
     "labelPlaylistDesc": "Your label playlist desc",
     "joinRoster": "Want to join the roster?",
     "joinRosterDesc": "Submit demos, explore our artists, and learn more on the full label site.",
-    "exploreWebsite": "Explore esotericones.com",
+    "exploreWebsite": "Visit the label's website",
     "failedToLoad": "Failed to load artist profile.",
     "backToRoster": "Back to Roster"
   },
@@ -676,7 +676,7 @@
     "viewPortfolio": "View Portfolio"
   },
   "engagements": {
-    "eyebrow": "Public Diplomacy",
+    "eyebrow": "Engagements",
     "title": "Building bridges. Advancing dialogue.",
     "subtitle": "Through diplomacy, dialogue, and global engagement, we foster collaboration for a better and more connected world."
   },

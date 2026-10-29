@@ -1,14 +1,16 @@
 /**
- * A preview build's contact form is closed (EBE-7044, src/lib/preview-build.ts).
+ * A preview build's contact form and sign-ups are closed (EBE-7044, EBE-7062,
+ * src/lib/preview-build.ts).
  *
- * Before the fix a site built with TZOHAR_PREVIEW=1 still took contact messages: /api/contact
- * mailed the preview's configured address, or failed without RESEND_API_KEY. This test builds
- * the route as a preview and checks that a well-formed message gets 404 and that nothing is
- * fetched (no mail provider, no counter store). The launched-site path is covered by
- * scripts/mail-limits.test.ts.
+ * Before the fixes a site built with TZOHAR_PREVIEW=1 still took contact messages and sign-ups:
+ * /api/contact mailed the preview's configured address, and /api/newsletter and /api/superfan
+ * sent a confirm-your-address mail to whatever address a visitor typed. This test builds each
+ * route as a preview and checks that a well-formed request gets 404 and that nothing is fetched
+ * (no mail provider, no counter store), and that a confirm link from an earlier build completes
+ * nothing. The launched-site paths are covered by scripts/mail-limits.test.ts.
  *
  * Run: npx --yes tsx scripts/preview-contact.test.ts
- * No network: global fetch is replaced. The address is made up (example.invalid).
+ * No network: global fetch is replaced. The addresses are made up (example.invalid).
  */
 import { NextRequest } from "next/server";
 
@@ -24,7 +26,7 @@ globalThis.fetch = (async (input: unknown) => {
   return new Response("{}", { status: 200, headers: { "content-type": "application/json" } });
 }) as typeof fetch;
 
-// The flag is read when the module loads, so set it before the route is imported.
+// The flag is read when the module loads, so set it before the routes are imported.
 process.env.TZOHAR_PREVIEW = "1";
 process.env.RESEND_API_KEY = "re_test_not_a_key";
 process.env.CONTACT_EMAIL = "owner@example.invalid";
@@ -33,23 +35,58 @@ process.env.CONTACT_EMAIL = "owner@example.invalid";
 process.env.UPSTASH_REDIS_REST_URL = "https://store.example.invalid";
 process.env.UPSTASH_REDIS_REST_TOKEN = "not-a-token";
 
-async function main() {
-  const { POST } = await import("../src/app/api/contact/route");
-  const { isPreviewBuild } = await import("../src/lib/preview-build");
+type Post = (req: NextRequest) => Promise<Response>;
 
-  console.log("preview build: contact form closed");
-  check("the flag reads as a preview build", isPreviewBuild === true);
-
-  const req = new NextRequest("https://preview.example.invalid/api/contact", {
+async function refused(label: string, POST: Post, path: string, body: Record<string, string>, ip: string) {
+  console.log(`preview build: ${label}`);
+  const before = fetched.length;
+  const req = new NextRequest(`https://preview.example.invalid${path}`, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.7" },
-    body: JSON.stringify({ type: "general", name: "Test Visitor", email: "visitor@example.invalid", message: "Hello" }),
+    headers: { "content-type": "application/json", "x-forwarded-for": ip },
+    body: JSON.stringify(body),
   });
   const res = await POST(req);
-  const body = (await res.json()) as { error?: string; success?: boolean };
-  check("a well-formed message is refused with 404", res.status === 404, `status ${res.status}`);
-  check("the answer is not a success", body.success !== true, JSON.stringify(body));
-  check("nothing was fetched (no mail, no counter store)", fetched.length === 0, fetched.join(", "));
+  const answer = (await res.json()) as { error?: string; success?: boolean };
+  check("a well-formed request is refused with 404", res.status === 404, `status ${res.status}`);
+  check("the answer is not a success", answer.success !== true, JSON.stringify(answer));
+  const calls = fetched.slice(before);
+  check("nothing was fetched (no mail, no counter store)", calls.length === 0, calls.join(", "));
+}
+
+async function main() {
+  const { isPreviewBuild } = await import("../src/lib/preview-build");
+  check("the flag reads as a preview build", isPreviewBuild === true);
+
+  const contact = await import("../src/app/api/contact/route");
+  await refused("contact form closed", contact.POST, "/api/contact", {
+    type: "general", name: "Test Visitor", email: "visitor@example.invalid", message: "Hello",
+  }, "203.0.113.7");
+
+  const newsletter = await import("../src/app/api/newsletter/route");
+  await refused("newsletter sign-up closed", newsletter.POST, "/api/newsletter", {
+    email: "reader@example.invalid",
+  }, "203.0.113.8");
+
+  const superfan = await import("../src/app/api/superfan/route");
+  await refused("join (Inner Circle) sign-up closed", superfan.POST, "/api/superfan", {
+    email: "fan@example.invalid", source: "join-free",
+  }, "203.0.113.9");
+
+  const confirm = await import("../src/app/api/newsletter/confirm/route");
+  console.log("preview build: confirm link completes nothing");
+  const before = fetched.length;
+  const press = await confirm.POST(new NextRequest("https://preview.example.invalid/api/newsletter/confirm", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", "x-forwarded-for": "203.0.113.10" },
+    body: "t=made-up-token",
+  }));
+  check("the confirm button's request is refused with 404", press.status === 404, `status ${press.status}`);
+  const open = await confirm.GET(new NextRequest("https://preview.example.invalid/api/newsletter/confirm?t=made-up-token"));
+  check("the confirm page shows no button", open.status === 404 && !(await open.text()).includes("<form"), `status ${open.status}`);
+  check("nothing was fetched", fetched.length === before, fetched.slice(before).join(", "));
+
+  // Over the whole run, module loads included: nothing reached the network.
+  check("nothing was fetched in the whole run", fetched.length === 0, fetched.join(", "));
 
   if (fails) {
     console.log(`\n${fails} check(s) failed`);

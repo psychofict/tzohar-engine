@@ -10,6 +10,7 @@ import { routedPages } from "@/data/pages";
 import { socialIconMap } from "./ui/SocialIcons";
 import { useFormSubmit } from "@/lib/useFormSubmit";
 import LegalConsent from "./LegalConsent";
+import { isPreviewBuild } from "@/lib/preview-build";
 
 // All in-site routes the footer links to (incl. hash anchors at runtime).
 type FooterHref =
@@ -163,7 +164,9 @@ export default function Footer() {
             */}
           </div>
 
-          {site.layout?.footerNewsletter !== false && (
+          {/* A preview build takes no sign-ups (src/lib/preview-build.ts), so its footer drops the
+              form as `layout.footerNewsletter: false` does. */}
+          {site.layout?.footerNewsletter !== false && !isPreviewBuild && (
           <div className="md:max-w-sm md:justify-self-end w-full">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-3 mb-4">{t("newsletter")}</h3>
             <p className="mb-4 text-[15px] text-ink-2 leading-relaxed">{t("newsletterDesc")}</p>

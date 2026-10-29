@@ -1,13 +1,16 @@
 {
-  "version": "2.8.19",
-  "name": "Quiet preview",
+  "version": "2.8.20",
+  "name": "Quiet sign-ups",
   "released": "2026-10-30",
   "highlights": [
-    "A site built as a preview (TZOHAR_PREVIEW=1) no longer takes messages through its contact form. Its contact page shows your email address in place of the form, so nothing a visitor writes before launch goes to an inbox you are not watching or fails to send. Built without the flag, the form works as before."
+    "A site built as a preview (TZOHAR_PREVIEW=1) no longer takes newsletter or membership sign-ups. Its footer leaves out the newsletter form, the join page shows a short note where the free sign-up was, and no confirmation email goes to an address a visitor types before launch. Built without the flag, sign-ups work as before."
   ],
   "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.19": [
+      "A site built as a preview (TZOHAR_PREVIEW=1) no longer takes messages through its contact form. Its contact page shows your email address in place of the form, so nothing a visitor writes before launch goes to an inbox you are not watching or fails to send. Built without the flag, the form works as before."
+    ],
     "2.8.18": [
       "Your links page now shows only the places you list in your site's settings, and its latest-release button opens the release your home page features. A platform you have not added, or a section your site does not run, is left out instead of showing an empty link.",
       "The music page's Listen button opens your own first listening platform, and the members' Vault sample drop no longer carries a sample streaming link.",

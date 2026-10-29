@@ -80,8 +80,8 @@ const contentSecurityPolicyReportOnly = (devServer: boolean) => [
 
 // A function of the phase, so each load's headers() reads its own phase, never shared state.
 const nextConfigFor = (devServer: boolean): NextConfig => ({
-  // Built into the browser code too, so the contact page (a client component) knows it is a
-  // preview build and shows no form (src/lib/preview-build.ts).
+  // Built into the browser code too, so the contact page, the footer and the join page (client
+  // components) know it is a preview build and show no form (src/lib/preview-build.ts).
   env: { TZOHAR_PREVIEW: process.env.TZOHAR_PREVIEW === "1" ? "1" : "" },
   images: {
     // ONE format, not two. Next picks the first entry the browser accepts, but the

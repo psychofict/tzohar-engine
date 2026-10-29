@@ -12,6 +12,16 @@ import LegalConsent from "@/components/LegalConsent";
 import { plans, type Plan } from "@/data/plans";
 import { useMembership, startCheckout } from "@/lib/membership";
 import { useFormSubmit } from "@/lib/useFormSubmit";
+import { isPreviewBuild } from "@/lib/preview-build";
+
+/**
+ * The note a preview build shows in place of the free sign-up (src/lib/preview-build.ts). The
+ * key is optional: a client's messages files are client-owned and may not have it, so the page
+ * asks `t.has` first and falls back to English. Held in a constant so check-messages counts it
+ * as unverified rather than demanding it from every site.
+ */
+const PREVIEW_NOTE_KEY = "previewSignupNote";
+const PREVIEW_NOTE_FALLBACK = "Sign-ups open when this site launches.";
 
 const accentRing: Record<Plan["accent"], string> = {
   ocean: "ring-ocean/30",
@@ -155,6 +165,11 @@ export default function JoinPage() {
                         {pending !== plan.slug && <ArrowRight size={16} />}
                       </button>
                     )
+                  ) : isPreviewBuild ? (
+                    /* A preview build takes no sign-ups: /api/superfan answers 404 there. */
+                    <p className="flex min-h-12 items-center justify-center rounded-full border border-line px-5 py-2 text-center text-sm font-semibold text-ink-2">
+                      {t.has(PREVIEW_NOTE_KEY) ? t(PREVIEW_NOTE_KEY) : PREVIEW_NOTE_FALLBACK}
+                    </p>
                   ) : success ? (
                     <p className="flex h-12 items-center justify-center rounded-full bg-emerald/12 text-sm font-semibold text-emerald">
                       {t("freeThanks")}
