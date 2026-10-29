@@ -13,10 +13,12 @@
  * Run: npx --yes tsx scripts/crm-access.test.ts
  * Made-up password and secret; writes nothing (each accepted request stops at validation).
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import ts from "typescript";
 import { NextRequest } from "next/server";
+import { pathModuleOwners } from "../packages/schema/src/engine";
+import { MODULE_PATH_OWNERS } from "../packages/schema/src/module-paths";
 
 process.env.CRM_PASSWORD = "made-up-crm-password";
 process.env.CRM_SESSION_SECRET = "made-up-session-secret-for-the-test-0123";
@@ -109,6 +111,29 @@ function routeGuarded(path: string, mayGoWithoutSession: boolean): string[] {
 }
 
 async function main() {
+  // The CRM belongs to the crm module (packages/schema/src/module-paths.ts): a client repo whose
+  // site has it off has none of these files, so there is nothing to check. A missing CRM fails
+  // instead when the site has the module on, when part of it is still here, or in the engine
+  // itself, where studio/engine.release.json is (EBE-7076).
+  const crmFiles = ["posts", "pages", "settings", "upload", "login", "logout"].map((r) => `src/app/api/admin/${r}/route.ts`);
+  const missing = crmFiles.filter((f) => !existsSync(join(ROOT, f)));
+  if (missing.length) {
+    const { site: siteConfig } = await import("../src/config/site");
+    const why = existsSync(join(ROOT, "studio/engine.release.json"))
+      ? "this is the engine"
+      : crmFiles.some((f) => pathModuleOwners(f).some((m) => (siteConfig.modules as readonly string[]).includes(m)))
+        ? "the crm module is on"
+        : Object.entries(MODULE_PATH_OWNERS).some(([f, o]) => o.length === 1 && o[0] === "crm" && existsSync(join(ROOT, f)))
+          ? "part of the CRM is still here"
+          : "";
+    if (why) {
+      check(`the CRM is complete, since ${why}`, false, `missing: ${missing.join(", ")}`);
+      process.exit(1);
+    }
+    console.log("This site has no crm module, so there is no CRM to check; skipped.");
+    process.exit(0);
+  }
+
   console.log("Every CRM page checks the session itself");
   // Pages, and any nested layout, template or default (each renders without its parent's
   // check). Exempt by exact path only: the root admin layout and the sign-in page.
@@ -151,12 +176,15 @@ async function main() {
   const auth = await import("../src/lib/crm/auth");
   const { CRM_COOKIE, issueToken, tokenIsValid } = auth;
   const { site } = await import("../src/config/site");
-  const posts = (await import("../src/app/api/admin/posts/route")).POST;
-  const pagesRoute = (await import("../src/app/api/admin/pages/route")).POST;
-  const settings = (await import("../src/app/api/admin/settings/route")).POST;
-  const upload = (await import("../src/app/api/admin/upload/route")).POST;
-  const login = (await import("../src/app/api/admin/login/route")).POST;
-  const logout = (await import("../src/app/api/admin/logout/route")).POST;
+  // Plain strings, so the type checker does not resolve them in a site without the crm module.
+  type Handler = (req: NextRequest) => Promise<Response>;
+  const route = async (path: string) => ((await import(path)) as { POST: Handler }).POST;
+  const posts = await route("../src/app/api/admin/posts/route");
+  const pagesRoute = await route("../src/app/api/admin/pages/route");
+  const settings = await route("../src/app/api/admin/settings/route");
+  const upload = await route("../src/app/api/admin/upload/route");
+  const login = await route("../src/app/api/admin/login/route");
+  const logout = await route("../src/app/api/admin/logout/route");
 
   // A client site may have the CRM module off; the checks below need it on, and the
   // module-off section takes it away again.

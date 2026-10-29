@@ -14,7 +14,9 @@
  * No network: global fetch is replaced, so nothing reaches GitHub, Cloudinary, Resend or the hub.
  * Made-up values throughout; nothing is written (the CRM runs on a fake GitHub).
  */
+import { existsSync } from "node:fs";
 import { NextRequest } from "next/server";
+import { pathModuleOwners } from "../packages/schema/src/engine";
 
 process.env.CRM_PASSWORD = "made-up-crm-password";
 process.env.CRM_SESSION_SECRET = "made-up-session-secret-for-the-test-0123";
@@ -46,18 +48,46 @@ globalThis.fetch = (async (input: unknown, init?: RequestInit) => {
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
+type Handler = (req: NextRequest) => Promise<Response>;
+type Route = Record<"GET" | "POST" | "PUT", Handler>;
+
+/**
+ * A route that belongs to a module (packages/schema/src/module-paths.ts, read through
+ * pathModuleOwners): the CRM's routes are the
+ * crm module's, /api/checkout and /api/account/profile the membership's, /api/superfan the vault's.
+ * A client repo whose site has that module off does not have the file, so it is imported by a plain
+ * string after a check (the type checker resolves only a literal path) and its checks are skipped
+ * with a note. A missing route fails instead when the site has the module on (`modulesOn`, read
+ * before the test switches crm on), or in the engine itself, where studio/engine.release.json is
+ * (EBE-7076).
+ */
+let modulesOn: readonly string[] = [];
+async function moduleRoute(route: string): Promise<Route | null> {
+  if (existsSync(new URL(`${route}.ts`, import.meta.url))) return (await import(route)) as Route;
+  const file = `${route.replace(/^\.\.\//, "")}.ts`;
+  const owners = pathModuleOwners(file);
+  const on = owners.filter((m) => modulesOn.includes(m));
+  if (existsSync(new URL("../studio/engine.release.json", import.meta.url))) check(`${file} is in the engine`, false);
+  else if (on.length || !owners.length) check(`${file} is here`, false, on.length ? `the ${on.join(", ")} module is on` : "it belongs to no module");
+  else console.log(`  - skipped: this site has no ${owners.join(" or ")} module (${file})`);
+  return null;
+}
+
 const ORIGIN = "https://crm.kopje-light.example";
 const GITHUB_ANSWER =
   'GitHub-internal: {"message":"Not Found","documentation_url":"https://docs.github.com"} for kopje-light-org/secret-repo-name';
 
 async function main() {
   const { site } = await import("../src/config/site");
+  modulesOn = [...site.modules];
   if (!site.modules.includes("crm")) site.modules.push("crm");
   const { CRM_COOKIE, issueToken } = await import("../src/lib/crm/auth");
-  const posts = (await import("../src/app/api/admin/posts/route")).POST;
-  const pagesRoute = (await import("../src/app/api/admin/pages/route")).POST;
-  const settings = (await import("../src/app/api/admin/settings/route")).POST;
-  const upload = (await import("../src/app/api/admin/upload/route")).POST;
+  const posts = (await moduleRoute("../src/app/api/admin/posts/route"))?.POST;
+  const pagesRoute = (await moduleRoute("../src/app/api/admin/pages/route"))?.POST;
+  const settings = (await moduleRoute("../src/app/api/admin/settings/route"))?.POST;
+  const upload = (await moduleRoute("../src/app/api/admin/upload/route"))?.POST;
+  const crmLoaded = [posts, pagesRoute, settings, upload].filter(Boolean).length;
+  if (crmLoaded > 0 && crmLoaded < 4) check("the CRM is complete (part of it is still here)", false, `${crmLoaded} of 4 routes`);
   const admin = (path: string, body: BodyInit, type = "application/json") =>
     new NextRequest(`${ORIGIN}${path}`, {
       method: "POST",
@@ -73,127 +103,133 @@ async function main() {
   const leaks = (s: string) => /secret-repo-name|kopje-light-org|GitHub|api\.github\.com|cloudinary/i.test(s);
 
   console.log("1. CRM failures answer a fixed text");
-  answer = () => new Response(GITHUB_ANSWER, { status: 404 });
-  for (const [label, route, path, body] of [
-    ["posts", posts, "/api/admin/posts", { action: "delete", original: "made-up-post" }],
-    ["pages", pagesRoute, "/api/admin/pages", { slug: "home", page: { slug: "home", title: "Home", blocks: [] } }],
-    ["settings", settings, "/api/admin/settings", { tagline: "Made-up tagline" }],
-  ] as const) {
-    seen = [];
-    const r = await route(admin(path, JSON.stringify(body)));
-    const t = await text(r);
-    check(`${label}: GitHub failing reaches the store (fake GitHub called)`, seen.some((s) => s.url.includes("api.github.com")));
-    check(`${label}: answers 502 without GitHub's text or the repository`, r.status === 502 && !leaks(t), `${r.status} ${t}`);
-  }
-
-  // A schema error is the editor's own content and is still named.
-  const values = (await import("../src/config/site.values.json")).default;
-  answer = (url) => {
-    if (url.includes("/contents/")) {
-      return json(200, { content: Buffer.from(JSON.stringify(values)).toString("base64"), encoding: "base64", sha: "0" });
+  if (posts && pagesRoute && settings && upload) {
+    answer = () => new Response(GITHUB_ANSWER, { status: 404 });
+    for (const [label, route, path, body] of [
+      ["posts", posts, "/api/admin/posts", { action: "delete", original: "made-up-post" }],
+      ["pages", pagesRoute, "/api/admin/pages", { slug: "home", page: { slug: "home", title: "Home", blocks: [] } }],
+      ["settings", settings, "/api/admin/settings", { tagline: "Made-up tagline" }],
+    ] as const) {
+      seen = [];
+      const r = await route(admin(path, JSON.stringify(body)));
+      const t = await text(r);
+      check(`${label}: GitHub failing reaches the store (fake GitHub called)`, seen.some((s) => s.url.includes("api.github.com")));
+      check(`${label}: answers 502 without GitHub's text or the repository`, r.status === 502 && !leaks(t), `${r.status} ${t}`);
     }
-    return new Response(GITHUB_ANSWER, { status: 500 });
-  };
-  const bad = await settings(admin("/api/admin/settings", JSON.stringify({ url: 42 })));
-  const badText = await text(bad);
-  check(
-    "a content error is told to the editor (400, names the field)",
-    bad.status === 400 && /Not saved\. Please fix/.test(badText) && /url/.test(badText) && !leaks(badText),
-    `${bad.status} ${badText}`,
-  );
 
-  // A stored file that no longer parses is not the editor's fault: fixed text.
-  answer = (url) =>
-    url.includes("/contents/")
-      ? json(200, { content: Buffer.from(JSON.stringify({ name: 42 })).toString("base64"), encoding: "base64", sha: "0" })
-      : new Response(GITHUB_ANSWER, { status: 500 });
-  const broken = await settings(admin("/api/admin/settings", JSON.stringify({ tagline: "Made-up" })));
-  const brokenText = await text(broken);
-  check("a broken stored file answers 502 with the fixed text, not as the editor's mistake", broken.status === 502 && !/Please fix/.test(brokenText), `${broken.status} ${brokenText}`);
+    // A schema error is the editor's own content and is still named.
+    const values = (await import("../src/config/site.values.json")).default;
+    answer = (url) => {
+      if (url.includes("/contents/")) {
+        return json(200, { content: Buffer.from(JSON.stringify(values)).toString("base64"), encoding: "base64", sha: "0" });
+      }
+      return new Response(GITHUB_ANSWER, { status: 500 });
+    };
+    const bad = await settings(admin("/api/admin/settings", JSON.stringify({ url: 42 })));
+    const badText = await text(bad);
+    check(
+      "a content error is told to the editor (400, names the field)",
+      bad.status === 400 && /Not saved\. Please fix/.test(badText) && /url/.test(badText) && !leaks(badText),
+      `${bad.status} ${badText}`,
+    );
 
-  // A save that repairs a broken stored value still goes through.
-  answer = (url, n) =>
-    url.includes("/contents/")
-      ? json(200, { content: Buffer.from(JSON.stringify({ ...values, url: 42 })).toString("base64"), encoding: "base64", sha: "0" })
-      : json(201, { object: { sha: "made-up-sha" }, sha: `made-up-${n}`, tree: { sha: "made-up-tree" }, html_url: "https://example.invalid/commit" });
-  const repaired = await settings(admin("/api/admin/settings", JSON.stringify({ url: "https://kopje-light.example" })));
-  check("a save that repairs a broken stored value is not refused", repaired.status === 200, `${repaired.status} ${await text(repaired)}`);
+    // A stored file that no longer parses is not the editor's fault: fixed text.
+    answer = (url) =>
+      url.includes("/contents/")
+        ? json(200, { content: Buffer.from(JSON.stringify({ name: 42 })).toString("base64"), encoding: "base64", sha: "0" })
+        : new Response(GITHUB_ANSWER, { status: 500 });
+    const broken = await settings(admin("/api/admin/settings", JSON.stringify({ tagline: "Made-up" })));
+    const brokenText = await text(broken);
+    check("a broken stored file answers 502 with the fixed text, not as the editor's mistake", broken.status === 502 && !/Please fix/.test(brokenText), `${broken.status} ${brokenText}`);
 
-  const stillBad = await settings(admin("/api/admin/settings", JSON.stringify({ url: 7 })));
-  check("broken store, and the editor's own field invalid: told what to fix (400)", stillBad.status === 400 && /Please fix/.test(await text(stillBad)), `${stillBad.status} ${await text(stillBad)}`);
-  for (const [label, route, path] of [
-    ["posts", posts, "/api/admin/posts"],
-    ["pages", pagesRoute, "/api/admin/pages"],
-    ["settings", settings, "/api/admin/settings"],
-  ] as const) {
-    const r = await route(admin(path, "null"));
-    check(`${label}: a JSON body that is not an object answers 400`, r.status === 400, String(r.status));
-  }
+    // A save that repairs a broken stored value still goes through.
+    answer = (url, n) =>
+      url.includes("/contents/")
+        ? json(200, { content: Buffer.from(JSON.stringify({ ...values, url: 42 })).toString("base64"), encoding: "base64", sha: "0" })
+        : json(201, { object: { sha: "made-up-sha" }, sha: `made-up-${n}`, tree: { sha: "made-up-tree" }, html_url: "https://example.invalid/commit" });
+    const repaired = await settings(admin("/api/admin/settings", JSON.stringify({ url: "https://kopje-light.example" })));
+    check("a save that repairs a broken stored value is not refused", repaired.status === 200, `${repaired.status} ${await text(repaired)}`);
 
-  // The github driver with a setting missing names it.
-  const tok = process.env.GITHUB_TOKEN;
-  delete process.env.GITHUB_TOKEN;
-  const noTok = await settings(admin("/api/admin/settings", JSON.stringify({ tagline: "Made-up" })));
-  check("the github driver without GITHUB_TOKEN names it (503)", noTok.status === 503 && /GITHUB_TOKEN/.test(await text(noTok)), `${noTok.status} ${await text(noTok)}`);
-  process.env.GITHUB_TOKEN = tok;
+    const stillBad = await settings(admin("/api/admin/settings", JSON.stringify({ url: 7 })));
+    check("broken store, and the editor's own field invalid: told what to fix (400)", stillBad.status === 400 && /Please fix/.test(await text(stillBad)), `${stillBad.status} ${await text(stillBad)}`);
+    for (const [label, route, path] of [
+      ["posts", posts, "/api/admin/posts"],
+      ["pages", pagesRoute, "/api/admin/pages"],
+      ["settings", settings, "/api/admin/settings"],
+    ] as const) {
+      const r = await route(admin(path, "null"));
+      check(`${label}: a JSON body that is not an object answers 400`, r.status === 400, String(r.status));
+    }
 
-  // A CRM set up wrong says so (names settings, never values).
-  process.env.CRM_DRIVER = "";
-  const savedRepo = process.env.GITHUB_REPO;
-  delete process.env.GITHUB_REPO;
-  process.env.VERCEL = "1";
-  answer = (url) => (url.includes("/contents/") ? json(200, { content: Buffer.from(JSON.stringify(values)).toString("base64"), encoding: "base64", sha: "0" }) : json(200, {}));
-  const misset = await settings(admin("/api/admin/settings", JSON.stringify({ tagline: "Made-up" })));
-  const missetText = await text(misset);
-  check("a CRM set up wrong names the missing setting", misset.status === 503 && /GITHUB_REPO/.test(missetText), `${misset.status} ${missetText}`);
-  process.env.GITHUB_REPO = savedRepo;
-  process.env.CRM_DRIVER = "github";
-  delete process.env.VERCEL;
+    // The github driver with a setting missing names it.
+    const tok = process.env.GITHUB_TOKEN;
+    delete process.env.GITHUB_TOKEN;
+    const noTok = await settings(admin("/api/admin/settings", JSON.stringify({ tagline: "Made-up" })));
+    check("the github driver without GITHUB_TOKEN names it (503)", noTok.status === 503 && /GITHUB_TOKEN/.test(await text(noTok)), `${noTok.status} ${await text(noTok)}`);
+    process.env.GITHUB_TOKEN = tok;
 
-  // Upload: an unreadable file is told plainly; a Cloudinary failure is not passed on.
-  const uploadReq = (bytes: Uint8Array<ArrayBuffer>, name: string) => {
-    const f = new FormData();
-    f.append("file", new File([bytes], name, { type: "image/jpeg" }));
-    // No content-type header: the FormData body sets multipart/form-data with its boundary.
-    return new NextRequest(`${ORIGIN}/api/admin/upload`, {
-      method: "POST",
-      headers: { origin: ORIGIN, "sec-fetch-site": "same-origin", cookie: `${CRM_COOKIE}=${issueToken().value}` },
-      body: f,
-    });
-  };
-  {
-    const r = await upload(uploadReq(new TextEncoder().encode("not an image") as Uint8Array<ArrayBuffer>, "made-up.jpg"));
-    const t = await text(r);
-    check("upload: an unreadable file is told so (400)", r.status === 400 && /readable image/.test(t), `${r.status} ${t}`);
-  }
-  {
-    const r = await upload(uploadReq(new Uint8Array(0), "made-up-empty.jpg"));
-    check("upload: an empty file is told it isn't readable (400)", r.status === 400, `${r.status} ${await text(r)}`);
-  }
-  {
-    const sharp = (await import("sharp")).default;
-    const jpeg = await sharp({ create: { width: 64, height: 64, channels: 3, background: "#336699" } }).jpeg().toBuffer();
-    const cut = Uint8Array.from(jpeg.subarray(0, Math.floor(jpeg.length / 2)));
-    const r = await upload(uploadReq(cut, "made-up-truncated.jpg"));
-    const t = await text(r);
-    check("upload: a truncated image is told it isn't readable (400)", r.status === 400 && /readable image/.test(t), `${r.status} ${t}`);
-  }
-  {
-    const sharp = (await import("sharp")).default;
-    const png = await sharp({ create: { width: 8, height: 8, channels: 3, background: "#cc8844" } }).png().toBuffer();
-    answer = () => new Response("cloudinary-internal: bad signature for made-up-cloud", { status: 401 });
-    const r = await upload(uploadReq(Uint8Array.from(png), "made-up.png"));
-    const t = await text(r);
-    check("upload: a Cloudinary failure answers 502 without Cloudinary's text", r.status === 502 && !leaks(t) && !/made-up-cloud|signature/.test(t), `${r.status} ${t}`);
+    // A CRM set up wrong says so (names settings, never values).
+    process.env.CRM_DRIVER = "";
+    const savedRepo = process.env.GITHUB_REPO;
+    delete process.env.GITHUB_REPO;
+    process.env.VERCEL = "1";
+    answer = (url) => (url.includes("/contents/") ? json(200, { content: Buffer.from(JSON.stringify(values)).toString("base64"), encoding: "base64", sha: "0" }) : json(200, {}));
+    const misset = await settings(admin("/api/admin/settings", JSON.stringify({ tagline: "Made-up" })));
+    const missetText = await text(misset);
+    check("a CRM set up wrong names the missing setting", misset.status === 503 && /GITHUB_REPO/.test(missetText), `${misset.status} ${missetText}`);
+    process.env.GITHUB_REPO = savedRepo;
+    process.env.CRM_DRIVER = "github";
+    delete process.env.VERCEL;
+
+    // Upload: an unreadable file is told plainly; a Cloudinary failure is not passed on.
+    const uploadReq = (bytes: Uint8Array<ArrayBuffer>, name: string) => {
+      const f = new FormData();
+      f.append("file", new File([bytes], name, { type: "image/jpeg" }));
+      // No content-type header: the FormData body sets multipart/form-data with its boundary.
+      return new NextRequest(`${ORIGIN}/api/admin/upload`, {
+        method: "POST",
+        headers: { origin: ORIGIN, "sec-fetch-site": "same-origin", cookie: `${CRM_COOKIE}=${issueToken().value}` },
+        body: f,
+      });
+    };
+    {
+      const r = await upload(uploadReq(new TextEncoder().encode("not an image") as Uint8Array<ArrayBuffer>, "made-up.jpg"));
+      const t = await text(r);
+      check("upload: an unreadable file is told so (400)", r.status === 400 && /readable image/.test(t), `${r.status} ${t}`);
+    }
+    {
+      const r = await upload(uploadReq(new Uint8Array(0), "made-up-empty.jpg"));
+      check("upload: an empty file is told it isn't readable (400)", r.status === 400, `${r.status} ${await text(r)}`);
+    }
+    {
+      const sharp = (await import("sharp")).default;
+      const jpeg = await sharp({ create: { width: 64, height: 64, channels: 3, background: "#336699" } }).jpeg().toBuffer();
+      const cut = Uint8Array.from(jpeg.subarray(0, Math.floor(jpeg.length / 2)));
+      const r = await upload(uploadReq(cut, "made-up-truncated.jpg"));
+      const t = await text(r);
+      check("upload: a truncated image is told it isn't readable (400)", r.status === 400 && /readable image/.test(t), `${r.status} ${t}`);
+    }
+    {
+      const sharp = (await import("sharp")).default;
+      const png = await sharp({ create: { width: 8, height: 8, channels: 3, background: "#cc8844" } }).png().toBuffer();
+      answer = () => new Response("cloudinary-internal: bad signature for made-up-cloud", { status: 401 });
+      const r = await upload(uploadReq(Uint8Array.from(png), "made-up.png"));
+      const t = await text(r);
+      check("upload: a Cloudinary failure answers 502 without Cloudinary's text", r.status === 502 && !leaks(t) && !/made-up-cloud|signature/.test(t), `${r.status} ${t}`);
+    }
   }
 
   console.log("2. Hub proxies forward only the hub session cookie");
   const { membership } = await import("../src/config/membership");
+  const checkoutRoute = membership.hubProduct ? await moduleRoute("../src/app/api/checkout/route") : null;
+  const profile = membership.hubProduct ? await moduleRoute("../src/app/api/account/profile/route") : null;
+  if (membership.hubProduct && Boolean(checkoutRoute) !== Boolean(profile)) {
+    check("the membership routes are complete (part of them is still here)", false);
+  }
   if (!membership.hubProduct) {
     console.log("  - skipped: this site has no hub product (membership is off)");
-  } else {
-    const checkout = (await import("../src/app/api/checkout/route")).POST;
-    const profile = await import("../src/app/api/account/profile/route");
+  } else if (checkoutRoute && profile) {
+    const checkout = checkoutRoute.POST;
     const cookies =
       `${CRM_COOKIE}=crm-made-up; _ga=GA1.1.made-up; __Secure-ebenworks-session.0=hub-part-a; ` +
       `__Secure-ebenworks-session.1=hub-part-b; ph_made_up=analytics`;
@@ -244,25 +280,27 @@ async function main() {
   }
 
   console.log("3. CRM routes answer 404 with the crm module off");
-  const at = site.modules.indexOf("crm");
-  site.modules.splice(at, 1);
-  try {
-    for (const [label, route, path] of [
-      ["posts", posts, "/api/admin/posts"],
-      ["pages", pagesRoute, "/api/admin/pages"],
-      ["settings", settings, "/api/admin/settings"],
-      ["upload", upload, "/api/admin/upload"],
-    ] as const) {
-      let status = 0;
-      try {
-        status = (await route(admin(path, "{}"))).status;
-      } catch (e) {
-        status = String((e as { digest?: string }).digest ?? "").includes("404") ? 404 : -1;
+  if (posts && pagesRoute && settings && upload) {
+    const at = site.modules.indexOf("crm");
+    site.modules.splice(at, 1);
+    try {
+      for (const [label, route, path] of [
+        ["posts", posts, "/api/admin/posts"],
+        ["pages", pagesRoute, "/api/admin/pages"],
+        ["settings", settings, "/api/admin/settings"],
+        ["upload", upload, "/api/admin/upload"],
+      ] as const) {
+        let status = 0;
+        try {
+          status = (await route(admin(path, "{}"))).status;
+        } catch (e) {
+          status = String((e as { digest?: string }).digest ?? "").includes("404") ? 404 : -1;
+        }
+        check(`${label}: 404`, status === 404, String(status));
       }
-      check(`${label}: 404`, status === 404, String(status));
+    } finally {
+      site.modules.splice(at, 0, "crm");
     }
-  } finally {
-    site.modules.splice(at, 0, "crm");
   }
 
   console.log("4. Newsletter and superfan check Resend's answer");
@@ -278,7 +316,9 @@ async function main() {
     ["newsletter", "../src/app/api/newsletter/route", {}],
     ["superfan", "../src/app/api/superfan/route", { city: "Bulawayo" }],
   ] as const) {
-    const route = (await import(path)).POST as (r: NextRequest) => Promise<Response>;
+    const mod = label === "superfan" ? await moduleRoute(path) : ((await import(path)) as Route);
+    if (!mod) continue;
+    const route = mod.POST;
     const signup = () => {
       caseNo++;
       return new NextRequest(`https://kopje-light.example/api/${label}`, {

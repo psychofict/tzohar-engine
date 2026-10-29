@@ -13,7 +13,9 @@
  * Run: npx --yes tsx scripts/preview-contact.test.ts
  * No network: global fetch is replaced. The addresses are made up (example.invalid).
  */
+import { existsSync } from "node:fs";
 import { NextRequest } from "next/server";
+import { pathModuleOwners } from "../packages/schema/src/engine";
 
 let fails = 0;
 const check = (label: string, ok: boolean, detail = "") => {
@@ -39,6 +41,25 @@ process.env.UPSTASH_REDIS_REST_TOKEN = "not-a-token";
 process.env.ACCOUNTS_URL = "https://hub.example.invalid";
 
 type Post = (req: NextRequest) => Promise<Response>;
+
+/**
+ * A route that belongs to a module (packages/schema/src/module-paths.ts, read through
+ * pathModuleOwners): /api/superfan is the vault's, /api/checkout the membership's. A client repo whose site has that module off does not
+ * have the file, so it is imported by a plain string after a check (the type checker resolves only
+ * a literal path) and its block is skipped with a note. A missing route fails instead when the site
+ * has the module on, or in the engine itself, where studio/engine.release.json is (EBE-7076).
+ */
+async function moduleRoute(route: string): Promise<{ POST: Post } | null> {
+  if (existsSync(new URL(`${route}.ts`, import.meta.url))) return (await import(route)) as { POST: Post };
+  const file = `${route.replace(/^\.\.\//, "")}.ts`;
+  const owners = pathModuleOwners(file);
+  const { site } = await import("../src/config/site");
+  const on = owners.filter((m) => (site.modules as readonly string[]).includes(m));
+  if (existsSync(new URL("../studio/engine.release.json", import.meta.url))) check(`${file} is in the engine`, false);
+  else if (on.length || !owners.length) check(`${file} is here`, false, on.length ? `the ${on.join(", ")} module is on` : "it belongs to no module");
+  else console.log(`preview build: ${file} skipped (this site has no ${owners.join(" or ")} module)`);
+  return null;
+}
 
 async function refused(label: string, POST: Post, path: string, body: Record<string, string>, ip: string) {
   console.log(`preview build: ${label}`);
@@ -70,10 +91,12 @@ async function main() {
     email: "reader@example.invalid",
   }, "203.0.113.8");
 
-  const superfan = await import("../src/app/api/superfan/route");
-  await refused("join (Inner Circle) sign-up closed", superfan.POST, "/api/superfan", {
-    email: "fan@example.invalid", source: "join-free",
-  }, "203.0.113.9");
+  const superfan = await moduleRoute("../src/app/api/superfan/route");
+  if (superfan) {
+    await refused("join (Inner Circle) sign-up closed", superfan.POST, "/api/superfan", {
+      email: "fan@example.invalid", source: "join-free",
+    }, "203.0.113.9");
+  }
 
   // A paid membership: a signed-in visitor (made-up hub session cookie) asks for a checkout.
   // membership.ts is the site's own file and a new site sells nothing, so the test names a made-up
@@ -81,9 +104,9 @@ async function main() {
   // the hub in every repository, not only on a site that sells memberships.
   const { membership } = await import("../src/config/membership");
   membership.hubProduct = "MADE_UP_PRODUCT";
-  const checkout = await import("../src/app/api/checkout/route");
-  console.log("preview build: paid checkout closed");
-  {
+  const checkout = await moduleRoute("../src/app/api/checkout/route");
+  if (checkout) {
+    console.log("preview build: paid checkout closed");
     const before = fetched.length;
     const res = await checkout.POST(new NextRequest("https://preview.example.invalid/api/checkout", {
       method: "POST",

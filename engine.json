@@ -1,16 +1,17 @@
 {
-  "version": "2.8.22",
-  "name": "Named analytics",
+  "version": "2.8.23",
+  "name": "Fitted checks",
   "released": "2026-10-30",
   "highlights": [
-    "Your site's privacy notice now names exactly the analytics your site runs: Vercel Web Analytics on every site, and Google Analytics, Plausible or Naver Analytics only when you have set them up. A tool you have not set up is no longer listed, and the sharing list follows the same set.",
-    "Naver Analytics now counts the first page a visitor opens, not only the pages after it."
+    "A site with the CRM, membership or the members' Vault switched off now passes its type check and build: the engine's own checks skip the parts for features your site does not use, instead of stopping the build. With a feature switched on, every check runs as before."
   ],
-  "breaking": [
-    "If your own code (src/custom) loads an analytics or tracking tool, the site no longer builds until that tool is added to the engine's analytics list, so the privacy notice names it. Ask Tzohar Sites support to add it."
-  ],
+  "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.22": [
+      "Your site's privacy notice now names exactly the analytics your site runs: Vercel Web Analytics on every site, and Google Analytics, Plausible or Naver Analytics only when you have set them up. A tool you have not set up is no longer listed, and the sharing list follows the same set.",
+      "Naver Analytics now counts the first page a visitor opens, not only the pages after it."
+    ],
     "2.8.21": [
       "A site built as a preview (TZOHAR_PREVIEW=1) no longer sells memberships. Its join page shows the short preview note in place of every plan button, and its checkout answers nothing, so no visitor can pay for a membership before the site launches. Built without the flag, the join page and checkout work as before."
     ],
