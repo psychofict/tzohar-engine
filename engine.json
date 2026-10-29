@@ -1,13 +1,16 @@
 {
-  "version": "2.8.23",
-  "name": "Fitted checks",
+  "version": "2.8.24",
+  "name": "Full credit",
   "released": "2026-10-30",
   "highlights": [
-    "A site with the CRM, membership or the members' Vault switched off now passes its type check and build: the engine's own checks skip the parts for features your site does not use, instead of stopping the build. With a feature switched on, every check runs as before."
+    "The footer credit on every site now gives the product's full name and its maker: \"A Tzohar Sites site, built by Ebenworks with Statotech Systems.\""
   ],
   "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.23": [
+      "A site with the CRM, membership or the members' Vault switched off now passes its type check and build: the engine's own checks skip the parts for features your site does not use, instead of stopping the build. With a feature switched on, every check runs as before."
+    ],
     "2.8.22": [
       "Your site's privacy notice now names exactly the analytics your site runs: Vercel Web Analytics on every site, and Google Analytics, Plausible or Naver Analytics only when you have set them up. A tool you have not set up is no longer listed, and the sharing list follows the same set.",
       "Naver Analytics now counts the first page a visitor opens, not only the pages after it."

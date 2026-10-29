@@ -280,9 +280,9 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="text-ink-3 hover:text-ink underline decoration-line underline-offset-2 transition-colors"
             >
-              Tzohar
+              Tzohar Sites
             </a>{" "}
-            site — built by{" "}
+            site, built by{" "}
             <a
               href="https://ebenworks.co"
               target="_blank"
@@ -291,7 +291,7 @@ export default function Footer() {
             >
               Ebenworks
             </a>{" "}
-            &amp; Statotech.
+            with Statotech Systems.
           </p>
         </div>
       </div>
