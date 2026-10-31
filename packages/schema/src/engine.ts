@@ -99,8 +99,9 @@ export const EXCLUDED_PREFIXES = [
 /**
  * The client's. An engine sync must never write these, in either direction.
  *
- * `public/` is entirely theirs: a client's photographs are the most expensive
- * and least replaceable thing in the repo, and no engine improvement has ever
+ * `public/` is theirs, apart from the folders in `ENGINE_PUBLIC_PREFIXES` that
+ * engine code loads by URL: a client's photographs are the most expensive and
+ * least replaceable thing in the repo, and no engine improvement has ever
  * needed to overwrite one. `src/data/*.json` and `messages/*.json` are the
  * content Studio and the CRM already own through Publish. `site.values.json` is
  * their identity.
@@ -177,6 +178,30 @@ export const ENGINE_PREFIXES = [
   ".env.example",
 ] as const;
 
+/**
+ * Files under `public/` that the ENGINE's own code loads by URL, so they travel
+ * with that code even though the rest of `public/` is the client's.
+ *
+ * `public/payments/` holds the payment marks the join page's accepted-methods
+ * strip (`src/components/payments/PaymentMark.generated.tsx`) loads as
+ * `/payments/<file>`. Left client-owned, no sync or template refresh carried
+ * them: a client repo made before the template held them, and the public engine
+ * mirror, showed seven broken images on /join the day membership was switched
+ * on, and a change to the marks in the hub's payment kit never reached any
+ * client (EBE-7584). They are written by `infra/scripts/sync-payment-ui.py`,
+ * never by hand. A client could still have put its own file here before, so a
+ * first sync that finds a different file under these folders lists it as a
+ * conflict, which an operator must tick, never as an update ticked by default
+ * (`planEngineSync` in studio/lib/engine-sync.ts).
+ *
+ * The generated module table gives each mark the owners of the component that
+ * loads it, so a site with membership off is never offered them.
+ *
+ * Shipping the marks licenses nothing: they are the payment providers'
+ * trademarks, not engine code (NOTICE, "NOT COVERED").
+ */
+export const ENGINE_PUBLIC_PREFIXES = ["public/payments/"] as const;
+
 function matches(path: string, prefixes: readonly string[]): boolean {
   return prefixes.some((p) => (p.endsWith("/") ? path.startsWith(p) : path === p));
 }
@@ -199,6 +224,8 @@ export function classifyEnginePath(path: string): PathOwner {
   if (clean.startsWith("src/data/")) {
     return clean.endsWith(".json") ? "client" : "engine";
   }
+  // Before the client prefixes, which would claim all of `public/`.
+  if (matches(clean, ENGINE_PUBLIC_PREFIXES)) return "engine";
   if (matches(clean, CLIENT_PREFIXES)) return "client";
   if (matches(clean, ENGINE_PREFIXES)) return "engine";
   return "client";

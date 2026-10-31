@@ -1,13 +1,17 @@
 {
-  "version": "2.8.26",
-  "name": "Themed strip",
+  "version": "2.8.27",
+  "name": "Carried marks",
   "released": "2026-11-01",
   "highlights": [
-    "On the join page, the strip that shows the payment methods you accept now takes your site's own colours, in the light and dark themes and on contrasting bands. Before, in the dark theme its caption kept the light theme's grey, hard to read on a dark page, and its divider was near-white. Its caption is also never smaller than 12 pixels now."
+    "The payment marks on the join page now come with each engine update. A site that switches membership on after it was set up gets all seven (Visa, Mastercard, ZimSwitch, EcoCash, InnBucks, O'mari and Paynow) with its next update, where before they showed as broken images. A site with membership off is not given them, and a file of your own in that folder is never replaced or removed without you choosing it.",
+    "The join page no longer needs a newer message file to describe the payment methods to screen readers: without one it reads \"We accept\" and the list."
   ],
   "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.26": [
+      "On the join page, the strip that shows the payment methods you accept now takes your site's own colours, in the light and dark themes and on contrasting bands. Before, in the dark theme its caption kept the light theme's grey, hard to read on a dark page, and its divider was near-white. Its caption is also never smaller than 12 pixels now."
+    ],
     "2.8.25": [
       "The Influence page's stats bar now shows your own audience figures: followers, social views and brand partners, set in Studio's Influence section. A figure you leave empty is hidden, and the bar is left out when none is set. Before, every site with the Influence page showed the engine's sample figures (200K+, 15M+ and 50+) as its own."
     ],

@@ -225,7 +225,13 @@ export default function JoinPage() {
           <p className="mt-6 text-center text-sm text-magenta">{checkoutErr}</p>
         )}
         <div className="mt-8">
-          <AcceptedMethods align="center" caption={t("footnote")} acceptsLabel={t("acceptedSpoken")} />
+          {/* `acceptedSpoken` came after many client repos were made, and messages are client-owned:
+              without it the strip's own "We accept {list}." is read out (EBE-7584). */}
+          <AcceptedMethods
+            align="center"
+            caption={t("footnote")}
+            acceptsLabel={t.has("acceptedSpoken") ? t("acceptedSpoken") : undefined}
+          />
         </div>
         <LegalConsent variant="paid" className="mx-auto mt-3 max-w-md text-center text-xs leading-relaxed text-ink-3" />
 

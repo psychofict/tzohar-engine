@@ -8,6 +8,27 @@
  * See the generator for how ownership is derived and why it is not hand-written.
  */
 export const MODULE_PATH_OWNERS: Record<string, readonly string[]> = {
+  "public/payments/ecocash.png": [
+    "membership"
+  ],
+  "public/payments/innbucks.png": [
+    "membership"
+  ],
+  "public/payments/mastercard.svg": [
+    "membership"
+  ],
+  "public/payments/omari.png": [
+    "membership"
+  ],
+  "public/payments/paynow.png": [
+    "membership"
+  ],
+  "public/payments/visa.svg": [
+    "membership"
+  ],
+  "public/payments/zimswitch.svg": [
+    "membership"
+  ],
   "src/app/[locale]/[slug]/page.tsx": [
     "pages"
   ],
