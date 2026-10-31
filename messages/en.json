@@ -596,16 +596,16 @@
         "a": "First listens, presale access and codes, behind-the-scenes drops, monthly livestreams, the members gallery and more — see each plan above for the full list."
       },
       {
-        "q": "Can I cancel anytime?",
-        "a": "Yes. Cancel in one click from your account and keep access until the end of your billing period."
+        "q": "Does it renew automatically?",
+        "a": "Only if you choose. A monthly plan paid by card renews each month if you tick that at checkout, and you can stop it any time in your account. Otherwise one payment buys one period, we email you before it ends, and there is nothing to cancel."
       },
       {
         "q": "How is billing handled?",
-        "a": "Your a. Replace this in messages/en.json."
+        "a": "How members pay and who handles their card details. Replace this in messages/en.json."
       },
       {
         "q": "Can I switch plans later?",
-        "a": "Anytime — upgrade or downgrade from your account and the difference is prorated."
+        "a": "Any time — choose the plan you want when you next pay. Each payment buys one period outright, so there is no proration to work out."
       }
     ],
     "acceptedSpoken": "We accept {list}."
