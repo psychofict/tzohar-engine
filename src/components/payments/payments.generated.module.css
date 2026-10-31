@@ -7,7 +7,7 @@ three copies of the checkout cannot disagree about which rails exist.
   source: products/accounts-hub/integration-kit/payments/payments.module.css
   sync:   infra/scripts/sync-payment-ui.py
   check:  infra/scripts/sync-payment-ui.py --check
-  sha256: 60948bff19a23a7f
+  sha256: 22c27edce53e9c2e
  */
 
 /* Payment marks and the method chooser.
@@ -43,6 +43,10 @@ three copies of the checkout cannot disagree about which rails exist.
   border: 1px solid var(--ewpay-border, var(--border, #e3e3e3));
   border-radius: var(--ewpay-radius-lg, var(--radius, 10px));
   background: var(--ewpay-surface, var(--surface, #ffffff));
+  /* The group paints its own surface, so it sets its own text colour too. Left to
+     inherit, a dark-themed page that never named --surface put its white text on
+     this white card (EBE-7188, EBE-7570). Set --ewpay-text with --ewpay-surface. */
+  color: var(--ewpay-text, var(--fg, #1f1c19));
   overflow: hidden;
 }
 .card { position: relative; transition: background .16s ease; }
@@ -61,11 +65,11 @@ three copies of the checkout cannot disagree about which rails exist.
 .radio { margin: 2px 0 0; accent-color: var(--ewpay-accent, var(--brand, #fc5f00)); }
 .body { display: grid; gap: 6px; min-width: 0; }
 .title { font-weight: 600; line-height: 1.3; }
-.note { font-size: .8125em; line-height: 1.45; color: var(--ewpay-muted, var(--muted, #6f695f)); }
+.note { font-size: max(12px, .8125em); line-height: 1.45; color: var(--ewpay-muted, var(--muted, #6f695f)); }
 .phone { padding: 0 14px 12px 40px; display: grid; gap: 6px; }
 .phone input { width: 100%; }
-.hint { font-size: .8125em; line-height: 1.5; color: var(--ewpay-muted, var(--muted, #6f695f)); margin: 0; }
-.err { font-size: .8125em; line-height: 1.5; color: var(--ewpay-error, var(--error, #c0392b)); margin: 0; }
+.hint { font-size: max(12px, .8125em); line-height: 1.5; color: var(--ewpay-muted, var(--muted, #6f695f)); margin: 0; }
+.err { font-size: max(12px, .8125em); line-height: 1.5; color: var(--ewpay-error, var(--err, #c0392b)); margin: 0; }
 .choice[data-busy="true"] { opacity: .6; pointer-events: none; }
 
 /* The accepted-methods strip. */
@@ -75,7 +79,7 @@ three copies of the checkout cannot disagree about which rails exist.
 .stripList { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .stripList li { display: flex; }
 .gateway { margin-left: 4px; padding-left: 10px; border-left: 1px solid var(--ewpay-border, var(--border, #e3e3e3)); }
-.caption { font-size: .8125em; line-height: 1.5; color: var(--ewpay-muted, var(--muted, #6f695f)); margin: 0; }
+.caption { font-size: max(12px, .8125em); line-height: 1.5; color: var(--ewpay-muted, var(--muted, #6f695f)); margin: 0; }
 
 /* Shipped here because two consuming repositories have no .sr-only of their own. */
 .srOnly {

@@ -224,6 +224,26 @@ html {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* The shared accepted-methods strip (components/payments, generated from the hub's kit)
+   looks for --muted and --border, which this site names --color-ink-* and --color-line.
+   Unmapped, the dark theme drew the strip's caption in the kit's light-theme grey, 3.7:1
+   on the dark page, and its gateway rule in near-white (EBE-7570). The kit reads --ewpay-*
+   first; set here on html, beside the .dark class, so each theme gets its own, and again
+   on the inverted bands, which re-scope the --color-* tokens below html. The caption takes
+   ink-2: ink-3 is 3.8:1 on the white page. The marks keep the kit's white chip. */
+html,
+.section-invert,
+.dark .section-invert-auto,
+.section-invert .section-invert-auto {
+  --ewpay-surface: var(--color-surface);
+  --ewpay-text: var(--color-ink);
+  --ewpay-surface-hover: var(--color-surface-2);
+  --ewpay-border: var(--color-line);
+  --ewpay-muted: var(--color-ink-2);
+  --ewpay-accent: var(--color-ocean);
+  --ewpay-accent-wash: color-mix(in srgb, var(--color-ocean) 10%, transparent);
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-ink);

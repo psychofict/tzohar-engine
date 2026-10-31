@@ -18,6 +18,7 @@ export * from "./bibtex";
 export * from "./content/biography";
 export * from "./content/pages";
 export * from "./content/posts";
+export * from "./content/source-link";
 export * from "./serialize";
 export * from "./registry";
 export * from "./engine";
