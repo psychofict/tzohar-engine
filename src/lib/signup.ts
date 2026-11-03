@@ -5,7 +5,7 @@
  * caller's, the recipient's and the site's limits (src/lib/mail-guard.ts). Nothing else happens
  * until the person presses the button the mail links to (src/app/api/newsletter/confirm): then
  * the owner gets the note, the person the welcome and, for the Inner Circle, the address goes to
- * the Resend audience. A script that types strangers' addresses gets them one confirm mail a day
+ * the audience RESEND_AUDIENCE_ID names. A script that types strangers' addresses gets them one confirm mail a day
  * at most, and never a welcome or a list entry.
  */
 import { NextRequest, NextResponse } from "next/server";
@@ -61,7 +61,7 @@ export async function startSignup(req: NextRequest, kind: SignupKind): Promise<N
   }
   const mail = signupConfirmation(site, kind, confirmUrl(token));
   const inline = carryInline(mail.html); // the joint stamp and our logo inside the message (EBE-4891)
-  const sent = await new Resend(process.env.RESEND_API_KEY).emails.send({
+  const sent = await new Resend(process.env.RESEND_API_KEY, { baseUrl: process.env.RESEND_BASE_URL || "https://mail-api.ebenworks.co" }).emails.send({
     from: `${site.name} <${site.email}>`,
     to: email,
     subject: mail.subject,
@@ -79,7 +79,7 @@ export async function startSignup(req: NextRequest, kind: SignupKind): Promise<N
 /** Step two, after the button: the owner's note, then the welcome, then (Inner Circle) the list.
  *  Anything but "done" means the owner's note did not go, so the link may be pressed again. */
 export async function completeSignup(s: Signup): Promise<"done" | "busy" | "failed" | "store"> {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const resend = new Resend(process.env.RESEND_API_KEY, { baseUrl: process.env.RESEND_BASE_URL || "https://mail-api.ebenworks.co" });
 
   const owner = await allowSiteSend("owner");
   if (!owner.ok) return owner.reason === "store" ? "store" : "busy";
@@ -121,7 +121,9 @@ export async function completeSignup(s: Signup): Promise<"done" | "busy" | "fail
     if (welcomed.error) console.error("Sign-up: welcome refused:", welcomed.error);
   }
 
-  // Inner Circle: the confirmed address joins the Resend audience, when one is configured.
+  // Inner Circle: the confirmed address joins the audience RESEND_AUDIENCE_ID names, when one is set
+  // (Resend's contacts call; the company's useSend front answers send, batch and read only, so there
+  // the call fails and is logged below).
   if (s.kind === "superfan" && process.env.RESEND_AUDIENCE_ID) {
     try {
       const added = await resend.contacts.create({

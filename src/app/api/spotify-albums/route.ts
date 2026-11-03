@@ -103,9 +103,10 @@ export async function GET(request: Request) {
   const notFound = new Set<string>();
   // Fetch albums individually to avoid 403 on batch endpoint
   const fetchAlbum = async (id: string) => {
+    if (!/^[a-zA-Z0-9]+$/.test(id)) return;
     try {
       const res = await fetch(
-        `https://api.spotify.com/v1/albums/${id}?market=US`,
+        `https://api.spotify.com/v1/albums/${encodeURIComponent(id)}?market=US`,
         { headers }
       );
       noteSpotifyAnswer(res);

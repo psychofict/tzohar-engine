@@ -45,7 +45,7 @@ globalThis.fetch = (async (input: unknown, init?: RequestInit) => {
   calls.push({ url, body });
   const json = (v: unknown, status = 200) =>
     new Response(JSON.stringify(v), { status, headers: { "content-type": "application/json" } });
-  if (url.startsWith("https://store.example.invalid")) {
+  if (new URL(url).origin === "https://store.example.invalid") {
     if (storeDown) return json({ error: "down" }, 500);
     // A tiny Redis: INCR key, then EXPIRE key n NX.
     const out = (body as string[][]).map(([cmd, key, seconds, flag]) => {
@@ -87,7 +87,7 @@ const post = (path: string, body: unknown, address: string, extra: Record<string
 
 // The limiter module exists only after the fix; on the old code the store checks are skipped
 // and the checks above them fail on their own.
-type Guard = { useCounterStoreForTests: (s: unknown) => void };
+type Guard = { useCounterStoreForTests: (s: unknown) => void; SITE_DAILY_DEFAULT?: number };
 async function guard(): Promise<Guard | null> {
   if (!existsSync(new URL("../src/lib/mail-guard.ts", import.meta.url))) return null;
   const path: string = "../src/lib/mail-guard";
@@ -114,6 +114,7 @@ const press = (token: string, address: string) =>
 async function main() {
   process.env.RESEND_API_KEY = "re_test_not_real";
   process.env.RESEND_AUDIENCE_ID = "aud_test_not_real";
+  delete process.env.RESEND_BASE_URL; // unset: the code's own default server applies
   delete process.env.UPSTASH_REDIS_REST_URL;
   delete process.env.KV_REST_API_URL;
   delete process.env.MAIL_DAILY_CAP;
@@ -128,6 +129,18 @@ async function main() {
   check("exactly three acknowledgements reach the recipient", acks === 3, `${acks} sent`);
   check("the owner still gets every message", mails().filter((m) => !JSON.stringify(m.to).includes("stranger@")).length === 6);
   check("the recipient's sixth acknowledgement is not sent", acks > 0 && acks < 6, `${acks} sent`);
+  const mailUrls = [...new Set(calls.filter((c) => /\/emails$/.test(c.url)).map((c) => c.url))];
+  check("with RESEND_BASE_URL unset, mail goes to the company mail layer, never to Resend",
+    mailUrls.length === 1 && mailUrls[0] === "https://mail-api.ebenworks.co/emails", mailUrls.join(", "));
+
+  console.log("a set RESEND_BASE_URL wins");
+  await fresh();
+  calls = [];
+  process.env.RESEND_BASE_URL = "https://mail.example.invalid";
+  await contact(post("/api/contact", { type: "general", email: "base@example.invalid", message: "hi" }, "198.51.100.70"));
+  delete process.env.RESEND_BASE_URL;
+  const setUrls = [...new Set(calls.filter((c) => /\/emails$/.test(c.url)).map((c) => c.url))];
+  check("mail goes to the configured server", setUrls.length === 1 && setUrls[0] === "https://mail.example.invalid/emails", setUrls.join(", "));
 
   console.log("a caller writing X-Forwarded-For");
   await fresh();
@@ -313,6 +326,20 @@ async function main() {
     const r5 = await newsletter(post("/api/newsletter", { email: "cap5@example.invalid" }, "198.51.100.120"));
     check("the fifth is refused", r5.status === 429 && mails().length === 4, `${r5.status}, ${mails().length}`);
     delete process.env.MAIL_DAILY_CAP;
+
+    console.log("the site's daily ceiling without MAIL_DAILY_CAP");
+    // 1,000 a day since 3 Nov 2026 (it was 60, sized for Resend's free tier); Amazon SES Seoul allows 50,000.
+    g.useCounterStoreForTests(null);
+    calls = [];
+    const defaultCodes: number[] = [];
+    for (let i = 1; i <= 1001; i++) {
+      const r = await newsletter(post("/api/newsletter", { email: `day${i}@example.invalid` }, `198.18.${i >> 8}.${i & 255}`));
+      defaultCodes.push(r.status);
+    }
+    check("the default is 1,000 a day", g.SITE_DAILY_DEFAULT === 1000, String(g.SITE_DAILY_DEFAULT));
+    check("the 61st sign-up of the day, past the old ceiling of 60, still sends", defaultCodes[60] === 200, String(defaultCodes[60]));
+    check("the first 1,000 send and the 1,001st is refused (429)", defaultCodes.slice(0, 1000).every((x) => x === 200) && defaultCodes[1000] === 429 && mails().length === 1000,
+      `${defaultCodes.filter((x) => x === 200).length} sent, last ${defaultCodes[1000]}, ${mails().length} mails`);
 
     console.log("a Redis store");
     g.useCounterStoreForTests(null);

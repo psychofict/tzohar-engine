@@ -62,6 +62,7 @@ import { cjkVariableForLocale } from "@/lib/cjk-fonts.generated";
 import BottomNav from "@/components/BottomNav";
 import { clampDescription, routeAlternates } from "@/lib/route-meta";
 import { isPreviewBuild } from "@/lib/preview-build";
+import { scriptJson } from "@/lib/json-ld";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-body",
@@ -328,7 +329,7 @@ export default async function LocaleLayout({
         <script
           dangerouslySetInnerHTML={{
             // light-theme:allow a client's own appearance.mode ("system" only when the site sets it; Tzohar's default is light)
-            __html: `(function(){try{var m=${JSON.stringify(forcedMode)},c=${JSON.stringify(allowToggle)};var s=c?localStorage.getItem('theme'):null;if(s==='dark'||(s!=='light'&&(m==='dark'||(m==='system'&&window.matchMedia('(prefers-color-scheme:dark)').matches)))){document.documentElement.classList.add('dark')}document.documentElement.classList.add('js-on')}catch(e){}})()`,
+            __html: `(function(){try{var m=${scriptJson(forcedMode)},c=${scriptJson(allowToggle)};var s=c?localStorage.getItem('theme'):null;if(s==='dark'||(s!=='light'&&(m==='dark'||(m==='system'&&window.matchMedia('(prefers-color-scheme:dark)').matches)))){document.documentElement.classList.add('dark')}document.documentElement.classList.add('js-on')}catch(e){}})()`,
           }}
         />
         {/* Custom accent/radius overrides — after globals.css so head source order wins. */}

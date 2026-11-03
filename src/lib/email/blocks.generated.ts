@@ -10,7 +10,7 @@
 //   colours: products/accounts-hub/integration-kit/theme/tokens.json
 //   sync:   infra/scripts/sync-email-kit.py
 //   check:  infra/scripts/sync-email-kit.py --check
-//   sha256: a5bbb6f9d1833059
+//   sha256: 6365bfd5610e0176
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -348,12 +348,21 @@ const ENTITY = {
   times: "\u00d7", rarr: "->",
 } as const;
 
+/** Remove every tag. One pass of this pattern leaves no whole tag; the loop keeps that true if the pattern is ever narrowed, and code scanning reads it as a full strip. */
+function withoutTags(s: string): string {
+  let prev: string;
+  do {
+    prev = s;
+    s = s.replace(/<[^>]+>/g, "");
+  } while (s !== prev);
+  return s;
+}
+
 /** Strip tags for the default text twin. Only ever used on markup we built. */
 function strip(html: string): string {
-  return html
+  return withoutTags(html
     .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<a [^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, (_m, href, label) => `${label} (${href})`)
-    .replace(/<[^>]+>/g, "")
+    .replace(/<a [^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, (_m, href, label) => `${label} (${href})`))
     .replace(/&#(\d+);/g, (_m, n) => String.fromCodePoint(Number(n)))
     .replace(/&(nbsp|amp|lt|gt|quot|apos|mdash|ndash|middot|hellip|rsquo|lsquo|ldquo|rdquo|times|rarr);/g,
       (_m, name) => ENTITY[name as keyof typeof ENTITY])
@@ -1092,10 +1101,9 @@ export function rwrap(s: string, width = 72): string {
 }
 
 function rstrip(html: string): string {
-  return html
+  return withoutTags(html
     .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<a [^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, (_m, href, label) => `${label} (${href})`)
-    .replace(/<[^>]+>/g, "")
+    .replace(/<a [^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, (_m, href, label) => `${label} (${href})`))
     .replace(/&#(\d+);/g, (_m, n) => String.fromCodePoint(Number(n)))
     .replace(/&(nbsp|amp|lt|gt|quot|apos|mdash|ndash|middot|hellip|rsquo|lsquo|ldquo|rdquo|times|rarr);/g,
       (_m, name) => ENTITY[name as keyof typeof ENTITY])

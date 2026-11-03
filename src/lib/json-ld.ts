@@ -10,3 +10,11 @@
 export function serializeJsonLd(data: unknown): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
+
+/**
+ * A JSON value written into an inline script's code (the theme bootstrap). Escapes "<" and ">" for the
+ * reason above, and U+2028 and U+2029, which end a line inside a string in older JavaScript.
+ */
+export function scriptJson(value: unknown): string {
+  return JSON.stringify(value).replace(/[<>\u2028\u2029]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`);
+}

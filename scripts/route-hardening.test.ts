@@ -113,7 +113,7 @@ async function main() {
       seen = [];
       const r = await route(admin(path, JSON.stringify(body)));
       const t = await text(r);
-      check(`${label}: GitHub failing reaches the store (fake GitHub called)`, seen.some((s) => s.url.includes("api.github.com")));
+      check(`${label}: GitHub failing reaches the store (fake GitHub called)`, seen.some((s) => new URL(s.url).hostname === "api.github.com"));
       check(`${label}: answers 502 without GitHub's text or the repository`, r.status === 502 && !leaks(t), `${r.status} ${t}`);
     }
 
@@ -308,9 +308,11 @@ async function main() {
   // follow the button on /api/newsletter/confirm. Each case uses its own caller and address, so
   // the mail limits (scripts/mail-limits.test.ts) stay out of the way.
   const confirm = (await import("../src/app/api/newsletter/confirm/route")).POST;
-  const resendCalls = () => seen.filter((x) => x.url.includes("resend"));
+  // A mail call is a POST to /emails on the mail layer (mail-api.ebenworks.co by default, never Resend's own server).
+  const isMail = (url: string) => new URL(url).pathname === "/emails";
+  const resendCalls = () => seen.filter((x) => isMail(x.url));
   const refuseCall = (k: number) => (url: string) =>
-    url.includes("resend") && resendCalls().length === k ? json(403, { name: "validation_error", message: "refused", statusCode: 403 }) : json(200, { id: "made-up" });
+    isMail(url) && resendCalls().length === k ? json(403, { name: "validation_error", message: "refused", statusCode: 403 }) : json(200, { id: "made-up" });
   let caseNo = 0;
   for (const [label, path, extra] of [
     ["newsletter", "../src/app/api/newsletter/route", {}],

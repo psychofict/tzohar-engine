@@ -32,7 +32,7 @@ const check = (label: string, ok: boolean, detail = "") => {
 const sentIds: string[] = [];
 globalThis.fetch = (async (input: unknown, init?: RequestInit) => {
   const url = String(input instanceof Request ? input.url : input);
-  if (url.includes("api.cloudinary.com") && init?.body instanceof FormData) {
+  if (new URL(url).hostname === "api.cloudinary.com" && init?.body instanceof FormData) {
     const id = String(init.body.get("public_id") ?? "");
     sentIds.push(id);
     return new Response(JSON.stringify({ secure_url: `https://res.cloudinary.com/made-up-cloud/image/upload/v1/${id}.png`, bytes: 10 }), {

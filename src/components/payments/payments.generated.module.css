@@ -7,7 +7,7 @@ three copies of the checkout cannot disagree about which rails exist.
   source: products/accounts-hub/integration-kit/payments/payments.module.css
   sync:   infra/scripts/sync-payment-ui.py
   check:  infra/scripts/sync-payment-ui.py --check
-  sha256: 22c27edce53e9c2e
+  sha256: d3c302583e3532a2
  */
 
 /* Payment marks and the method chooser.
@@ -76,9 +76,24 @@ three copies of the checkout cannot disagree about which rails exist.
 .strip { display: grid; gap: 8px; }
 .strip[data-align="center"] { justify-items: center; }
 .strip[data-align="center"] .caption { text-align: center; }
-.stripList { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
+/* The divider before the gateway is drawn in the space between the groups, never as
+   a border on the gateway itself: a border travels with the item, so on a narrow
+   screen that wraps the gateway onto a new row the line led that row on its own.
+   The extra space sits after the mark before the gateway (the gateway is always the
+   last item, and the list says it holds one), where a row end swallows it, and the
+   line hangs before the gateway. When the gateway starts a row, that is outside the
+   list's own edge, and the list clips it (clip-path for browsers without
+   overflow: clip; nothing in the list reaches past its box, no chip has a shadow or
+   a focus ring). Logical sides, so a right-to-left page mirrors it.
+   10 px, the line, 10 px: 6 gap + 15 margin = 21, line at 10. */
+.stripList { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; overflow-x: clip; clip-path: inset(0); }
 .stripList li { display: flex; }
-.gateway { margin-left: 4px; padding-left: 10px; border-left: 1px solid var(--ewpay-border, var(--border, #e3e3e3)); }
+.stripList[data-gateway] li:nth-last-child(2) { margin-inline-end: 15px; }
+.gateway { position: relative; }
+.gateway::before {
+  content: ""; position: absolute; top: 0; bottom: 0; inset-inline-start: -11px; width: 1px;
+  background: var(--ewpay-border, var(--border, #e3e3e3));
+}
 .caption { font-size: max(12px, .8125em); line-height: 1.5; color: var(--ewpay-muted, var(--muted, #6f695f)); margin: 0; }
 
 /* Shipped here because two consuming repositories have no .sr-only of their own. */

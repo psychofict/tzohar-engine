@@ -91,7 +91,7 @@ async function main() {
     check(`${label}: the Tzohar Sites footer block`, m.html.includes("is built with Tzohar Sites.") && m.html.includes("joint-stamp-ebenworks-statotech.png"));
   }
   check("newsletter subject", newsletterWelcome(client).subject === "You're on the Kopje Light Ceramics mailing list");
-  check("the Vault link", innerCircleWelcome(client).html.includes("https://kopje-light.example/vault"));
+  check("the Vault link", /href="https:\/\/kopje-light\.example\/vault"/.test(innerCircleWelcome(client).html));
   const lum = (hex: string) => { const v = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((x) => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4)); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
   const ratio = (x: string, y: string) => { const [hi, lo] = [lum(x), lum(y)].sort((p, q) => q - p); return (hi + 0.05) / (lo + 0.05); };
   for (const s of [client, gold] as Array<{ name: string; email: string; url: string; appearance?: { accent: string } }>) {

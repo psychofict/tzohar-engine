@@ -9,7 +9,7 @@
 //   source: products/accounts-hub/integration-kit/payments/AcceptedMethods.tsx
 //   sync:   infra/scripts/sync-payment-ui.py
 //   check:  infra/scripts/sync-payment-ui.py --check
-//   sha256: 1deb2148236fa0d3
+//   sha256: c73f565738dd180b
 // ──────────────────────────────────────────────────────────────────────────
 
 import type { ReactNode } from "react";
@@ -61,7 +61,7 @@ export default function AcceptedMethods({
 
   return (
     <div className={className ? `${s.strip} ${className}` : s.strip} data-align={align}>
-      <ul className={s.stripList} aria-hidden="true">
+      <ul className={s.stripList} data-gateway={showPaynow ? "" : undefined} aria-hidden="true">
         {shown.map(mark => <li key={mark}><PaymentMark id={mark} size="strip" /></li>)}
         {showPaynow && <li className={s.gateway}><PaymentMark id="paynow" size="strip" /></li>}
       </ul>

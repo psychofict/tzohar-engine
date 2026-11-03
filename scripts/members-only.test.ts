@@ -48,7 +48,7 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-const isClient = (src: string) => /^\s*(?:\/\/[^\n]*\n|\/\*[\s\S]*?\*\/\s*)*\s*["']use client["']/.test(src);
+const isClient = (src: string) => /^(?:\s|\/\/[^\n]*\n|\/\*(?:[^*]|\*(?!\/))*\*\/)*["']use client["']/.test(src);  // spaces and comments, each read one way only
 // A value import of the data module: `import { x } from "@/data/vault"` or a relative path to it,
 // but not `import type { ... }`.
 const dataImport = (mod: "vault" | "gallery") =>

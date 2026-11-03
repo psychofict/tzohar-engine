@@ -15,7 +15,7 @@ export default function PrivacyPage() {
     <main id="main-content" className="min-h-screen bg-bg text-ink">
       <Container size="sm" className="pt-28 sm:pt-32 pb-20">
         <h1 className="font-bold tracking-tight text-[clamp(1.9rem,4vw,2.75rem)]">Privacy Policy</h1>
-        <p className="mt-2 text-sm text-ink-3">Last updated: 30 October 2026</p>
+        <p className="mt-2 text-sm text-ink-3">Last updated: 3 November 2026</p>
 
         <div className="mt-8 flex flex-col gap-6 text-[15px] leading-relaxed text-ink-2 [&_h2]:mt-4 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-ink [&_a]:text-ocean-strong [&_a:hover]:underline [&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-2 [&_ul]:pl-5">
           <p>
@@ -37,12 +37,12 @@ export default function PrivacyPage() {
             <ul>
               <li>
                 <strong>Newsletter sign-ups</strong> — your email address. Used to send news and
-                updates from {site.name} via our email provider,{" "}
-                <strong>Resend</strong>. You can unsubscribe from any email at any time.
+                updates from {site.name} through our own mail service in Seoul, which sends it
+                through <strong>Amazon Web Services</strong> (Amazon SES). You can unsubscribe from any email at any time.
               </li>
               <li>
                 <strong>Contact form</strong> — your name, email and message, used only to respond to you
-                (delivered via Resend).
+                (delivered through the same mail service).
               </li>
               {membership && (
                 <>
@@ -82,7 +82,7 @@ export default function PrivacyPage() {
           <section>
             <h2>Who we share it with</h2>
             <ul>
-              <li><strong>Resend</strong> — email delivery (newsletter, contact).</li>
+              <li><strong>Amazon Web Services</strong> (Amazon SES, Seoul, South Korea) — email delivery (newsletter, contact), through our own mail service in Seoul.</li>
               {membership && <li><strong>Ebenworks Accounts</strong> &amp; <strong>Paynow</strong> — account and billing.</li>}
               <li><strong>{analytics.map((a) => a.company).join(", ")}</strong> — analytics.</li>
             </ul>

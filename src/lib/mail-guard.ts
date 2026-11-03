@@ -43,7 +43,8 @@ const RECIPIENT_WINDOW_SECONDS = 24 * 60 * 60;
 /** Messages to typed addresses the forms may send in one UTC day, unless MAIL_DAILY_CAP sets
  *  another number. The owner's own notes count separately, under three times that, so a flood
  *  of acknowledgements cannot stop real messages reaching the owner. */
-export const SITE_DAILY_DEFAULT = 60;
+// 1,000 a day: Amazon SES Seoul allows 50,000 a day; it was 60, sized for Resend's free tier (3 Nov 2026).
+export const SITE_DAILY_DEFAULT = 1000;
 // The welcome after a confirmed sign-up is not counted again: it goes only to an address that
 // already had a counted confirm mail, once per link.
 

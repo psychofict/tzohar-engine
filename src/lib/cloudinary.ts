@@ -19,7 +19,7 @@ import { site } from "@/config/site";
  * Studio sets it when it sets up a client's CRM; without it the upload answers 501 with the
  * reason. Private vault files need only the three keys (cloudinaryKeys).
  *
- * Every call is signed with SHA-1 over the sorted parameters plus the secret. There is no
+ * Every call is signed with SHA-256 over the sorted parameters plus the secret (Cloudinary accepts it; checked 2 Nov 2026). There is no
  * unsigned upload preset, and the key never reaches the browser.
  */
 
@@ -75,7 +75,7 @@ export function signParams(params: Record<string, string>, secret: string): stri
     .sort()
     .map((k) => `${k}=${params[k]}`)
     .join("&");
-  return createHash("sha1").update(toSign + secret).digest("hex");
+  return createHash("sha256").update(toSign + secret).digest("hex");
 }
 
 /** Signed upload of one image into the configured folder. Returns its public address. */

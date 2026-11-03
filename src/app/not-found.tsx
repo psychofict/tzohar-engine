@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Inter, Fraunces, IBM_Plex_Mono } from "next/font/google";
 import { site } from "@/config/site";
 import { appearanceStyle } from "@tzohar/schema";
+import { scriptJson } from "@/lib/json-ld";
 
 /*
  * This route renders its own document, so it also has to load its own faces:
@@ -64,7 +65,7 @@ export default function RootNotFound() {
             // Same precedence as the root layout: a stored choice wins only when a
             // toggle is offered (appearance.toggle, or mode 'system'); a locked
             // pinned mode ignores storage. light-theme:allow a client's own appearance.mode ("system" only when the site sets it; Tzohar's default is light)
-            __html: `(function(){try{var m=${JSON.stringify(forcedMode)},c=${JSON.stringify(allowToggle)};var s=c?localStorage.getItem('theme'):null;if(s==='dark'||(s!=='light'&&(m==='dark'||(m==='system'&&window.matchMedia('(prefers-color-scheme:dark)').matches)))){document.documentElement.classList.add('dark')}}catch(e){}})()`,
+            __html: `(function(){try{var m=${scriptJson(forcedMode)},c=${scriptJson(allowToggle)};var s=c?localStorage.getItem('theme'):null;if(s==='dark'||(s!=='light'&&(m==='dark'||(m==='system'&&window.matchMedia('(prefers-color-scheme:dark)').matches)))){document.documentElement.classList.add('dark')}}catch(e){}})()`,
           }}
         />
         {appearanceCss && <style dangerouslySetInnerHTML={{ __html: appearanceCss }} />}

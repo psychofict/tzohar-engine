@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     const siteDay = await allowSiteSend("owner");
     if (!siteDay.ok) return siteDay.status === 429 ? busy() : unavailable();
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const resend = new Resend(process.env.RESEND_API_KEY, { baseUrl: process.env.RESEND_BASE_URL || "https://mail-api.ebenworks.co" });
 
     // Build subject based on inquiry type
     const subjectMap: Record<string, string> = {
