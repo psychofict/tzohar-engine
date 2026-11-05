@@ -1,14 +1,21 @@
 {
-  "version": "2.8.27",
-  "name": "Carried marks",
-  "released": "2026-11-01",
+  "version": "2.8.29",
+  "name": "Linked pictures",
+  "released": "2026-11-06",
   "highlights": [
-    "The payment marks on the join page now come with each engine update. A site that switches membership on after it was set up gets all seven (Visa, Mastercard, ZimSwitch, EcoCash, InnBucks, O'mari and Paynow) with its next update, where before they showed as broken images. A site with membership off is not given them, and a file of your own in that folder is never replaced or removed without you choosing it.",
-    "The join page no longer needs a newer message file to describe the payment methods to screen readers: without one it reads \"We accept\" and the list."
+    "The emails your site sends to visitors (the contact-form reply, the sign-up confirmation and the newsletter and Inner Circle welcomes) now show the Tzohar Sites logo and the Ebenworks and Statotech Systems stamp as linked pictures, instead of carrying them inside the message. Some mail apps, the Gmail app on iPhone among them, showed those pictures as broken or listed them as attachments; a linked picture shows as an ordinary image. Your own name, colours and wording in these emails are unchanged."
   ],
   "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.28": [
+      "Every route that reads a request body now counts the bytes as they arrive and stops at a limit set for that route: the CRM's page, post, settings, sign-in and image-upload routes, the checkout route and the member profile route. Before, a body sent in pieces with no declared length was read whole before any size check, and a site run with next start has no platform limit in front of a route, so one oversized request could fill its memory. Normal use is unaffected: the limits are 1 MB for a page or a post, 64 KB for settings, 8 KB for sign-in, 4 KB for checkout, 32 KB for a profile (the Accounts Hub's own limit) and 26 MB for an image upload (the 25 MB file limit is unchanged).",
+      "A request over a limit gets a plain answer (413, or the sign-in page for a sign-in form) and nothing is sent to GitHub, Cloudinary or the hub."
+    ],
+    "2.8.27": [
+      "The payment marks on the join page now come with each engine update. A site that switches membership on after it was set up gets all seven (Visa, Mastercard, ZimSwitch, EcoCash, InnBucks, O'mari and Paynow) with its next update, where before they showed as broken images. A site with membership off is not given them, and a file of your own in that folder is never replaced or removed without you choosing it.",
+      "The join page no longer needs a newer message file to describe the payment methods to screen readers: without one it reads \"We accept\" and the list."
+    ],
     "2.8.26": [
       "On the join page, the strip that shows the payment methods you accept now takes your site's own colours, in the light and dark themes and on contrasting bands. Before, in the dark theme its caption kept the light theme's grey, hard to read on a dark page, and its divider was near-white. Its caption is also never smaller than 12 pixels now."
     ],

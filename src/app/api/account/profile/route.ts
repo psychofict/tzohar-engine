@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { membership } from "@/config/membership";
 import { hubSessionCookie } from "@/lib/hub-cookie";
+import { BODY_CAPS, BodyTooLarge, readTextCapped } from "@/lib/capped-body";
 
 // Same-origin proxy to the hub's per-product profile KV
 // (GET/PUT /api/userdata/<hubProduct> — cookie-authed). The browser holds the
@@ -64,7 +65,15 @@ export async function PUT(req: NextRequest) {
   if (!HUB || !PRODUCT) return NextResponse.json({ error: "Profile is not configured." }, { status: 503 });
   const cookie = hubSessionCookie(req.headers.get("cookie")); // only the hub session (TZS-12)
   if (!cookie) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
-  const body = await req.text();
+  // Read under the hub's own 32 KB limit as the body arrives (TZ-4 follow-up), so a larger one is
+  // refused here and never held whole or sent on.
+  let body: string;
+  try {
+    body = await readTextCapped(req, BODY_CAPS.profile);
+  } catch (e) {
+    if (e instanceof BodyTooLarge) return NextResponse.json({ error: "That profile is too large to save." }, { status: 413 });
+    return NextResponse.json({ error: "That profile couldn't be saved as it is." }, { status: 400 });
+  }
   try {
     return await relay(await hubFetch("PUT", cookie, body));
   } catch (e) {

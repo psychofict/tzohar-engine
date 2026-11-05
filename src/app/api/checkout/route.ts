@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { membership } from "@/config/membership";
 import { hubSessionCookie } from "@/lib/hub-cookie";
 import { isPreviewBuild } from "@/lib/preview-build";
+import { BODY_CAPS, readJsonBody } from "@/lib/capped-body";
 
 // Same-origin proxy to the accounts hub's checkout. The browser holds the shared
 // `.ebenworks.co` session cookie; we forward it server-side to the hub's cookie-authed
@@ -35,7 +36,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Membership is not configured." }, { status: 503 });
   }
 
-  const body = await req.json().catch(() => ({}));
+  // Read under a byte cap as the body arrives (TZ-4 follow-up): this route is open to anyone, and
+  // its body is a plan name and an interval.
+  const read = await readJsonBody(req, BODY_CAPS.checkout);
+  if (!read.ok && read.status === 413) {
+    return NextResponse.json({ error: "That request is too large." }, { status: 413 });
+  }
+  const parsed = read.ok ? read.value : null;
+  const body: { plan?: unknown; interval?: unknown } =
+    parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
   const plan = typeof body.plan === "string" ? body.plan : "";
   const interval = body.interval === "year" ? "year" : "month";
   if (!plan) {

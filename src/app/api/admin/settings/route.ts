@@ -3,6 +3,7 @@ import { configSchema } from "@tzohar/schema";
 import { refuseCrmRequest } from "@/lib/crm/guard";
 import { CrmContentError, checkEdit, crmFailure } from "@/lib/crm/errors";
 import { readJson, writeFiles } from "@/lib/crm/store";
+import { BODY_CAPS, readJsonBody } from "@/lib/capped-body";
 
 const FILE = "src/config/site.values.json";
 
@@ -22,12 +23,15 @@ export async function POST(req: NextRequest) {
   const refused = refuseCrmRequest(req, { body: "json" });
   if (refused) return refused;
 
-  let patch: Record<string, unknown>;
-  try {
-    patch = await req.json();
-  } catch {
-    return NextResponse.json({ success: false, error: "Expected a JSON body." }, { status: 400 });
+  // Read under a byte cap as the body arrives (TZ-4 follow-up): a body sent in chunks declares no length.
+  const read = await readJsonBody(req, BODY_CAPS.adminSettings);
+  if (!read.ok) {
+    return NextResponse.json(
+      { success: false, error: read.status === 413 ? "Those settings are too large to save." : "Expected a JSON body." },
+      { status: read.status },
+    );
   }
+  const patch = read.value as Record<string, unknown>;
   if (typeof patch !== "object" || patch === null || Array.isArray(patch)) {
     return NextResponse.json({ success: false, error: "Expected a JSON object." }, { status: 400 });
   }

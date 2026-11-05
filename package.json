@@ -18,6 +18,7 @@
     "test:package-json": "npx --yes tsx scripts/package-json.test.ts",
     "test:json-ld": "npx --yes tsx scripts/json-ld.test.ts",
     "test:csp-report": "npx --yes tsx scripts/csp-report.test.ts",
+    "test:capped-body": "npx --yes tsx scripts/capped-body.test.ts",
     "test:contact-ack": "npx --yes tsx scripts/contact-acknowledgement.test.ts",
     "test:mail-inline": "npx --yes tsx scripts/mail-inline-images.test.ts",
     "test:crm-access": "npx --yes tsx scripts/crm-access.test.ts",

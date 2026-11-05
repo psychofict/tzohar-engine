@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalSiteHrefSchema, siteHrefSchema } from "../links";
 
 /**
  * Composed PAGES — the block system that lets a build (and Studio) art-direct
@@ -95,7 +96,7 @@ const envelope = {
 
 export const blockButtonSchema = z.object({
   label: z.string().min(1),
-  href: z.string().min(1),
+  href: siteHrefSchema,
   style: z.enum(["primary", "outline", "ghost"]).optional(),
   /**
    * Save the target instead of opening it. A PDF href without this loads in the
@@ -204,7 +205,7 @@ export const pillarsBlockSchema = z.object({
        * on the title and stretches over the card, so the accessible name is the
        * pillar's name rather than "read more".
        */
-      href: z.string().optional(),
+      href: optionalSiteHrefSchema,
       tagsLabel: z.string().optional(),
       tags: z.array(z.string()).optional(),
     }),
@@ -617,7 +618,7 @@ export const peopleBlockSchema = z.object({
       note: z.string().optional(),
       /** Where to reach them, or read them. */
       email: z.string().optional(),
-      url: z.string().optional(),
+      url: optionalSiteHrefSchema,
       orcid: z.string().optional(),
       scholar: z.string().optional(),
       /** Years active — "2022–2024" for alumni, "since 2021" for current. */

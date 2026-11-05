@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalSiteHrefSchema } from "../links";
 import type { FormField } from "../config.form";
 
 /**
@@ -29,7 +30,7 @@ export const publicationSchema = z.object({
   type: z.string().optional(),
   year: z.string().optional(),
   doi: z.string().optional(),
-  url: z.string().optional(),
+  url: optionalSiteHrefSchema,
 });
 
 export const researchSchema = z.object({

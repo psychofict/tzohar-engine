@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalSiteHrefSchema } from "../links";
 
 /**
  * Per-site data for the music / ai / links / influencer modules.
@@ -115,7 +116,7 @@ export const aiProfileSchema = z.object({
     .default([]),
   /* `category` is defaulted, not optional: the page groups projects by it and
      feeds the value into component state typed as `string`. */
-  projects: z.array(z.object({ title: z.string(), category: z.string().default(""), url: z.string().optional() })).default([]),
+  projects: z.array(z.object({ title: z.string(), category: z.string().default(""), url: optionalSiteHrefSchema })).default([]),
   experience: z
     .array(
       z.object({
@@ -124,7 +125,7 @@ export const aiProfileSchema = z.object({
         location: z.string().optional(),
         period: z.string().optional(),
         logo: z.string().optional(),
-        url: z.string().optional(),
+        url: optionalSiteHrefSchema,
         current: z.boolean().optional(),
         bullets: z.array(z.string()).default([]),
       }),

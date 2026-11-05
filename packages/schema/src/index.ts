@@ -1,4 +1,5 @@
 export * from "./config";
+export * from "./links";
 export * from "./theme";
 export * from "./templates";
 export * from "./config.form";

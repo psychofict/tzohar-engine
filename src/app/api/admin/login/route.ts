@@ -12,6 +12,7 @@ import {
   recordLoginFailure,
 } from "@/lib/crm/auth";
 import { refuseCrmRequest } from "@/lib/crm/guard";
+import { BODY_CAPS, readFormCapped } from "@/lib/capped-body";
 
 /** The caller's address as the platform reports it (Vercel sets both headers itself). */
 function callerKey(req: NextRequest): string {
@@ -31,7 +32,13 @@ export async function POST(req: NextRequest) {
   const refused = refuseCrmRequest(req, { body: "form", session: false, form: true });
   if (refused) return refused;
 
-  const form = await req.formData();
+  // Read under a byte cap as the body arrives (TZ-4 follow-up): a sign-in form is a few hundred bytes.
+  let form: FormData;
+  try {
+    form = await readFormCapped(req, BODY_CAPS.adminLogin);
+  } catch {
+    return NextResponse.redirect(new URL("/admin/login?error=refused", req.url), 303);
+  }
   const password = String(form.get("password") ?? "");
   const rawNext = String(form.get("next") ?? "/admin");
   // Only ever redirect within the CRM — an attacker-supplied `next` must not be

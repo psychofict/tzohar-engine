@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { siteHrefSchema } from "../links";
 import { moduleSchema } from "../config";
 
 /**
@@ -38,7 +39,7 @@ export const homeLogoSchema = z.object({
  */
 export const homeRolePanelSchema = z.object({
   module: moduleSchema,
-  href: z.string().min(1),
+  href: siteHrefSchema,
   titleKey: z.string().min(1),
   descKey: z.string().min(1),
   ctaKey: z.string().min(1),
@@ -55,9 +56,9 @@ export const homeSpotlightSchema = z.object({
   image: z.string().min(1),
   imageAlt: z.string().min(1),
   /** Outbound link for the picture (a post, an article). */
-  href: z.string().min(1),
+  href: siteHrefSchema,
   /** In-site link for the call to action. */
-  link: z.string().min(1),
+  link: siteHrefSchema,
 });
 
 export const homeReleaseSchema = z.object({

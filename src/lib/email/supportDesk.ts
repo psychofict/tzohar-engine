@@ -60,7 +60,7 @@ export function contactAcknowledgement(site: SiteForMail, input: { type?: unknow
 
   if (sendsAsEbenworks(site.email)) {
     const { html, text } = renderRecord({
-      identity: { key: "tzohar", name: TZOHAR.name, logoUrl: TZOHAR.logoUrl, logoWidth: 150, logoHeight: 81 },
+      identity: { key: "tzohar", name: TZOHAR.name, logoUrl: TZOHAR.logoUrl, logoWidth: 150, logoHeight: 82 },
       edition: "proof",
       title: subject,
       preheader: `We've received your ${kind} for ${site.name}. You'll receive a reply at this email address.`,

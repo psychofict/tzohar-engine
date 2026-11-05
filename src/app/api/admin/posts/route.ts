@@ -3,6 +3,7 @@ import { postsSchema, type Post } from "@tzohar/schema";
 import { refuseCrmRequest } from "@/lib/crm/guard";
 import { checkEdit, crmFailure } from "@/lib/crm/errors";
 import { readJson, writeFiles } from "@/lib/crm/store";
+import { BODY_CAPS, readJsonBody } from "@/lib/capped-body";
 
 const FILE = "src/data/posts.json";
 
@@ -30,12 +31,15 @@ export async function POST(req: NextRequest) {
   const refused = refuseCrmRequest(req, { body: "json" });
   if (refused) return refused;
 
-  let body: Body;
-  try {
-    body = (await req.json()) as Body;
-  } catch {
-    return NextResponse.json({ success: false, error: "Expected a JSON body." }, { status: 400 });
+  // Read under a byte cap as the body arrives (TZ-4 follow-up): a body sent in chunks declares no length.
+  const read = await readJsonBody(req, BODY_CAPS.adminPost);
+  if (!read.ok) {
+    return NextResponse.json(
+      { success: false, error: read.status === 413 ? "That post is too large to save." : "Expected a JSON body." },
+      { status: read.status },
+    );
   }
+  const body = read.value as Body;
   if (typeof body !== "object" || body === null || Array.isArray(body)) {
     return NextResponse.json({ success: false, error: "Expected a JSON object." }, { status: 400 });
   }

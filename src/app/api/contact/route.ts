@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { site } from "@/config/site";
 import { contactAcknowledgement } from "@/lib/email/supportDesk";
-import { carryInline } from "@/lib/email/inline";
 import { allowCaller, allowRecipient, allowSiteSend, readJsonCapped, recipientHasRoom, typedEmail } from "@/lib/mail-guard";
 import { isPreviewBuild } from "@/lib/preview-build";
 
@@ -126,15 +125,13 @@ export async function POST(req: NextRequest) {
     // ebenworks.co site address it goes out as Tzohar Sites Support; a site with its own mail domain
     // keeps its own name (src/lib/email/supportDesk.ts).
     const ack = contactAcknowledgement(site, { type, name, artistName: rest.artistName });
-    const inline = carryInline(ack.html); // the joint stamp and our logo inside the message (EBE-4891)
     const acked = await resend.emails.send({
       from: ack.from,
       to: email,
       replyTo: ack.replyTo,
       subject: ack.subject,
-      html: inline.html,
+      html: ack.html,
       text: ack.text,
-      attachments: inline.attachments,
     });
     if (acked.error) console.error("Email error (acknowledgement):", acked.error);
 

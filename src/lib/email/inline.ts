@@ -1,15 +1,20 @@
 /**
- * The pictures in our visitor mail travel inside the message, not as links (EBE-4891).
+ * Kept for one engine release so a client site builds whose own edited contact route or sign-up
+ * still calls carryInline (engine 2.8.29, EBE-9568). An edited engine file stays a conflict at sync
+ * time and keeps its import of this module.
  *
- * On 22 Oct 2026 Gmail showed the Ebenworks stamp broken in a product's mail while ebenworks.co's
- * name servers answered SERVFAIL (EBE-4879), and tzohar-sites.ebenworks.co is in the same zone. Call
- * this at send, on the final HTML: the joint stamp (whose bytes are in the email kit) and the Tzohar
- * Sites logo (mail-images.generated.ts) become cid:<id> with an inline attachment each, in the Resend
- * SDK's shape. A picture it does not know, such as a site's own logo on its own domain, stays linked.
+ * Since 2.8.29 no picture travels inside visitor mail: every picture is linked from the mail
+ * picture host. carryInline now points the Tzohar Sites logo's old address at its file on that host
+ * and attaches nothing; the joint stamp already links the host through the email kit. Any other
+ * picture, such as a site's own logo on its own domain, stays linked from its own address.
+ * Remove this file in the release after next, once no client calls it.
  */
-import { inlineImages, type InlineAttachment } from "./blocks.generated";
-import { MAIL_IMAGES } from "./mail-images.generated";
+import { inlineImages, type InlineAttachment, type InlineImage } from "./blocks.generated";
+
+const OLD_ADDRESSES: InlineImage[] = [
+  { url: "https://tzohar-sites.ebenworks.co/logo-light.png", contentId: "tzohar-logo", filename: "", contentType: "image/png", content: "" },
+];
 
 export function carryInline(html: string): { html: string; attachments: InlineAttachment[] } {
-  return inlineImages(html, MAIL_IMAGES);
+  return inlineImages(html, OLD_ADDRESSES);
 }

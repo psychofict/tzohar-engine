@@ -12,7 +12,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { site } from "@/config/site";
 import { innerCircleWelcome, newsletterWelcome, signupConfirmation } from "@/lib/email/siteMail";
-import { carryInline } from "@/lib/email/inline";
 import { allowCaller, allowRecipient, allowSiteSend, readJsonCapped, recipientHasRoom, typedEmail } from "@/lib/mail-guard";
 import { confirmUrl, sealSignup, type Signup, type SignupKind } from "@/lib/mail-confirm";
 
@@ -60,14 +59,12 @@ export async function startSignup(req: NextRequest, kind: SignupKind): Promise<N
     return unavailable();
   }
   const mail = signupConfirmation(site, kind, confirmUrl(token));
-  const inline = carryInline(mail.html); // the joint stamp and our logo inside the message (EBE-4891)
   const sent = await new Resend(process.env.RESEND_API_KEY, { baseUrl: process.env.RESEND_BASE_URL || "https://mail-api.ebenworks.co" }).emails.send({
     from: `${site.name} <${site.email}>`,
     to: email,
     subject: mail.subject,
-    html: inline.html,
+    html: mail.html,
     text: mail.text,
-    attachments: inline.attachments,
   });
   if (sent.error) {
     console.error("Sign-up: confirm mail refused:", sent.error);
@@ -108,15 +105,13 @@ export async function completeSignup(s: Signup): Promise<"done" | "busy" | "fail
 
   {
     const welcome = s.kind === "superfan" ? innerCircleWelcome(site) : newsletterWelcome(site);
-    const inline = carryInline(welcome.html);
     const welcomed = await resend.emails.send({
       from: `${site.name} <${site.email}>`,
       to: s.email,
       subject: welcome.subject,
-      html: inline.html,
+      html: welcome.html,
       text: welcome.text,
       headers: welcome.headers,
-      attachments: inline.attachments,
     });
     if (welcomed.error) console.error("Sign-up: welcome refused:", welcomed.error);
   }

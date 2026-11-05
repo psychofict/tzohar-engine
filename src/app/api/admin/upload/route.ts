@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import sharp from "sharp";
 import { refuseCrmRequest } from "@/lib/crm/guard";
+import { BODY_CAPS, BodyTooLarge, readFormCapped } from "@/lib/capped-body";
 import { CLOUDINARY_MAX_BYTES, cloudinaryConfig, cloudinaryFolderMissing, folderMissingMessage, uploadImage } from "@/lib/cloudinary";
 
 /**
@@ -51,7 +52,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const form = await req.formData();
+  // Read under a byte cap as the body arrives (TZ-4 follow-up): a body sent in chunks declares no length.
+  let form: FormData;
+  try {
+    form = await readFormCapped(req, BODY_CAPS.adminUpload);
+  } catch (err) {
+    if (err instanceof BodyTooLarge) {
+      return NextResponse.json({ success: false, error: "That file is over the 25MB limit." }, { status: 413 });
+    }
+    return NextResponse.json({ success: false, error: "No file received." }, { status: 400 });
+  }
   const file = form.get("file");
   if (!(file instanceof File)) {
     return NextResponse.json({ success: false, error: "No file received." }, { status: 400 });

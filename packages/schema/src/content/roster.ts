@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalSiteHrefSchema, siteHrefSchema } from "../links";
 
 /**
  * The record label's roster — content, not code.
@@ -18,7 +19,7 @@ export const rosterArtistSchema = z.object({
 export const labelSocialSchema = z.object({
   /** Drives the icon; anything unrecognised renders as a plain outbound link. */
   platform: z.string().min(1),
-  url: z.string().min(1),
+  url: siteHrefSchema,
 });
 
 export const labelStatSchema = z.object({
@@ -45,7 +46,7 @@ export const labelIdentitySchema = z.object({
   /** Extra spellings for schema.org `alternateName` (accents, "Records", …). */
   alternateNames: z.array(z.string()).default([]),
   description: z.string().default(""),
-  url: z.string().optional(),
+  url: optionalSiteHrefSchema,
   email: z.string().optional(),
   logoLight: z.string().optional(),
   logoDark: z.string().optional(),

@@ -1,20 +1,21 @@
 /**
- * Visitor mail carries its pictures inside the message (EBE-4891). On 22 Oct 2026 Gmail showed the
- * Ebenworks stamp broken while ebenworks.co's name servers failed (EBE-4879), and
- * tzohar-sites.ebenworks.co is in the same zone. So the contact acknowledgement, the newsletter
- * welcome and the Inner Circle welcome send the joint stamp and the Tzohar Sites logo as inline
- * attachments (Resend content_id) with the HTML pointing at cid:<id>.
+ * Visitor mail links its pictures from the mail picture host and carries none inside the message
+ * (EBE-9568, Eben 5 Nov 2026). The Gmail iPhone app never fetched a nameless inline picture and lists
+ * a named one as an attachment, so the contact acknowledgement, the sign-up confirm mails and the
+ * newsletter and Inner Circle welcomes send no attachments: the joint stamp and the Tzohar Sites logo
+ * are https pictures on the host (mailPictureUrl in blocks.generated.ts), each with a pixel width and
+ * height, its brand words as alt text, and a font size and colour for a client that holds pictures back.
+ * The file keeps its old name so a client repo's copy is replaced, not left beside a new one.
  *
  * Run: npx --yes tsx scripts/mail-inline-images.test.ts
  * No network: global fetch is replaced, so nothing reaches Resend.
  */
-import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { NextRequest } from "next/server";
 import { POST as contact } from "../src/app/api/contact/route";
 import { POST as newsletter } from "../src/app/api/newsletter/route";
 import { POST as confirm } from "../src/app/api/newsletter/confirm/route";
-import { MAIL_IMAGE_SOURCES } from "../src/lib/email/mail-images.generated";
+import { MAIL_PICTURE_BASE, MAIL_PICTURES, STAMPS, mailPictureUrl } from "../src/lib/email/blocks.generated";
 
 let fails = 0;
 const check = (label: string, ok: boolean, detail = "") => {
@@ -22,7 +23,6 @@ const check = (label: string, ok: boolean, detail = "") => {
   console.log(`  ${ok ? "✓" : "✗"} ${label}${ok || !detail ? "" : `\n      ${detail}`}`);
 };
 
-type Part = { filename: string; content: string; content_type: string; content_id: string };
 let sent: Record<string, unknown>[] = [];
 const realFetch = globalThis.fetch;
 globalThis.fetch = (async (_url: unknown, init?: RequestInit) => {
@@ -37,16 +37,46 @@ const post = (path: string, body: Record<string, unknown>, ip: string) =>
     body: JSON.stringify(body),
   });
 
-function checkInline(label: string, mail: Record<string, unknown> | undefined) {
+const STAMP = mailPictureUrl("ebenworks-joint-stamp");
+const LOGO = mailPictureUrl("tzohar-logo");
+const attr = (tag: string, name: string) => tag.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1];
+
+function checkLinked(label: string, mail: Record<string, unknown> | undefined) {
   const html = String(mail?.html ?? "");
-  const parts = (mail?.attachments ?? []) as Part[];
-  const cids = [...new Set([...html.matchAll(/src="cid:([^"]+)"/g)].map((m) => m[1]))].sort();
-  check(`${label}: shows the joint stamp and the logo from inline parts`,
-    JSON.stringify(cids) === JSON.stringify(["ebenworks-joint-stamp", "tzohar-logo"]), JSON.stringify(cids));
-  check(`${label}: every cid: has its part, each attached once`,
-    cids.every((c) => parts.some((p) => p.content_id === c && p.content_type === "image/png" && p.content.length > 100))
-      && parts.length === cids.length, JSON.stringify(parts.map((p) => p.content_id)));
+  const attachments = mail?.attachments as unknown[] | undefined;
+  const imgs = [...html.matchAll(/<img\b[^>]*>/g)].map((m) => m[0]);
+  const srcs = imgs.map((t) => attr(t, "src") ?? "");
+
+  check(`${label}: sent`, html.length > 0);
+  check(`${label}: no attachments`, attachments === undefined || attachments.length === 0, JSON.stringify(attachments));
+  check(`${label}: no cid: picture`, !html.includes("cid:"));
+  check(`${label}: every picture is on the mail picture host`,
+    imgs.length > 0 && srcs.every((s) => s.startsWith(`${MAIL_PICTURE_BASE}/`)), JSON.stringify(srcs));
+  check(`${label}: shows the joint stamp and the Tzohar Sites logo`,
+    JSON.stringify([...new Set(srcs)].sort()) === JSON.stringify([STAMP, LOGO].sort()), JSON.stringify(srcs));
   check(`${label}: no picture under ebenworks.co stays linked`, !/<img[^>]+src="https?:\/\/[^"]*ebenworks\.co\//.test(html));
+
+  for (const tag of imgs) {
+    const src = attr(tag, "src");
+    const w = Number(attr(tag, "width")), h = Number(attr(tag, "height"));
+    const alt = attr(tag, "alt"), style = attr(tag, "style") ?? "";
+    const name = src === STAMP ? "joint stamp" : src === LOGO ? "logo" : String(src);
+    check(`${label}: ${name} has a pixel width and height`, w > 0 && h > 0, tag);
+    // Gmail draws a linked picture that does not load as a box about as tall as it is wide when its CSS
+    // height is auto (EBE-4879), so a CSS height, where there is one, is the attribute's in pixels.
+    const cssH = style.match(/(?:^|;)\s*height:\s*([^;]+)/)?.[1]?.trim();
+    check(`${label}: ${name} keeps its pixel height in the style too`, cssH === undefined || cssH === `${h}px`, style);
+    check(`${label}: ${name} has a font size and a colour for a held-back picture`,
+      /font-size:\s*\d+px/.test(style) && /(^|;)\s*color:/.test(style), style);
+    if (src === STAMP) {
+      check(`${label}: joint stamp at ${STAMPS.joint.width}x${STAMPS.joint.height}, alt word for word`,
+        w === STAMPS.joint.width && h === STAMPS.joint.height && alt === STAMPS.joint.alt, tag);
+    } else if (src === LOGO) {
+      const f = MAIL_PICTURES["tzohar-logo"];
+      check(`${label}: logo drawn at the host file's shape (${w}x${h}), alt "${f.alt}"`,
+        h === Math.round((w * f.height) / f.width) && alt === f.alt, tag);
+    }
+  }
 }
 
 async function main() {
@@ -56,7 +86,7 @@ async function main() {
   console.log("contact acknowledgement");
   sent = [];
   await contact(post("/api/contact", { type: "general", name: "Tendai Moyo", email: "visitor@example.invalid", message: "hello" }, "203.0.113.40"));
-  checkInline("acknowledgement", sent[1]);
+  checkLinked("acknowledgement", sent.find((m) => String(m.to) === "visitor@example.invalid"));
 
   // A sign-up sends a confirm mail first; the welcome follows its button (TZS-4, EBE-6326).
   const confirmLink = (mail: Record<string, unknown> | undefined) =>
@@ -72,10 +102,10 @@ async function main() {
   sent = [];
   await newsletter(post("/api/newsletter", { email: "reader@example.invalid" }, "203.0.113.41"));
   const readerConfirm = sent.find((m) => String(m.to) === "reader@example.invalid");
-  checkInline("newsletter confirm mail", readerConfirm);
+  checkLinked("newsletter confirm mail", readerConfirm);
   sent = [];
   await pressConfirm(confirmLink(readerConfirm), "203.0.113.41");
-  checkInline("newsletter welcome", sent.find((m) => String(m.to) === "reader@example.invalid"));
+  checkLinked("newsletter welcome", sent.find((m) => String(m.to) === "reader@example.invalid"));
 
   console.log("Inner Circle welcome");
   // The superfan route belongs to the vault module, which a client site without it does not have.
@@ -86,26 +116,23 @@ async function main() {
     sent = [];
     await superfan(post("/api/superfan", { email: "fan@example.invalid", city: "Harare" }, "203.0.113.42"));
     const fanConfirm = sent.find((m) => String(m.to) === "fan@example.invalid");
-    checkInline("Inner Circle confirm mail", fanConfirm);
+    checkLinked("Inner Circle confirm mail", fanConfirm);
     sent = [];
     await pressConfirm(confirmLink(fanConfirm), "203.0.113.42");
-    checkInline("Inner Circle welcome", sent.find((m) => String(m.to) === "fan@example.invalid"));
+    checkLinked("Inner Circle welcome", sent.find((m) => String(m.to) === "fan@example.invalid"));
   } else {
     console.log("  - skipped: this site has no vault module, so no Inner Circle welcome");
   }
 
-  console.log("the logo module matches its source");
-  // A client repo has no Studio, so the source pictures are not there to compare: skip, say so.
-  // studio/engine.release.json exists only in the engine (a client may keep a studio/ folder of
-  // its own). In the engine a missing source still fails, because readFileSync throws.
-  const inEngine = existsSync(new URL("../studio/engine.release.json", import.meta.url));
-  for (const src of MAIL_IMAGE_SOURCES) {
-    if (!inEngine) {
-      console.log(`  - skipped: ${src.source} (no Studio in a client repo; checked in the engine)`);
-      continue;
-    }
-    const sha = createHash("sha256").update(readFileSync(new URL(`../${src.source}`, import.meta.url))).digest("hex");
-    check(`${src.source} unchanged since scripts/build-mail-images.py ran`, sha === src.sourceSha256);
+  console.log("an old caller of carryInline (kept for one release)");
+  if (existsSync(new URL("../src/lib/email/inline.ts", import.meta.url))) {
+    const { carryInline } = await import("../src/lib/email/inline");
+    const own = "https://client.example/logo.png";
+    const old = `<img src="https://tzohar-sites.ebenworks.co/logo-light.png" width="120" height="40" alt="Tzohar Sites"><img src="${own}">`;
+    const out = carryInline(old);
+    check("the old logo address becomes its file on the host", out.html.includes(`src="${LOGO}"`), out.html);
+    check("a site's own logo keeps its own address", out.html.includes(`src="${own}"`), out.html);
+    check("nothing is attached", out.attachments.length === 0, JSON.stringify(out.attachments));
   }
 
   globalThis.fetch = realFetch;

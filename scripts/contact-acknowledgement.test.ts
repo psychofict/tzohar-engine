@@ -12,10 +12,13 @@
  */
 import { NextRequest } from "next/server";
 import { contactAcknowledgement, sendsAsEbenworks } from "../src/lib/email/supportDesk";
-import { innerCircleWelcome, newsletterWelcome, siteColours } from "../src/lib/email/siteMail";
+import { innerCircleWelcome, newsletterWelcome, signupConfirmation, siteColours } from "../src/lib/email/siteMail";
 import { POST } from "../src/app/api/contact/route";
-import { carryInline } from "../src/lib/email/inline";
+import { mailPictureUrl } from "../src/lib/email/blocks.generated";
 import { site } from "../src/config/site";
+
+const STAMP = mailPictureUrl("ebenworks-joint-stamp");
+const count = (html: string, s: string) => html.split(s).length - 1;
 
 let fails = 0;
 const check = (label: string, ok: boolean, detail = "") => {
@@ -54,7 +57,7 @@ async function main() {
   check("From Tzohar Sites Support", a.from === "Tzohar Sites Support <tzohar-sites@ebenworks.co>", a.from);
   check("replies go to the site's address", a.replyTo === "contact@ebenworks.co", a.replyTo);
   check("subject", a.subject === "Your message to Ebstar", a.subject);
-  check("Tzohar Sites' logo heads it", a.html.includes("tzohar-sites.ebenworks.co/logo-light.png"));
+  check("Tzohar Sites' logo heads it", a.html.includes(`src="${mailPictureUrl("tzohar-logo")}"`));
   check("says where it came through", a.text.includes("which runs on Tzohar Sites"));
   check("greets by the first name", a.text.includes("Hello Tendai,") && !a.text.includes("Moyo"));
   check("no phone number", !/\+\d{2,}/.test(a.text));
@@ -67,10 +70,10 @@ async function main() {
   check("the footer block names Tzohar Sites once", (c.text.match(/Tzohar Sites/g) ?? []).length === 1 && c.html.includes("The Kopje Light Ceramics website is built with Tzohar Sites"));
   check("no Ebenworks wordmark or strip", !/EBEN<\/span>WORKS|ebenworks-email-strip/.test(c.html));
   // SO-39: the joint stamp, once, inside the footer block and in the text part.
-  check("the joint stamp once, in the footer block", (c.html.match(/joint-stamp-ebenworks-statotech\.png/g) ?? []).length === 1
-    && c.html.indexOf("joint-stamp-ebenworks-statotech.png") > c.html.indexOf("Get a site like this")
+  check("the joint stamp once, in the footer block", count(c.html, STAMP) === 1
+    && c.html.indexOf(STAMP) > c.html.indexOf("Get a site like this")
     && c.text.includes("A joint product of Ebenworks and Statotech Systems: https://ebenworks.co")
-    && !c.html.includes("ebenworks-stamp.png") && !c.html.includes("an Ebenworks product"));
+    && !c.html.includes(mailPictureUrl("ebenworks-stamp")) && !c.html.includes("an Ebenworks product"));
   check("says what arrived", c.text.replace(/\s+/g, " ").includes("We've received your booking enquiry"));
   check("sendsAsEbenworks", sendsAsEbenworks("x@ebenworks.co") && sendsAsEbenworks(" X@EBENWORKS.CO ") && !sendsAsEbenworks("x@ebenworks.co.evil.example"));
 
@@ -88,7 +91,14 @@ async function main() {
     check(`${label}: a way off the list in both parts and the header`,
       m.html.includes("mailto:hello@kopje-light.example?subject=Unsubscribe") && m.text.includes("Unsubscribe: mailto:hello@kopje-light.example")
         && m.headers["List-Unsubscribe"] === "<mailto:hello@kopje-light.example?subject=Unsubscribe>");
-    check(`${label}: the Tzohar Sites footer block`, m.html.includes("is built with Tzohar Sites.") && m.html.includes("joint-stamp-ebenworks-statotech.png"));
+    // The site keeps no list (the owner removes an address by hand), so it must never promise RFC 8058
+    // one-click removal: that header tells a mail client the reader is off the list at once (EBE-9006).
+    check(`${label}: no one-click unsubscribe promise`, !("List-Unsubscribe-Post" in m.headers) && !/https?:/i.test(m.headers["List-Unsubscribe"] ?? ""));
+    check(`${label}: the Tzohar Sites footer block`, m.html.includes("is built with Tzohar Sites.") && count(m.html, STAMP) === 1);
+  }
+  for (const kind of ["newsletter", "superfan"] as const) {
+    const c = signupConfirmation(client, kind, "https://kopje-light.example/api/newsletter/confirm?t=x");
+    check(`${kind} confirm mail: no unsubscribe header`, Object.keys(c.headers).length === 0);
   }
   check("newsletter subject", newsletterWelcome(client).subject === "You're on the Kopje Light Ceramics mailing list");
   check("the Vault link", /href="https:\/\/kopje-light\.example\/vault"/.test(innerCircleWelcome(client).html));
@@ -109,8 +119,10 @@ async function main() {
   const expected = contactAcknowledgement(site, { type: "general", name: "Tendai Moyo" });
   check("acknowledgement From", ack.from === expected.from, String(ack.from));
   check("acknowledgement reply-to", JSON.stringify(ack.reply_to) === JSON.stringify(expected.replyTo), JSON.stringify(ack.reply_to));
-  // The stamp and logo travel inside the message since EBE-4891 (scripts/mail-inline-images.test.ts).
-  check("acknowledgement HTML and text", ack.html === carryInline(expected.html).html && ack.text === expected.text);
+  // The stamp and logo are linked from the mail picture host, so the route sends the HTML as built and
+  // no attachments (EBE-9568, scripts/mail-inline-images.test.ts).
+  check("acknowledgement HTML and text", ack.html === expected.html && ack.text === expected.text);
+  check("acknowledgement carries no attachments", ack.attachments === undefined, JSON.stringify(ack.attachments));
 
   console.log("the route when the notification is refused");
   sent = [];

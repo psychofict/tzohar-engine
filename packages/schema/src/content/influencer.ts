@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { siteHrefSchema } from "../links";
 
 /**
  * The influencer module's content — social posts, partner marks, hero.
@@ -18,7 +19,7 @@ import { z } from "zod";
  */
 export const instagramPostSchema = z.object({
   shortcode: z.string().min(1),
-  url: z.string().min(1),
+  url: siteHrefSchema,
   caption: z.string().default(""),
   location: z.string().nullable().default(null),
   likes: z.number().int().nonnegative().default(0),

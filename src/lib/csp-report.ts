@@ -109,6 +109,41 @@ export function reportClientIp(headers: Headers): string {
 }
 
 /**
+ * The body as text, or "" once more than MAX_REPORT_BYTES arrive: the bytes are counted as they
+ * come and the stream is cancelled at the cap, so a body sent in chunks with no declared length is
+ * never held whole (TZ-4).
+ */
+export async function readReportText(req: Request): Promise<string> {
+  const declared = Number(req.headers.get("content-length") ?? "");
+  if (Number.isFinite(declared) && declared > MAX_REPORT_BYTES) return "";
+  if (!req.body) return "";
+  const reader = req.body.getReader();
+  const parts: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_REPORT_BYTES) {
+        await reader.cancel().catch(() => undefined);
+        return "";
+      }
+      parts.push(value);
+    }
+  } catch {
+    return "";
+  }
+  const bytes = new Uint8Array(total);
+  let at = 0;
+  for (const p of parts) {
+    bytes.set(p, at);
+    at += p.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
+/**
  * The whole handler, shared by the route file (which may export only handlers).
  * Always answers an empty 204: a browser does nothing with the answer, and a
  * probe learns nothing from it.
@@ -118,10 +153,9 @@ export function createCspReportHandler(log: (line: string) => void = console.war
   return async function handle(req: Request): Promise<Response> {
     const noContent = () => new Response(null, { status: 204 });
     if (isLimited(reportClientIp(req.headers))) return noContent();
-    const declared = Number(req.headers.get("content-length") ?? 0);
-    if (declared > MAX_REPORT_BYTES) return noContent();
-    const text = await req.text().catch(() => "");
-    if (!text || text.length > MAX_REPORT_BYTES) return noContent();
+    // Read under the cap, declared length or not (TZ-4): an anonymous chunked body stops at 16 KB.
+    const text = await readReportText(req);
+    if (!text) return noContent();
     let body: unknown;
     try {
       body = JSON.parse(text);

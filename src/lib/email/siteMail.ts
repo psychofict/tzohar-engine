@@ -16,12 +16,13 @@
  */
 import { resolveAccents } from "@tzohar/schema";
 import type { ThemePreset } from "@tzohar/schema";
-import { R, esc, renderRecord, type Block } from "./blocks.generated";
+import { R, esc, mailPictureUrl, renderRecord, type Block } from "./blocks.generated";
 
 export const TZOHAR = {
   name: "Tzohar Sites",
   url: "https://tzohar-sites.ebenworks.co",
-  logoUrl: "https://tzohar-sites.ebenworks.co/logo-light.png",
+  // Linked from the mail picture host, never carried inside the message (EBE-9568).
+  logoUrl: mailPictureUrl("tzohar-logo"),
   logoWidth: 88,
   logoHeight: 48,
 } as const;

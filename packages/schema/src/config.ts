@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { siteHrefSchema, socialUrlSchema, webUrlSchema } from "./links";
 import {
   FONT_CHOICES,
   RADIUS_CHOICES,
@@ -181,7 +182,7 @@ export const contactSchema = z.object({
  */
 export const ctaSchema = z.object({
   label: z.string().min(1),
-  href: z.string().min(1),
+  href: siteHrefSchema,
 });
 
 // ── Person — the schema.org facts behind the JSON-LD ───────────────────────
@@ -209,9 +210,9 @@ export const personSchema = z.object({
     .array(z.object({ name: z.string(), location: z.string().optional(), description: z.string().optional() }))
     .optional(),
   worksFor: z
-    .array(z.object({ name: z.string(), url: z.string().optional(), description: z.string().optional() }))
+    .array(z.object({ name: z.string(), url: webUrlSchema.optional(), description: z.string().optional() }))
     .optional(),
-  alumniOf: z.array(z.object({ name: z.string(), url: z.string().optional() })).optional(),
+  alumniOf: z.array(z.object({ name: z.string(), url: webUrlSchema.optional() })).optional(),
   credentials: z
     .array(
       z.object({
@@ -253,7 +254,7 @@ export const crmSchema = z.object({
 
 export const socialLinkSchema = z.object({
   name: z.string().min(1),
-  url: z.url(),
+  url: socialUrlSchema,
   /** key into the social icon map (src/components/ui/SocialIcons) */
   icon: z.string().min(1),
 });
@@ -273,7 +274,7 @@ export const configSchema = z.object({
   /** SEO + social description (~150–160 chars). */
   description: z.string(),
   /** Production origin, no trailing slash. e.g. "https://example.com". */
-  url: z.url(),
+  url: webUrlSchema,
   /** Public contact email. */
   email: z.email(),
   /** Where they're based / from — footer + schema. */
@@ -318,7 +319,7 @@ export const configSchema = z.object({
   /** Social links — also feed schema.org sameAs. */
   socials: z.array(socialLinkSchema),
   /** Extra schema.org sameAs profile URLs beyond `socials` (SEO only). */
-  sameAs: z.array(z.url()).optional(),
+  sameAs: z.array(webUrlSchema).optional(),
   /** Sections switched on for this site. */
   modules: z.array(moduleSchema),
   /** Which inquiry forms the contact page offers. */

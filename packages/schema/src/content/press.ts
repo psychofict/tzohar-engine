@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { siteHrefSchema } from "../links";
 
 /**
  * The electronic press kit — content, not code.
@@ -36,7 +37,7 @@ export const pressFactSchema = z.object({
 
 export const pressLinkSchema = z.object({
   name: z.string().min(1),
-  url: z.string().min(1),
+  url: siteHrefSchema,
   /** Brand colour for the pill; falls back to the site accent when absent. */
   color: z.string().optional(),
 });
