@@ -10,7 +10,7 @@
 //   colours: products/accounts-hub/integration-kit/theme/tokens.json
 //   sync:   infra/scripts/sync-email-kit.py
 //   check:  infra/scripts/sync-email-kit.py --check
-//   sha256: ba51078b4cde5e1e
+//   sha256: d4c9059417731d93
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -538,6 +538,8 @@ export function renderEmail(opts: EmailOpts): { html: string; text: string } {
   const latin = `font-family:${T.font};`;
   const preheader = opts.preheader || opts.title;
   const stamp = productStamp(opts.identity.key, !!ko, "4px 0 14px");
+  // The opt-out link reads in the message's language, as the record editions' footer does.
+  const unsubWord = ko ? KO_WORDS.unsub : EN_WORDS.unsub;
 
   const footerLinks = [
     { label: id.site, href: `https://${id.site}` },
@@ -579,7 +581,7 @@ ${SHELL_STYLE}
     <p style="margin:0 0 10px;${ff}font-size:12px;line-height:1.6;">${
       footerLinks.map(l => `<a href="${esc(l.href)}" style="color:${T.footerLink};text-decoration:none;">${esc(l.label)}</a>`)
         .join(`<span style="color:${T.footerMuted};">&nbsp;&nbsp;·&nbsp;&nbsp;</span>`)}</p>
-    ${opts.unsubscribeUrl ? `<p style="margin:0 0 10px;${ff}font-size:12px;line-height:1.6;"><a href="${esc(opts.unsubscribeUrl)}" style="color:${T.footerMuted};text-decoration:underline;">Unsubscribe</a></p>` : ""}
+    ${opts.unsubscribeUrl ? `<p style="margin:0 0 10px;${ff}font-size:12px;line-height:1.6;"><a href="${esc(opts.unsubscribeUrl)}" style="color:${T.footerMuted};text-decoration:underline;">${unsubWord}</a></p>` : ""}
     ${stamp ? stamp.html : ""}
     <p style="margin:0;${ff}font-size:11px;color:${T.footerMuted};">© ${year} Ebenworks Systems (Pvt) Ltd</p>
   </td></tr>
@@ -603,7 +605,7 @@ ${SHELL_STYLE}
     ...(opts.tagline ? [opts.tagline] : []),
     ...(opts.reason ? [wrap(opts.reason)] : []),
     footerLinks.map(l => l.href).join("  ·  "),
-    ...(opts.unsubscribeUrl ? [`Unsubscribe: ${opts.unsubscribeUrl}`] : []),
+    ...(opts.unsubscribeUrl ? [`${unsubWord}: ${opts.unsubscribeUrl}`] : []),
     ...(stamp ? [stamp.text] : []),
     `© ${year} Ebenworks Systems (Pvt) Ltd`,
     "",

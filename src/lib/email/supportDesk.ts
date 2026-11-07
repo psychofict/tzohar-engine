@@ -15,6 +15,7 @@
  * to, so it carries nothing the visitor typed except a first name that passes a letters-only check.
  */
 import { R, esc, renderRecord } from "./blocks.generated";
+import { fromHeader } from "./headers";
 import { TZOHAR, firstName, siteMail, type SiteForMail } from "./siteMail";
 
 export const TZOHAR_SUPPORT = {
@@ -89,5 +90,5 @@ export function contactAcknowledgement(site: SiteForMail, input: { type?: unknow
     ],
     why: `You contacted ${site.name} through ${host(site.url)}.`,
   });
-  return { from: `${site.name} <${site.email}>`, replyTo: site.email, subject, html, text };
+  return { from: fromHeader(site.name, site.email), replyTo: site.email, subject, html, text };
 }

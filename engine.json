@@ -1,13 +1,18 @@
 {
-  "version": "2.8.29",
-  "name": "Linked pictures",
-  "released": "2026-11-06",
+  "version": "2.8.30",
+  "name": "Plain owner notes",
+  "released": "2026-11-07",
   "highlights": [
-    "The emails your site sends to visitors (the contact-form reply, the sign-up confirmation and the newsletter and Inner Circle welcomes) now show the Tzohar Sites logo and the Ebenworks and Statotech Systems stamp as linked pictures, instead of carrying them inside the message. Some mail apps, the Gmail app on iPhone among them, showed those pictures as broken or listed them as attachments; a linked picture shows as an ordinary image. Your own name, colours and wording in these emails are unchanged."
+    "The note a contact form sends to the site's owner now shows the sender's name as typed. A name such as \"Tendai & Sons\" used to arrive in the subject as \"Tendai &amp; Sons\", and \"D'Souza <Ltd>\" as \"D&#39;Souza &lt;Ltd&gt;\". The subject is now plain text on one line, at most 78 characters, and a long name is cut with \"…\" while the whole name stays in the message. The contact note and the notes for newsletter and Inner Circle sign-ups also carry a plain-text version, for mail apps that do not show formatted mail.",
+    "A site whose name holds a quote mark, angle brackets or a line break no longer sends from an invalid sender line, as \"D'Souza <Ltd>\" did before. Those characters are dropped, and a name with an ampersand, comma, apostrophe or full stop is put in quotes. An ordinary name is sent exactly as before. This covers the contact reply, the sign-up confirmation and the two welcome emails.",
+    "In an email written in Korean, the opt-out link in the footer now reads 수신 거부 instead of \"Unsubscribe\". English emails are unchanged."
   ],
   "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.29": [
+      "The emails your site sends to visitors (the contact-form reply, the sign-up confirmation and the newsletter and Inner Circle welcomes) now show the Tzohar Sites logo and the Ebenworks and Statotech Systems stamp as linked pictures, instead of carrying them inside the message. Some mail apps, the Gmail app on iPhone among them, showed those pictures as broken or listed them as attachments; a linked picture shows as an ordinary image. Your own name, colours and wording in these emails are unchanged."
+    ],
     "2.8.28": [
       "Every route that reads a request body now counts the bytes as they arrive and stops at a limit set for that route: the CRM's page, post, settings, sign-in and image-upload routes, the checkout route and the member profile route. Before, a body sent in pieces with no declared length was read whole before any size check, and a site run with next start has no platform limit in front of a route, so one oversized request could fill its memory. Normal use is unaffected: the limits are 1 MB for a page or a post, 64 KB for settings, 8 KB for sign-in, 4 KB for checkout, 32 KB for a profile (the Accounts Hub's own limit) and 26 MB for an image upload (the 25 MB file limit is unchanged).",
       "A request over a limit gets a plain answer (413, or the sign-in page for a sign-in form) and nothing is sent to GitHub, Cloudinary or the hub."

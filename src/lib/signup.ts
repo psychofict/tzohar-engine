@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { site } from "@/config/site";
+import { fromHeader, oneLine } from "@/lib/email/headers";
 import { innerCircleWelcome, newsletterWelcome, signupConfirmation } from "@/lib/email/siteMail";
 import { allowCaller, allowRecipient, allowSiteSend, readJsonCapped, recipientHasRoom, typedEmail } from "@/lib/mail-guard";
 import { confirmUrl, sealSignup, type Signup, type SignupKind } from "@/lib/mail-confirm";
@@ -60,7 +61,7 @@ export async function startSignup(req: NextRequest, kind: SignupKind): Promise<N
   }
   const mail = signupConfirmation(site, kind, confirmUrl(token));
   const sent = await new Resend(process.env.RESEND_API_KEY, { baseUrl: process.env.RESEND_BASE_URL || "https://mail-api.ebenworks.co" }).emails.send({
-    from: `${site.name} <${site.email}>`,
+    from: fromHeader(site.name, site.email),
     to: email,
     subject: mail.subject,
     html: mail.html,
@@ -92,12 +93,15 @@ export async function completeSignup(s: Signup): Promise<"done" | "busy" | "fail
           <li><strong>City:</strong> ${s.city ? escapeHtml(s.city) : "&mdash;"}</li>
         </ul>
       `,
+          text: `New Vault / Inner Circle signup (address confirmed):\n\nEmail: ${s.email}\nPhone: ${oneLine(s.phone ?? "") || "-"}\nCity: ${oneLine(s.city ?? "") || "-"}`,
         }
       : {
           subject: "New newsletter subscriber!",
           html: `<p>New subscriber (address confirmed): <strong>${escapeHtml(s.email)}</strong></p>`,
+          text: `New subscriber (address confirmed): ${s.email}`,
         };
-  const noted = await resend.emails.send({ from: `${site.name} Website <${site.email}>`, to: site.email, ...note });
+  // Both subjects are fixed words: nothing a visitor typed reaches them.
+  const noted = await resend.emails.send({ from: fromHeader(`${site.name} Website`, site.email), to: site.email, ...note });
   if (noted.error) {
     console.error("Sign-up: owner's note refused:", noted.error);
     return "failed";
@@ -106,7 +110,7 @@ export async function completeSignup(s: Signup): Promise<"done" | "busy" | "fail
   {
     const welcome = s.kind === "superfan" ? innerCircleWelcome(site) : newsletterWelcome(site);
     const welcomed = await resend.emails.send({
-      from: `${site.name} <${site.email}>`,
+      from: fromHeader(site.name, site.email),
       to: s.email,
       subject: welcome.subject,
       html: welcome.html,

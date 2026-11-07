@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { site } from "@/config/site";
+import { fromHeader, oneLine, subjectWith } from "@/lib/email/headers";
 import { contactAcknowledgement } from "@/lib/email/supportDesk";
 import { allowCaller, allowRecipient, allowSiteSend, readJsonCapped, recipientHasRoom, typedEmail } from "@/lib/mail-guard";
 import { isPreviewBuild } from "@/lib/preview-build";
@@ -74,28 +75,39 @@ export async function POST(req: NextRequest) {
 
     const resend = new Resend(process.env.RESEND_API_KEY, { baseUrl: process.env.RESEND_BASE_URL || "https://mail-api.ebenworks.co" });
 
-    // Build subject based on inquiry type
+    // Build subject based on inquiry type. A header is plain text, so the typed name goes in as typed,
+    // on one line, and cut to the subject limit (src/lib/email/headers.ts); only the HTML body escapes it.
     const subjectMap: Record<string, string> = {
-      speaking: `Speaking Invitation from ${escapeHtml(name || email)}`,
-      press: `Press Inquiry from ${escapeHtml(rest.outlet || email)}`,
-      research: `Research Collaboration Inquiry from ${escapeHtml(name || email)}`,
-      general: `General Inquiry from ${escapeHtml(name || email)}`,
+      speaking: subjectWith("Speaking Invitation from ", name, email),
+      press: subjectWith("Press Inquiry from ", rest.outlet, email),
+      research: subjectWith("Research Collaboration Inquiry from ", name, email),
+      general: subjectWith("General Inquiry from ", name, email),
     };
 
-    const subject = subjectMap[type ?? ""] || `New Inquiry from ${escapeHtml(email)}`;
+    // Only a listed type has its own subject: "constructor" or "__proto__" typed into the form would
+    // otherwise find a property every object has.
+    const subject = Object.hasOwn(subjectMap, type ?? "") ? subjectMap[type ?? ""] : subjectWith("New Inquiry from ", email);
 
-    // Format the email body with all fields — sanitized
-    const emailBody = Object.entries({ type, name, email, message, ...rest })
+    // Format the email body with all fields: HTML (sanitized) and the same facts as text
+    const rows = Object.entries({ type, name, email, message, ...rest })
       .filter(([, v]) => v)
-      .map(([k, v]) => `<strong>${escapeHtml(k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1'))}:</strong> ${escapeHtml(String(v))}`)
+      .map(([k, v]) => [k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, " $1"), String(v)] as const);
+    const emailBody = rows
+      .map(([label, v]) => `<strong>${escapeHtml(label)}:</strong> ${escapeHtml(v)}`)
       .join("<br><br>");
+    const emailText = [
+      `New ${oneLine(type ?? "") || "General"} Inquiry`,
+      ...rows.map(([label, v]) => `${label}: ${v.replace(/\r\n?/g, "\n")}`),
+      `Sent from the ${site.name} contact form`,
+    ].join("\n\n");
 
     // Send notification. The SDK reports a refused send in `error` rather than throwing, so it is
     // read: the acknowledgement below tells the visitor their message was passed on.
     const notified = await resend.emails.send({
-      from: `${site.name} Website <${site.email}>`,
+      from: fromHeader(`${site.name} Website`, site.email),
       to: site.email,
       subject,
+      text: emailText,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #1B3A5C;">New ${escapeHtml(type || "General")} Inquiry</h2>
