@@ -68,7 +68,10 @@
     "js-yaml": "^4.3.2",
     "nanoid": "^3.3.18",
     "postcss": "^8.5.25",
-    "sharp": "$sharp"
+    "sharp": "$sharp",
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.3"
+    }
   },
   "license": "Apache-2.0"
 }
