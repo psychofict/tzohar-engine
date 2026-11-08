@@ -124,9 +124,13 @@ async function main() {
     console.log("  - skipped: this site has no vault module, so no Inner Circle welcome");
   }
 
-  console.log("an old caller of carryInline (kept for one release)");
+  console.log("an old caller of carryInline (only while the stand-in file exists)");
   if (existsSync(new URL("../src/lib/email/inline.ts", import.meta.url))) {
-    const { carryInline } = await import("../src/lib/email/inline");
+    // A variable specifier, so the type check passes once the file is deleted (EBE-9591).
+    const standIn: string = "../src/lib/email/inline";
+    const { carryInline } = (await import(standIn)) as {
+      carryInline: (html: string) => { html: string; attachments: unknown[] };
+    };
     const own = "https://client.example/logo.png";
     const old = `<img src="https://tzohar-sites.ebenworks.co/logo-light.png" width="120" height="40" alt="Tzohar Sites"><img src="${own}">`;
     const out = carryInline(old);
