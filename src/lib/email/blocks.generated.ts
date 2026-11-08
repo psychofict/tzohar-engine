@@ -10,7 +10,7 @@
 //   colours: products/accounts-hub/integration-kit/theme/tokens.json
 //   sync:   infra/scripts/sync-email-kit.py
 //   check:  infra/scripts/sync-email-kit.py --check
-//   sha256: d4c9059417731d93
+//   sha256: a3676aaed9a97934
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -75,7 +75,7 @@ export const IDENTITIES: Record<IdentityKey, { name: string; accent: string; acc
   imali: { name: "Imali AI", accent: "#00a651", accentText: "#008842", site: "imali-ai.ebenworks.co" },
   chingu: { name: "Chingu Care AI", accent: "#c4613a", accentText: "#b85b37", site: "chingu-ai.ebenworks.co" },
   phila: { name: "Phila Health Ecosystem", accent: "#2f8f5b", accentText: "#2c8656", site: "phila-health.ebenworks.co" },
-  bidwright: { name: "BidWright AI", accent: "#2563eb", accentText: "#2563eb", site: "bidwright-ai.ebenworks.co" },
+  bidwright: { name: "BidWright Tender AI", accent: "#2563eb", accentText: "#2563eb", site: "bidwright-ai.ebenworks.co" },
   izwi: { name: "Izwi Music OS", accent: "#c2873b", accentText: "#9b6c2f", site: "izwi-os.ebenworks.co" },
   tzohar: { name: "Tzohar Sites", accent: "#7c5cff", accentText: "#7655ff", site: "tzohar-sites.ebenworks.co" },
   statosports: { name: "StatoSports", accent: "#dc2626", accentText: "#dc2626", site: "statosports.statotec.com" },

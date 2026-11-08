@@ -15,7 +15,7 @@ export default function PrivacyPage() {
     <main id="main-content" className="min-h-screen bg-bg text-ink">
       <Container size="sm" className="pt-28 sm:pt-32 pb-20">
         <h1 className="font-bold tracking-tight text-[clamp(1.9rem,4vw,2.75rem)]">Privacy Policy</h1>
-        <p className="mt-2 text-sm text-ink-3">Last updated: 3 November 2026</p>
+        <p className="mt-2 text-sm text-ink-3">Last updated: 9 November 2026</p>
 
         <div className="mt-8 flex flex-col gap-6 text-[15px] leading-relaxed text-ink-2 [&_h2]:mt-4 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-ink [&_a]:text-ocean-strong [&_a:hover]:underline [&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-2 [&_ul]:pl-5">
           <p>
@@ -63,6 +63,14 @@ export default function PrivacyPage() {
                 to understand traffic (pages viewed, device, approximate location). Your theme and
                 language choices are stored in your browser. We do <strong>not</strong> sell your data or
                 use it for third-party advertising.
+              </li>
+              <li>
+                <strong>Pictures in our emails:</strong> when you open one of our emails with pictures shown, your mail app
+                fetches them from our mail picture host, which logs the requesting IP address (your mail service&rsquo;s, if
+                it fetches pictures for you), your mail app&rsquo;s user agent, the picture and the time. We use the log
+                only to keep the host working and secure, never to find out whether you opened an email. It is kept in the
+                United States and deleted after 35 days. To stop it, set your mail app not to load pictures; our emails
+                still read in full.
               </li>
             </ul>
           </section>

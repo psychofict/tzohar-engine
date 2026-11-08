@@ -1,15 +1,18 @@
 {
-  "version": "2.8.30",
-  "name": "Plain owner notes",
-  "released": "2026-11-07",
+  "version": "2.8.31",
+  "name": "Mail picture notice",
+  "released": "2026-11-09",
   "highlights": [
-    "The note a contact form sends to the site's owner now shows the sender's name as typed. A name such as \"Tendai & Sons\" used to arrive in the subject as \"Tendai &amp; Sons\", and \"D'Souza <Ltd>\" as \"D&#39;Souza &lt;Ltd&gt;\". The subject is now plain text on one line, at most 78 characters, and a long name is cut with \"…\" while the whole name stays in the message. The contact note and the notes for newsletter and Inner Circle sign-ups also carry a plain-text version, for mail apps that do not show formatted mail.",
-    "A site whose name holds a quote mark, angle brackets or a line break no longer sends from an invalid sender line, as \"D'Souza <Ltd>\" did before. Those characters are dropped, and a name with an ampersand, comma, apostrophe or full stop is put in quotes. An ordinary name is sent exactly as before. This covers the contact reply, the sign-up confirmation and the two welcome emails.",
-    "In an email written in Korean, the opt-out link in the footer now reads 수신 거부 instead of \"Unsubscribe\". English emails are unchanged."
+    "The privacy notice now says what the picture host behind your site's emails logs. When a visitor opens one of the emails your site sends (the contact reply, the sign-up confirmations and the newsletter and Inner Circle welcomes) with pictures shown, their mail app fetches the Tzohar Sites logo and the joint stamp from our mail picture host, which keeps the requesting IP address, the mail app's user agent, the picture and the time for 35 days in the United States. The notice carries one new bullet under what the site collects, with the way to stop it (set the mail app not to load pictures), and its date moves to 9 November 2026. Nothing else on the page changes and nothing is asked of you."
   ],
   "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.30": [
+      "The note a contact form sends to the site's owner now shows the sender's name as typed. A name such as \"Tendai & Sons\" used to arrive in the subject as \"Tendai &amp; Sons\", and \"D'Souza <Ltd>\" as \"D&#39;Souza &lt;Ltd&gt;\". The subject is now plain text on one line, at most 78 characters, and a long name is cut with \"…\" while the whole name stays in the message. The contact note and the notes for newsletter and Inner Circle sign-ups also carry a plain-text version, for mail apps that do not show formatted mail.",
+      "A site whose name holds a quote mark, angle brackets or a line break no longer sends from an invalid sender line, as \"D'Souza <Ltd>\" did before. Those characters are dropped, and a name with an ampersand, comma, apostrophe or full stop is put in quotes. An ordinary name is sent exactly as before. This covers the contact reply, the sign-up confirmation and the two welcome emails.",
+      "In an email written in Korean, the opt-out link in the footer now reads 수신 거부 instead of \"Unsubscribe\". English emails are unchanged."
+    ],
     "2.8.29": [
       "The emails your site sends to visitors (the contact-form reply, the sign-up confirmation and the newsletter and Inner Circle welcomes) now show the Tzohar Sites logo and the Ebenworks and Statotech Systems stamp as linked pictures, instead of carrying them inside the message. Some mail apps, the Gmail app on iPhone among them, showed those pictures as broken or listed them as attachments; a linked picture shows as an ordinary image. Your own name, colours and wording in these emails are unchanged."
     ],

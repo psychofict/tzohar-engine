@@ -21,6 +21,7 @@
     "test:capped-body": "npx --yes tsx scripts/capped-body.test.ts",
     "test:contact-ack": "npx --yes tsx scripts/contact-acknowledgement.test.ts",
     "test:mail-inline": "npx --yes tsx scripts/mail-inline-images.test.ts",
+    "test:mail-picture-notice": "npx --yes tsx scripts/mail-picture-notice.test.ts",
     "test:crm-access": "npx --yes tsx scripts/crm-access.test.ts",
     "test:route-hardening": "npx --yes tsx scripts/route-hardening.test.ts",
     "test:members-only": "npx --yes tsx scripts/members-only.test.ts",
@@ -65,13 +66,13 @@
     "typescript": "^5"
   },
   "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.3"
+    },
     "js-yaml": "^4.3.2",
     "nanoid": "^3.3.18",
     "postcss": "^8.5.25",
-    "sharp": "$sharp",
-    "@typescript-eslint/typescript-estree": {
-      "minimatch": "^11.0.3"
-    }
+    "sharp": "$sharp"
   },
   "license": "Apache-2.0"
 }
