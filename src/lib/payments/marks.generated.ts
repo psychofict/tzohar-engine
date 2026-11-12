@@ -6,7 +6,7 @@
 // and, worse, is invisible until then: the whole point of one source is that the
 // three copies of the checkout cannot disagree about which rails exist.
 //
-//   source: products/accounts-hub/integration-kit/payments/marks.ts
+//   source: platform/accounts-hub/integration-kit/payments/marks.ts
 //   sync:   infra/scripts/sync-payment-ui.py
 //   check:  infra/scripts/sync-payment-ui.py --check
 //   sha256: 04a34e1689a2fd6c

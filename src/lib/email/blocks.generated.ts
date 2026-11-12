@@ -6,8 +6,8 @@
 // kit and re-run the sync; an edit here is overwritten and takes the fix away
 // from every other product, which is the exact failure this file exists to end.
 //
-//   source: products/accounts-hub/integration-kit/email/blocks.ts
-//   colours: products/accounts-hub/integration-kit/theme/tokens.json
+//   source: platform/accounts-hub/integration-kit/email/blocks.ts
+//   colours: platform/accounts-hub/integration-kit/theme/tokens.json
 //   sync:   infra/scripts/sync-email-kit.py
 //   check:  infra/scripts/sync-email-kit.py --check
 //   sha256: a3676aaed9a97934

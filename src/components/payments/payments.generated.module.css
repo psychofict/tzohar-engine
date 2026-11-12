@@ -4,7 +4,7 @@ Edit the source and re-run the sync. A change made here is lost on the next run
 and, worse, is invisible until then: the whole point of one source is that the
 three copies of the checkout cannot disagree about which rails exist.
 
-  source: products/accounts-hub/integration-kit/payments/payments.module.css
+  source: platform/accounts-hub/integration-kit/payments/payments.module.css
   sync:   infra/scripts/sync-payment-ui.py
   check:  infra/scripts/sync-payment-ui.py --check
   sha256: d3c302583e3532a2
