@@ -144,7 +144,7 @@ export default function AIPage() {
             variants={stagger}
           >
             {[
-              { value: "2", labelKey: "publicationsStat", icon: BookOpen },
+              { value: "5", labelKey: "publicationsStat", icon: BookOpen },
               { value: "16+", labelKey: "projectsStat", icon: FlaskConical },
               { value: "4+", labelKey: "yearsExperience", icon: BriefcaseBusiness },
               { value: "MSc", labelKey: "koreaUniversity", icon: GraduationCap },

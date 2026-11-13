@@ -415,7 +415,7 @@ export default function MusicPage() {
             </div>
             <div className="flex-1 text-center sm:text-left">
               <h3 className="text-base sm:text-lg font-bold text-ink">Beyond the Studio</h3>
-              <p className="text-sm text-ink-3 mt-1">Published in Neural Networks and at IJCNN. MSc in AI from Korea University.</p>
+              <p className="text-sm text-ink-3 mt-1">MSc in AI, Korea University. Five papers in computer vision, machine learning and large language models in top AI conferences and journals.</p>
             </div>
             <Link
               href="/ai"
