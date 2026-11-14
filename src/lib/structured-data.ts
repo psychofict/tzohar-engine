@@ -240,7 +240,7 @@ export function getEbenworksOrganizationSchema() {
       addressCountry: "ZW",
     },
     description:
-      "Ebenworks is an AI product company for the people who keep the world running: the shop owner, the nurse, the family carer, the contractor, the organiser and the artist.",
+      "Ebenworks builds AI for company groups and their supplier networks, for health systems from district offices to hospitals, for families caring for a parent across borders, for firms that bid for public contracts, and for record labels and distributors.",
     founder: {
       "@type": "Person",
       "@id": `${site.url}/#person`,
