@@ -7,6 +7,8 @@
  *      navbar dropdown, drawer, accordion, lightbox and tabs each carry an exit shorter than the entrance.
  *   3. The Kinetic motion preset is described as expressive in the Studio picker (its curve overshoots).
  *   4. The press scale on shared buttons is 0.97.
+ *   5. A PageHero's buttons use the theme-following variants: the fixed-white "-inverse" ones were unreadable on
+ *      the paper hero of light mode (the music page's second button, 16 Nov 2026).
  *
  * Run: npx --yes tsx scripts/motion-standard.test.ts   (no network, reads source files)
  */
@@ -46,6 +48,12 @@ check("Kinetic is called expressive in the picker", /kinetic: \{[^}]*vibe: "Expr
 
 const button = read("src/components/ui/Button.tsx");
 check("shared buttons press to 0.97", /active:scale-\[0\.97\]/.test(button));
+
+for (const f of ["src/app/[locale]/music/page.tsx", "src/app/[locale]/ai/page.tsx"]) {
+  const src = read(f);
+  if (!src) continue;
+  check(`${f}: no fixed-white inverse button in a hero`, !/variant="(outline|ghost)-inverse"/.test(src));
+}
 
 if (fails) {
   console.error(`${fails} check(s) failed`);

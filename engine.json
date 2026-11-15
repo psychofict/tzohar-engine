@@ -1,16 +1,19 @@
 {
-  "version": "2.8.32",
-  "name": "Motion standard",
-  "released": "2026-11-15",
+  "version": "2.8.33",
+  "name": "Readable hero buttons",
+  "released": "2026-11-16",
   "highlights": [
-    "Menus, dialogs and tabs now leave as well as arrive. The navigation dropdown grows from its tab and the phone menu slides in from the top, the photo viewer scales in from 96%, and each one leaves about 20% faster than it came. Tabs on the contact, research and engagements pages overlap the old and new panel, and the active tab's pill slides to the next one.",
-    "A visitor whose phone or computer asks for less motion now gets it everywhere on your site: movement is dropped and the fades stay. Before, those visitors still saw every slide and scale.",
-    "Buttons press to 97% and come back smoothly, lists and card grids arrive 40 ms apart where they used to take 100 to 150 ms, the switches on the account page stretch as the knob travels, and a sent message on a contact form gets one small ring around its tick. On a phone, nothing blurs while it moves.",
-    "Small labels above headings and under figures are now in sentence case instead of capitals with wide spacing. Studio's Motion picker now says the Kinetic style overshoots and is an expressive choice, not the default. Nothing is asked of you; a site that chose Kinetic looks the same."
+    "On a page whose top band is a photograph, a second or third button next to the main one (the music page's \"Browse discography\", the AI page's portfolio, Scholar and GitHub links) was white on a light page in light mode, so it could not be read. These buttons now take the page's ink and line colours and read in both light and dark. Nothing is asked of you; a site that sets its own buttons looks the same."
   ],
   "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.32": [
+      "Menus, dialogs and tabs now leave as well as arrive. The navigation dropdown grows from its tab and the phone menu slides in from the top, the photo viewer scales in from 96%, and each one leaves about 20% faster than it came. Tabs on the contact, research and engagements pages overlap the old and new panel, and the active tab's pill slides to the next one.",
+      "A visitor whose phone or computer asks for less motion now gets it everywhere on your site: movement is dropped and the fades stay. Before, those visitors still saw every slide and scale.",
+      "Buttons press to 97% and come back smoothly, lists and card grids arrive 40 ms apart where they used to take 100 to 150 ms, the switches on the account page stretch as the knob travels, and a sent message on a contact form gets one small ring around its tick. On a phone, nothing blurs while it moves.",
+      "Small labels above headings and under figures are now in sentence case instead of capitals with wide spacing. Studio's Motion picker now says the Kinetic style overshoots and is an expressive choice, not the default. Nothing is asked of you; a site that chose Kinetic looks the same."
+    ],
     "2.8.31": [
       "The privacy notice now says what the picture host behind your site's emails logs. When a visitor opens one of the emails your site sends (the contact reply, the sign-up confirmations and the newsletter and Inner Circle welcomes) with pictures shown, their mail app fetches the Tzohar Sites logo and the joint stamp from our mail picture host, which keeps the requesting IP address, the mail app's user agent, the picture and the time for 35 days in the United States. The notice carries one new bullet under what the site collects, with the way to stop it (set the mail app not to load pictures), and its date moves to 9 November 2026. Nothing else on the page changes and nothing is asked of you."
     ],

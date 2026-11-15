@@ -116,7 +116,7 @@ export default function MusicPage() {
                 {tc("listenNow")}
               </ButtonLink>
             )}
-            <ButtonLink href="#discography" variant="outline-inverse" size="md">
+            <ButtonLink href="#discography" variant="outline" size="md">
               {t("browseDiscography")}
             </ButtonLink>
           </>

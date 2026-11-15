@@ -98,13 +98,13 @@ export default function AIPage() {
             <ButtonLink href={aiProfile.links.cv} target="_blank" rel="noopener noreferrer" variant="primary" size="md">
               {t("downloadCV")}
             </ButtonLink>
-            <ButtonLink href={aiProfile.links.portfolio} target="_blank" rel="noopener noreferrer" variant="outline-inverse" size="md">
+            <ButtonLink href={aiProfile.links.portfolio} target="_blank" rel="noopener noreferrer" variant="outline" size="md">
               {t("fullPortfolio")}
             </ButtonLink>
-            <ButtonLink href={aiProfile.links.googleScholar} target="_blank" rel="noopener noreferrer" variant="ghost-inverse" size="md">
+            <ButtonLink href={aiProfile.links.googleScholar} target="_blank" rel="noopener noreferrer" variant="ghost" size="md">
               {t("googleScholar")}
             </ButtonLink>
-            <ButtonLink href={aiProfile.links.github} target="_blank" rel="noopener noreferrer" variant="ghost-inverse" size="md">
+            <ButtonLink href={aiProfile.links.github} target="_blank" rel="noopener noreferrer" variant="ghost" size="md">
               {t("gitHub")}
             </ButtonLink>
           </>

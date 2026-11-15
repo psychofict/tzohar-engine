@@ -6,6 +6,8 @@ import clsx from "clsx";
 type Variant = "primary" | "secondary" | "ghost" | "ghost-inverse" | "outline" | "outline-inverse";
 type Size = "sm" | "md" | "lg";
 
+// The two "-inverse" variants are fixed white: only for a band that is dark in both themes. A
+// PageHero follows the theme (paper in light mode), so its buttons use "outline" and "ghost".
 const variantClasses: Record<Variant, string> = {
   primary:
     "bg-ocean text-on-accent hover:bg-ocean-strong shadow-sm hover:shadow-md",
