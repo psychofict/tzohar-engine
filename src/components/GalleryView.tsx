@@ -137,7 +137,7 @@ export default function GalleryView({
                       <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-surface-2">
                         <Play size={20} className="text-ink-3" />
                       </span>
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em]">{t("videoSlot")}</span>
+                      <span className="text-xs font-semibold">{t("videoSlot")}</span>
                     </div>
                   </div>
                 ))}

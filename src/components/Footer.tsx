@@ -168,7 +168,7 @@ export default function Footer() {
               form as `layout.footerNewsletter: false` does. */}
           {site.layout?.footerNewsletter !== false && !isPreviewBuild && (
           <div className="md:max-w-sm md:justify-self-end w-full">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-3 mb-4">{t("newsletter")}</h3>
+            <h3 className="text-[11px] font-semibold text-ink-3 mb-4">{t("newsletter")}</h3>
             <p className="mb-4 text-[15px] text-ink-2 leading-relaxed">{t("newsletterDesc")}</p>
             <form onSubmit={handleSubscribe} className="flex flex-col gap-2">
               <label htmlFor="footer-email" className="sr-only">Email</label>

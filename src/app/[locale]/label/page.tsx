@@ -13,7 +13,7 @@ import { fadeUp, stagger } from "@/lib/animations";
 import { label, labelName } from "@/data/roster";
 import LabelSocialLinks from "@/components/label/LabelSocialLinks";
 
-const containerVariants = stagger(0.12);
+const containerVariants = stagger(0.04);
 const itemVariants = fadeUp;
 
 const PINK = "#E8385D";
@@ -90,7 +90,7 @@ export default function LabelPage() {
                 <p className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-none" style={{ color: PINK }}>
                   {stat.value}
                 </p>
-                <p className="mt-1.5 sm:mt-2 text-[9px] sm:text-[10px] md:text-xs text-ink-3 uppercase tracking-[0.1em] sm:tracking-widest leading-tight">{t(stat.labelKey)}</p>
+                <p className="mt-1.5 sm:mt-2 text-[9px] sm:text-[10px] md:text-xs text-ink-3 sm:tracking-widest leading-tight">{t(stat.labelKey)}</p>
               </motion.div>
             ))}
           </div>

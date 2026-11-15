@@ -180,7 +180,7 @@ export default function MacroInfluencerPage() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5 }}
                 >
-                  <h3 className={`text-xs font-bold uppercase tracking-[0.2em] ${colors.text} mb-4`}>
+                  <h3 className={`text-xs font-bold ${colors.text} mb-4`}>
                     {category}
                   </h3>
                   <div className="flex flex-wrap gap-2 sm:gap-3">
@@ -265,7 +265,7 @@ export default function MacroInfluencerPage() {
                   <div className="min-w-0 flex-1">
                     <h3 className="text-sm sm:text-base font-semibold leading-snug text-ink">{event.name}</h3>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${eventTypeColors[event.type] || "bg-gray-100 text-gray-600"}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${eventTypeColors[event.type] || "bg-gray-100 text-gray-600"}`}>
                         {event.type}
                       </span>
                       {event.years.sort((a, b) => parseInt(b) - parseInt(a)).map((year) => (
@@ -421,7 +421,7 @@ export default function MacroInfluencerPage() {
       <Section variant="default" className="!pb-20">
         <Container size="md">
           <motion.div className="relative rounded-3xl overflow-hidden p-8 sm:p-12 lg:p-16 text-center bg-gradient-to-br from-ink to-ink-2 text-bg" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.p variants={fadeUp} className="text-sunset uppercase tracking-[0.22em] text-xs font-semibold mb-4">
+            <motion.p variants={fadeUp} className="text-sunset text-xs font-semibold mb-4">
               {tc("collaborate")}
             </motion.p>
             <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5">

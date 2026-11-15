@@ -26,7 +26,7 @@ export default function HeroSplit({ stats }: HeroProps) {
         {/* ── type column ── */}
         <div className="relative flex flex-col justify-between px-5 sm:px-10 lg:pl-[max(2.5rem,calc((100vw-80rem)/2+2rem))] lg:pr-14 pt-28 lg:pt-36 pb-10 order-2 lg:order-1">
           <div>
-            <p className="hero-rise hero-rise-1 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-ink-3">
+            <p className="hero-rise hero-rise-1 text-[11px] sm:text-xs font-semibold text-ink-3">
               {t("location")}
             </p>
 
@@ -64,7 +64,7 @@ export default function HeroSplit({ stats }: HeroProps) {
               <div key={stat.labelKey}>
                 <dt className="sr-only">{t(stat.labelKey)}</dt>
                 <dd className="type-display text-2xl sm:text-3xl xl:text-4xl text-ink leading-none">{stat.value}</dd>
-                <p className="mt-2 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-3 leading-tight">
+                <p className="mt-2 text-[10px] sm:text-[11px] font-semibold text-ink-3 leading-tight">
                   {t(stat.labelKey)}
                 </p>
               </div>

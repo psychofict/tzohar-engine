@@ -322,7 +322,7 @@ export default function ArtistClient({ artistId }: { artistId: string }) {
                     <span className="text-xs text-ink-3">
                       {album.releaseDate?.slice(0, 4)}
                     </span>
-                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-surface text-ocean font-medium">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface text-ocean font-medium">
                       {album.type}
                     </span>
                   </div>

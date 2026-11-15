@@ -38,7 +38,7 @@ export default function PeopleBlock({ block }: { block: z.infer<typeof peopleBlo
         {groups.map((group, gi) => (
           <section key={gi}>
             {group.name && (
-              <h3 className="text-ink-3 border-line mb-7 border-b pb-2.5 font-mono text-[11px] font-semibold tracking-[0.12em] uppercase">
+              <h3 className="text-ink-3 border-line mb-7 border-b pb-2.5 font-mono text-[11px] font-semibold">
                 {group.name}
               </h3>
             )}

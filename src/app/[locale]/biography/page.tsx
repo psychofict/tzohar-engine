@@ -39,7 +39,7 @@ export default function BiographyPage() {
         <Container size="xl">
           <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-16 items-center">
             <Reveal>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ocean mb-3">{t("eyebrow")}</p>
+              <p className="text-xs font-semibold text-ocean mb-3">{t("eyebrow")}</p>
               <h1 className="type-display text-3xl sm:text-4xl lg:text-5xl text-ink leading-tight">{t("title")}</h1>
               <p className="mt-5 text-base sm:text-lg text-ink-2 leading-relaxed max-w-xl">{heroIntro}</p>
               <div className="mt-7 flex flex-wrap gap-3">

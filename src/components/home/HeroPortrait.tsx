@@ -64,7 +64,7 @@ export default function HeroPortrait({ stats }: HeroProps) {
                   <div key={stat.labelKey}>
                     <dt className="sr-only">{t(stat.labelKey)}</dt>
                     <dd className="type-display text-3xl text-ink leading-none">{stat.value}</dd>
-                    <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-3 leading-tight">
+                    <p className="mt-1.5 text-[10px] font-semibold text-ink-3 leading-tight">
                       {t(stat.labelKey)}
                     </p>
                   </div>
@@ -98,7 +98,7 @@ export default function HeroPortrait({ stats }: HeroProps) {
             {primaryStat && (
               <div className="absolute -bottom-5 left-5 sm:left-8 glass-card px-5 py-4 shadow-card">
                 <p className="type-display text-2xl sm:text-3xl text-ink leading-none">{primaryStat.value}</p>
-                <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-3">
+                <p className="mt-1 text-[10px] font-semibold text-ink-3">
                   {t(primaryStat.labelKey)}
                 </p>
               </div>

@@ -35,7 +35,7 @@ export default function Stat({ value, label, icon, accent = "ocean", className }
       <p className="type-display text-xl sm:text-2xl md:text-3xl lg:text-5xl text-ink leading-none">
         {value}
       </p>
-      <p className="mt-1.5 sm:mt-2 text-[9px] sm:text-[10px] md:text-[11px] lg:text-xs font-medium uppercase tracking-[0.1em] sm:tracking-[0.14em] md:tracking-[0.18em] text-ink-3 leading-tight text-balance">
+      <p className="mt-1.5 sm:mt-2 text-[9px] sm:text-[10px] md:text-[11px] lg:text-xs font-medium sm:tracking-[0.14em] md:tracking-[0.18em] text-ink-3 leading-tight text-balance">
         {label}
       </p>
     </div>

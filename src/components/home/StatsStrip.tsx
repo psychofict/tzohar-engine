@@ -32,7 +32,7 @@ export default function StatsStrip({ stats }: { stats: readonly HeroStat[] }) {
                   <p className="type-display text-[calc(clamp(2.75rem,6vw,4.5rem)*var(--display-scale))] text-ink leading-none">
                     {s.value}
                   </p>
-                  <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-3">
+                  <p className="mt-3 text-[11px] font-semibold text-ink-3">
                     {t(s.labelKey)}
                   </p>
                 </div>

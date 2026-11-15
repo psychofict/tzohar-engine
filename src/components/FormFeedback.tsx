@@ -40,7 +40,11 @@ export default function FormFeedback({
   if (success) {
     return (
       <div className="flex items-center gap-3 mt-4 text-green-600">
-        <CheckCircle className="w-5 h-5 flex-shrink-0" />
+        {/* One outline ring, once: the sent confirmation (rare tier). Reduced motion drops the ring. */}
+        <span className="success-mark relative inline-flex flex-shrink-0">
+          <CheckCircle className="w-5 h-5" />
+          <span className="success-ring" aria-hidden />
+        </span>
         <span className="text-sm">{successMessage ?? tc("messageSent")}</span>
       </div>
     );

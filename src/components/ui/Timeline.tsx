@@ -87,7 +87,7 @@ function VerticalTimeline({ items, numbered, className }: Omit<TimelineProps, "o
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-0.5">
                     <h3 className="text-base sm:text-lg font-semibold text-ink">{item.title}</h3>
                     {item.current && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald/10 text-emerald px-2 py-0.5 rounded-pill">
+                      <span className="text-[10px] font-bold bg-emerald/10 text-emerald px-2 py-0.5 rounded-pill">
                         Current
                       </span>
                     )}

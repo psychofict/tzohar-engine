@@ -68,7 +68,7 @@ export default function AccountPage() {
 
             {/* Membership */}
             <section className="rounded-2xl border border-line bg-elevated p-6">
-              <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-3">{t("membership")}</h2>
+              <h2 className="mb-4 text-[11px] font-semibold text-ink-3">{t("membership")}</h2>
               {m.member ? (
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -110,7 +110,7 @@ export default function AccountPage() {
 
             {/* Preferences */}
             <section className="rounded-2xl border border-line bg-elevated p-6">
-              <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-3">{t("preferences")}</h2>
+              <h2 className="mb-4 text-[11px] font-semibold text-ink-3">{t("preferences")}</h2>
               <div className="flex flex-col gap-5">
                 <div>
                   <p className="mb-2.5 text-sm font-semibold text-ink">{t("language")}</p>
@@ -132,7 +132,7 @@ export default function AccountPage() {
 
             {/* Account & security (hub) */}
             <section className="rounded-2xl border border-line bg-elevated p-6">
-              <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-3">{t("security")}</h2>
+              <h2 className="mb-2 text-[11px] font-semibold text-ink-3">{t("security")}</h2>
               <p className="text-[15px] leading-relaxed text-ink-2">{t("securityDesc")}</p>
               <a
                 href={hubAccountUrl()}

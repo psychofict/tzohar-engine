@@ -15,6 +15,9 @@ import { navEntries, type NavEntry, type NavLeaf } from "@/config/navigation";
 import { routing } from "@/i18n/routing";
 import { resolveIcon } from "@/lib/icons";
 
+/** The company's strong ease-out for entrances and exits; exits run 20% shorter than entrances. */
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+
 const hasMembership = hasModule("membership");
 const hasMultipleLocales = routing.locales.length > 1;
 
@@ -349,10 +352,10 @@ export default function Navbar() {
             {open && (
               <motion.div
                 ref={panelRef}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 4 }}
-                transition={{ duration: 0.15 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1, transition: { duration: 0.2, ease: EASE_OUT } }}
+                exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.16, ease: EASE_OUT } }}
+                style={{ transformOrigin: "top left" }}
                 className="absolute top-full left-0 pt-2.5"
                 onKeyDown={onPanelKeyDown}
               >
@@ -393,7 +396,7 @@ export default function Navbar() {
           className="border-line border-b"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.04 }}
+          transition={{ delay: Math.min(index, 5) * 0.04, duration: 0.25, ease: EASE_OUT }}
         >
           <div className="text-ink flex w-full items-center justify-between gap-3 text-xl font-semibold">
             {entry.href ? (
@@ -430,9 +433,8 @@ export default function Navbar() {
             {isOpen && (
               <motion.ul
                 initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                animate={{ height: "auto", opacity: 1, transition: { duration: 0.2, ease: EASE_OUT } }}
+                exit={{ height: 0, opacity: 0, transition: { duration: 0.16, ease: EASE_OUT } }}
                 className="overflow-hidden"
               >
                 {entry.children.map((child) => {
@@ -605,10 +607,9 @@ export default function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.25, ease: EASE_OUT } }}
+            exit={{ opacity: 0, y: -8, transition: { duration: 0.2, ease: EASE_OUT } }}
             className="bg-bg fixed inset-0 top-16 z-40 overflow-y-auto lg:hidden"
           >
             <div className="mx-auto max-w-7xl px-5 py-5 sm:px-6">

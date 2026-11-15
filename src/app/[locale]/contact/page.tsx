@@ -417,32 +417,41 @@ export default function ContactPage() {
                     <button
                       key={tab}
                       onClick={() => { setActiveTab(tab); window.history.replaceState(null, "", `#${tab}`); }}
-                      className={`px-5 py-2 rounded-[var(--radius-pill)] text-sm font-medium transition-all duration-300 cursor-pointer whitespace-nowrap snap-start ${
+                      className={`relative px-5 py-2 rounded-[var(--radius-pill)] text-sm font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap snap-start ${
                         activeTab === tab
-                          ? "bg-ocean text-on-accent shadow-lg"
+                          ? "text-on-accent"
                           : "bg-surface text-ink-2 hover:bg-surface/70 hover:text-ink"
                       }`}
                     >
-                      {t(tab)}
+                      {activeTab === tab && (
+                        <motion.span
+                          layoutId="contact-tab-pill"
+                          aria-hidden
+                          className="absolute inset-0 rounded-[var(--radius-pill)] bg-ocean shadow-lg"
+                          transition={{ duration: 0.25, ease: [0.77, 0, 0.175, 1] }}
+                        />
+                      )}
+                      <span className="relative">{t(tab)}</span>
                     </button>
                   ))}
                 </div>
               </motion.div>
 
               {/* Active Form */}
-              <AnimatePresence mode="wait">
+              <div className="relative">
+              <AnimatePresence mode="popLayout" initial={false}>
                 <motion.div
                   key={activeTab}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0, transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] } }}
+                  exit={{ opacity: 0, y: -4, transition: { duration: 0.16, ease: [0.23, 1, 0.32, 1] } }}
                   className="rounded-[var(--radius-card)] border border-line-strong bg-elevated p-5 sm:p-8"
                 >
                   <h2 className="text-xl font-semibold mb-6 text-ink">{t(activeTab)}</h2>
                   <ActiveForm />
                 </motion.div>
               </AnimatePresence>
+              </div>
               </>
               )}
             </div>

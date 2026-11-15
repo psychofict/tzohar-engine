@@ -24,9 +24,8 @@ export default function InstagramPostCard({
         href={post.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="group relative block rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-ocean focus-visible:ring-offset-2"
+        className="group relative block rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-[box-shadow,opacity] duration-300 active:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ocean focus-visible:ring-offset-2"
         variants={fadeUp}
-        whileTap={{ scale: 0.98 }}
       >
         <div className="aspect-[4/3] sm:aspect-square relative">
           <Image
@@ -52,7 +51,7 @@ export default function InstagramPostCard({
           {/* Content overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-5">
             {post.location && (
-              <p className="text-sunset text-xs font-semibold uppercase tracking-wider mb-1.5">
+              <p className="text-sunset text-xs font-semibold mb-1.5">
                 {post.location}
               </p>
             )}
@@ -75,7 +74,7 @@ export default function InstagramPostCard({
       className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-ocean focus-visible:ring-offset-2 rounded-xl"
       variants={fadeUp}
       whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.97 }}
+      whileTap={{ scale: 0.97, transition: { duration: 0.16, ease: [0.23, 1, 0.32, 1] } }}
     >
       <div className="aspect-square relative rounded-xl overflow-hidden shadow-sm group-hover:shadow-lg transition-shadow duration-300">
         <Image

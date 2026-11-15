@@ -55,7 +55,7 @@ function DefaultHome() {
       {credibilityLogos.length > 0 && (
       <section aria-label={t("asFeaturedIn")} className="relative bg-bg py-10 sm:py-14 overflow-hidden border-y border-line">
         <Container size="xl">
-          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-3 mb-7">
+          <p className="text-center text-[11px] font-semibold text-ink-3 mb-7">
             {t("asFeaturedIn")}
           </p>
           <div className="relative overflow-hidden">

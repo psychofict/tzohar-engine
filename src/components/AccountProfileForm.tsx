@@ -10,6 +10,8 @@ interface Prefs {
 }
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  // `touched` starts the knob's stretch on the first tap, never on first render.
+  const [touched, setTouched] = useState(false);
   return (
     <label className="flex cursor-pointer items-center justify-between gap-4">
       <span className="text-[15px] text-ink-2">{label}</span>
@@ -18,12 +20,16 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
         role="switch"
         aria-checked={checked}
         aria-label={label}
-        onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? "bg-ocean" : "bg-surface-2"}`}
+        data-touched={touched ? "" : undefined}
+        onClick={() => {
+          setTouched(true);
+          onChange(!checked);
+        }}
+        className={`switch relative h-6 w-11 shrink-0 rounded-full transition-colors duration-[180ms] ease-[cubic-bezier(0.77,0,0.175,1)] ${checked ? "bg-ocean" : "bg-surface-2"}`}
       >
-        <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-[22px]" : "translate-x-0.5"}`}
-        />
+        <span className="switch-knob absolute top-0.5 left-0.5 h-5 w-5">
+          <span className="switch-knob-body block h-full w-full rounded-full bg-white shadow" />
+        </span>
       </button>
     </label>
   );
@@ -90,7 +96,7 @@ export default function AccountProfileForm({ fallbackName }: { fallbackName?: st
 
   return (
     <form onSubmit={save} className="rounded-2xl border border-line bg-elevated p-6">
-      <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-3">{t("profile")}</h2>
+      <h2 className="mb-4 text-[11px] font-semibold text-ink-3">{t("profile")}</h2>
 
       <label htmlFor="displayName" className="mb-2 block text-sm font-semibold text-ink">
         {t("displayName")}

@@ -46,7 +46,7 @@ function InterestsPanel() {
   const t = useTranslations("research");
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ocean mb-3">{t("interestsEyebrow")}</p>
+      <p className="text-xs font-semibold text-ocean mb-3">{t("interestsEyebrow")}</p>
       <h2 className="text-2xl sm:text-3xl font-bold text-ink mb-8">{t("interestsTitle")}</h2>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {researchInterests.map((interest) => {
@@ -87,7 +87,7 @@ function PublicationsPanel() {
     <div>
       <div className="flex items-center justify-between gap-4 mb-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ocean mb-1">
+          <p className="text-xs font-semibold text-ocean mb-1">
             {orcidId ? t("publicationsPoweredByOrcid") : t("publicationsEyebrow")}
           </p>
           <h2 className="text-2xl sm:text-3xl font-bold text-ink">{t("publicationsTitle")}</h2>
@@ -114,7 +114,7 @@ function PublicationsPanel() {
         <div className="overflow-x-auto rounded-card border border-line">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-line bg-surface text-[11px] font-semibold uppercase tracking-wider text-ink-3">
+              <tr className="border-b border-line bg-surface text-[11px] font-semibold text-ink-3">
                 <th className="px-4 py-3">{t("colTitle")}</th>
                 <th className="px-4 py-3 hidden sm:table-cell">{t("colJournal")}</th>
                 <th className="px-4 py-3 hidden md:table-cell">{t("colType")}</th>
@@ -158,7 +158,7 @@ function CredentialsPanel() {
   const t = useTranslations("research");
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ocean mb-3">{t("credentialsEyebrow")}</p>
+      <p className="text-xs font-semibold text-ocean mb-3">{t("credentialsEyebrow")}</p>
       <h2 className="text-2xl sm:text-3xl font-bold text-ink mb-8">{t("credentialsTitle")}</h2>
       <div className="flex flex-wrap gap-3">
         {cvUrl && (

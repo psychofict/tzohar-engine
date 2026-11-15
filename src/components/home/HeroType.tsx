@@ -34,7 +34,7 @@ export default function HeroType({ stats }: HeroProps) {
       </div>
 
       <Container size="xl" className="relative z-10 pt-28 pb-16">
-        <p className="hero-rise hero-rise-1 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-ink-3">
+        <p className="hero-rise hero-rise-1 text-[11px] sm:text-xs font-semibold text-ink-3">
           {t("location")}
         </p>
 
@@ -69,7 +69,7 @@ export default function HeroType({ stats }: HeroProps) {
               <div key={stat.labelKey}>
                 <dt className="sr-only">{t(stat.labelKey)}</dt>
                 <dd className="type-display text-3xl sm:text-4xl text-ink leading-none">{stat.value}</dd>
-                <p className="mt-1.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-3 leading-tight">
+                <p className="mt-1.5 text-[10px] sm:text-[11px] font-semibold text-ink-3 leading-tight">
                   {t(stat.labelKey)}
                 </p>
               </div>

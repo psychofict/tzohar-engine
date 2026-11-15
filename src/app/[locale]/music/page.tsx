@@ -32,7 +32,7 @@ const filterButtons: { labelKey: string; value: FilterType }[] = [
 
 import { fadeUp, stagger } from "@/lib/animations";
 
-const containerVariants = stagger(0.1);
+const containerVariants = stagger(0.04);
 const itemVariants = fadeUp;
 
 interface AlbumImages {
@@ -141,7 +141,7 @@ export default function MusicPage() {
             ].map((stat) => (
               <div key={stat.labelKey}>
                 <p className="font-display text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-ink leading-none">{stat.value}</p>
-                <p className="mt-1.5 sm:mt-2 text-[9px] sm:text-[11px] md:text-xs font-semibold uppercase tracking-[0.1em] sm:tracking-[0.18em] text-ink-3 leading-tight">{t(stat.labelKey)}</p>
+                <p className="mt-1.5 sm:mt-2 text-[9px] sm:text-[11px] md:text-xs font-semibold sm:tracking-[0.18em] text-ink-3 leading-tight">{t(stat.labelKey)}</p>
               </div>
             ))}
           </motion.div>
@@ -207,9 +207,9 @@ export default function MusicPage() {
               <motion.div key={release.slug} variants={itemVariants}>
                 <Link
                   href={`/music/${release.slug}`}
-                  className="group block"
+                  className="group block transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] sm:active:scale-100 sm:active:opacity-80"
                 >
-                  <motion.div whileHover={{ y: -6 }} whileTap={{ scale: 0.96 }}>
+                  <motion.div whileHover={{ y: -6 }}>
                     <div className="aspect-square rounded-xl overflow-hidden shadow-md group-hover:shadow-xl transition-shadow duration-300 mb-3">
                       {coverImage ? (
                         <Image
@@ -230,7 +230,7 @@ export default function MusicPage() {
                     </h3>
                     <p className="text-xs text-ink-3 mt-0.5">{release.year}</p>
                     <div className="flex items-center gap-1.5 mt-1">
-                      <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-surface text-ocean font-medium">{release.type}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-surface text-ocean font-medium">{release.type}</span>
                       <span className="text-[10px] text-ink-3">{release.tracklist.length} {t("tracks")}</span>
                     </div>
                   </motion.div>

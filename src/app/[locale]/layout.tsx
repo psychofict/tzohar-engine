@@ -45,6 +45,7 @@ import {
 import Analytics from "@/components/Analytics";
 import ScrollProgress from "@/components/ScrollProgress";
 import ThemeProvider from "@/components/ThemeProvider";
+import MotionProvider from "@/components/MotionProvider";
 import PreviewBridge from "@/components/preview/PreviewBridge";
 import { fontVarStyle } from "@/lib/font-vars";
 /*
@@ -352,17 +353,19 @@ export default async function LocaleLayout({
         </a>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider mode={forcedMode} toggle={allowToggle}>
-            <ScrollProgress />
-            <AudioPlayerProvider>
-              <Navbar />
-              {children}
-              <Footer />
-              <div className="h-16 lg:hidden" />
-              <BottomNav />
-              <AudioPlayer />
-              {/* Inert unless ?tzohar-preview is present — see lib/preview-store.ts */}
-              <PreviewBridge />
-            </AudioPlayerProvider>
+            <MotionProvider>
+              <ScrollProgress />
+              <AudioPlayerProvider>
+                <Navbar />
+                {children}
+                <Footer />
+                <div className="h-16 lg:hidden" />
+                <BottomNav />
+                <AudioPlayer />
+                {/* Inert unless ?tzohar-preview is present — see lib/preview-store.ts */}
+                <PreviewBridge />
+              </AudioPlayerProvider>
+            </MotionProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
         {/* Every analytics tool, Vercel Web Analytics included (src/lib/analytics.ts). */}

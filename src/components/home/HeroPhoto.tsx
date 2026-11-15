@@ -87,7 +87,7 @@ export default function HeroPhoto({ stats }: HeroProps) {
               <div key={stat.labelKey}>
                 <dt className="sr-only">{t(stat.labelKey)}</dt>
                 <dd className="type-display text-2xl text-white leading-none drop-shadow-[0_1px_8px_rgba(0,0,0,0.45)]">{stat.value}</dd>
-                <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70 leading-tight text-balance">{t(stat.labelKey)}</p>
+                <p className="mt-1.5 text-[10px] font-semibold text-white/70 leading-tight text-balance">{t(stat.labelKey)}</p>
               </div>
             ))}
           </dl>
@@ -154,7 +154,7 @@ export default function HeroPhoto({ stats }: HeroProps) {
                 <div key={stat.labelKey}>
                   <dt className="sr-only">{t(stat.labelKey)}</dt>
                   <dd className="type-display text-4xl text-white leading-none drop-shadow-[0_1px_10px_rgba(0,0,0,0.5)]">{stat.value}</dd>
-                  <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70 leading-tight">{t(stat.labelKey)}</p>
+                  <p className="mt-2 text-[11px] font-semibold text-white/70 leading-tight">{t(stat.labelKey)}</p>
                 </div>
               ))}
             </dl>

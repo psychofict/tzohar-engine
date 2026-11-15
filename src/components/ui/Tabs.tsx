@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import clsx from "clsx";
 
@@ -54,6 +54,9 @@ export default function Tabs({
   children: (activeKey: string) => ReactNode;
   className?: string;
 }) {
+  // One pill slides between the tabs (layoutId); the id is per instance so two tab
+  // groups on a page never share it.
+  const pillId = useId();
   return (
     <div className={className}>
       <div className="mb-6 md:mb-8">
@@ -85,31 +88,42 @@ export default function Tabs({
                 aria-controls={`panel-${item.key}`}
                 onClick={() => onChange(item.key)}
                 className={clsx(
-                  "px-5 py-2 rounded-pill text-sm font-semibold whitespace-nowrap transition-colors",
-                  active ? "bg-ocean text-on-accent shadow-card" : "bg-surface text-ink-2 hover:text-ink hover:bg-surface-2",
+                  "relative px-5 py-2 rounded-pill text-sm font-semibold whitespace-nowrap transition-colors duration-200",
+                  active ? "text-on-accent" : "bg-surface text-ink-2 hover:text-ink hover:bg-surface-2",
                 )}
               >
-                {item.label}
+                {active && (
+                  <motion.span
+                    layoutId={pillId}
+                    aria-hidden
+                    className="absolute inset-0 rounded-pill bg-ocean shadow-card"
+                    transition={{ duration: 0.25, ease: [0.77, 0, 0.175, 1] }}
+                  />
+                )}
+                <span className="relative">{item.label}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeKey}
-          id={`panel-${activeKey}`}
-          role="tabpanel"
-          aria-labelledby={`tab-${activeKey}`}
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.3 }}
-        >
-          {children(activeKey)}
-        </motion.div>
-      </AnimatePresence>
+      {/* The old panel leaves while the new one arrives (popLayout takes it out of the flow),
+          the exit 20% shorter than the entrance and moving less. */}
+      <div className="relative">
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.div
+            key={activeKey}
+            id={`panel-${activeKey}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${activeKey}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] } }}
+            exit={{ opacity: 0, y: -4, transition: { duration: 0.16, ease: [0.23, 1, 0.32, 1] } }}
+          >
+            {children(activeKey)}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

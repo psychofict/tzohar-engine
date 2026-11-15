@@ -56,7 +56,7 @@ function CardGrid({ panels }: { panels: readonly RolePanel[] }) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
                 <div className="absolute top-4 left-4 inline-flex items-center gap-2 rounded-pill bg-white/90 backdrop-blur px-3 py-1.5">
                   <PanelIcon size={14} className={p.accent === "sunset" ? "text-sunset" : "text-ocean"} />
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#15121C]">
+                  <span className="text-[11px] font-semibold text-[#15121C]">
                     {t(p.labelKey)}
                   </span>
                 </div>

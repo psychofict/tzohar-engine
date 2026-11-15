@@ -51,7 +51,7 @@ export default function VaultView({ drops, member }: { drops: VisibleDrop[]; mem
         <Container size="lg" className="relative z-10 pt-32 pb-12 sm:pb-16">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1">
             <Sparkles size={14} className="text-sunset" />
-            <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-white">
+            <span className="text-[11px] sm:text-xs font-semibold text-white">
               {t("eyebrow")}
             </span>
           </div>
@@ -120,12 +120,12 @@ export default function VaultView({ drops, member }: { drops: VisibleDrop[]; mem
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-3">
+                        <span className="text-[11px] font-semibold text-ink-3">
                           {t(`type.${drop.type}`)}
                         </span>
                         <span className="text-[11px] text-ink-3">{fmtDate(drop.date)}</span>
                         {drop.tier === "insider" && (
-                          <span className="rounded-full bg-sunset/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-sunset">
+                          <span className="rounded-full bg-sunset/15 px-2 py-0.5 text-[10px] font-bold text-sunset">
                             {t("insiderTag")}
                           </span>
                         )}

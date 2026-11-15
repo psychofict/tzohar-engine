@@ -116,7 +116,7 @@ export default function JoinPage() {
                 }`}
               >
                 {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-sunset px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-on-accent">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-sunset px-3 py-1 text-[11px] font-bold text-on-accent">
                     <Star size={12} /> {t("mostPopular")}
                   </span>
                 )}
@@ -204,7 +204,7 @@ export default function JoinPage() {
 
                 {/* Features */}
                 {plan.inherits && (
-                  <p className="mt-6 text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">
+                  <p className="mt-6 text-xs font-semibold text-ink-3">
                     {t("everythingIn", { plan: t(`${plan.inherits}.name`) })}
                   </p>
                 )}

@@ -59,7 +59,11 @@ export const countUp: Variants = {
   },
 };
 
-export function stagger(delay = 0.15): Variants {
+/**
+ * Copies of one element (cards, rows) step 40 ms apart (the standard says 30 to 40 ms).
+ * The old 150 ms default made a 12-card grid take almost two seconds to finish arriving.
+ */
+export function stagger(delay = 0.04): Variants {
   return {
     hidden: {},
     visible: {

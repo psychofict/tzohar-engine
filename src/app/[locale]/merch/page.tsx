@@ -12,7 +12,7 @@ import PageHero from "@/components/ui/PageHero";
 // under a public/ path that does not exist in a client repo.
 import { merchPreviews } from "@/data/merch";
 
-const containerVariants = stagger(0.1);
+const containerVariants = stagger(0.04);
 const itemVariants = fadeUp;
 
 const PINK = "#E8385D";
@@ -56,7 +56,7 @@ export default function MerchPage() {
       <section className="px-6 pb-24">
         <div className="mx-auto max-w-5xl">
           <motion.p
-            className="text-center text-xs font-bold uppercase tracking-[0.3em] text-ink-3 mb-8"
+            className="text-center text-xs font-bold text-ink-3 mb-8"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}

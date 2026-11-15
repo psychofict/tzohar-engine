@@ -12,7 +12,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import PageHero from "@/components/ui/PageHero";
 import { tourPosters } from "@/data/artist";
 
-const containerVariants = stagger(0.15);
+const containerVariants = stagger(0.04);
 const itemVariants = fadeUp;
 
 export default function TourPage() {
@@ -133,7 +133,7 @@ export default function TourPage() {
             viewport={{ once: true }}
             variants={containerVariants}
           >
-            <motion.p variants={itemVariants} className="text-sunset uppercase tracking-[0.22em] text-xs font-semibold mb-4">
+            <motion.p variants={itemVariants} className="text-sunset text-xs font-semibold mb-4">
               {tc("bookNow")}
             </motion.p>
             <motion.h2 variants={itemVariants} className="text-3xl md:text-5xl font-bold mb-5">

@@ -19,7 +19,7 @@ import { streamingPlatforms } from "@/lib/streaming";
 const artistName = artist.name || site.name;
 const appleMusicUrl = streamingPlatforms.find((p) => p.icon === "apple")?.url;
 
-const containerVariants = stagger(0.1);
+const containerVariants = stagger(0.04);
 
 interface AlbumImage {
   image: string | null;
@@ -100,7 +100,7 @@ export default function ReleaseClient({ release }: { release: Release }) {
             >
               {/* Type badge */}
               <motion.div variants={fadeUp}>
-                <span className="inline-block text-xs text-ocean uppercase tracking-wider font-bold px-3 py-1 rounded-full bg-ocean/10 mb-3">
+                <span className="inline-block text-xs text-ocean font-bold px-3 py-1 rounded-full bg-ocean/10 mb-3">
                   {release.type}
                 </span>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-ink mt-2 mb-4">

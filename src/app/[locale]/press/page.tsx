@@ -135,7 +135,7 @@ export default function PressPage() {
                 custom={i}
                 className="rounded-xl border border-line bg-bg shadow-sm p-5"
               >
-                <p className="text-xs font-bold uppercase tracking-widest text-ocean mb-1">
+                <p className="text-xs font-bold text-ocean mb-1">
                   {fact.label}
                 </p>
                 <p className="text-base sm:text-lg font-semibold text-ink">
@@ -373,7 +373,7 @@ export default function PressPage() {
             <motion.div variants={fadeUp} custom={0} className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-bg/10 mb-5">
               <Mail className="w-5 h-5 text-bg" />
             </motion.div>
-            <motion.p variants={fadeUp} custom={1} className="text-sunset uppercase tracking-[0.22em] text-xs font-semibold mb-4">
+            <motion.p variants={fadeUp} custom={1} className="text-sunset text-xs font-semibold mb-4">
               Get in Touch
             </motion.p>
             <motion.h2 variants={fadeUp} custom={2} className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5">

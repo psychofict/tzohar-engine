@@ -193,7 +193,7 @@ export default function AIPage() {
                   </div>
                   <div className="p-6 md:p-8">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-xs font-bold text-white bg-ocean px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      <span className="text-xs font-bold text-white bg-ocean px-2.5 py-0.5 rounded-full">
                         {pub.venue}
                       </span>
                     </div>
@@ -384,7 +384,7 @@ export default function AIPage() {
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-0.5">
                           <h3 className="text-base sm:text-lg font-semibold">{job.role}</h3>
                           {job.current && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider bg-[#27AE60]/10 text-[#27AE60] px-2 py-0.5 rounded-full">{tc("current")}</span>
+                            <span className="text-[10px] font-bold bg-[#27AE60]/10 text-[#27AE60] px-2 py-0.5 rounded-full">{tc("current")}</span>
                           )}
                         </div>
                         <p className="text-sm text-ocean font-medium">
@@ -472,7 +472,7 @@ export default function AIPage() {
                       </a>
                     </p>
                     {aiProfile.education.scholarship && (
-                      <span className="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider bg-sunset/10 text-sunset px-2.5 py-0.5 rounded-full">
+                      <span className="inline-block mt-2 text-[10px] font-bold bg-sunset/10 text-sunset px-2.5 py-0.5 rounded-full">
                         {aiProfile.education.scholarship}
                       </span>
                     )}
@@ -613,7 +613,7 @@ export default function AIPage() {
             viewport={{ once: true }}
             variants={stagger}
           >
-            <motion.p variants={fadeUp} custom={0} className="text-sunset uppercase tracking-[0.22em] text-xs font-semibold mb-4">
+            <motion.p variants={fadeUp} custom={0} className="text-sunset text-xs font-semibold mb-4">
               {tc("collaborate")}
             </motion.p>
             <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5">

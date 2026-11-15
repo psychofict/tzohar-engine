@@ -91,10 +91,10 @@ export default function JourneyMap({ stops }: { stops: readonly JourneyStop[] })
 
       {active && (
         <div className="p-6 bg-elevated">
-          {active.period && <p className="text-xs uppercase tracking-wide text-ocean font-semibold">{active.period}</p>}
+          {active.period && <p className="text-xs text-ocean font-semibold">{active.period}</p>}
           <h3 className="text-xl font-bold text-ink mt-1">
             {active.label}
-            {active.future && <span className="ml-2 text-xs font-semibold uppercase tracking-wider text-sunset align-middle">Future</span>}
+            {active.future && <span className="ml-2 text-xs font-semibold text-sunset align-middle">Future</span>}
           </h3>
           {(active.institution || active.program) && (
             <p className="text-sm text-ink-2 mt-1">{[active.institution, active.program].filter(Boolean).join(" · ")}</p>

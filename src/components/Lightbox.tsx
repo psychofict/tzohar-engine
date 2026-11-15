@@ -6,6 +6,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Download, Share2 } from "lucide-react";
 import { site } from "@/config/site";
 
+/** The company's strong ease-out; a modal enters in 250 ms and leaves in 200 ms (20% shorter). */
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+
 export interface LightboxItem {
   src: string;
   alt: string;
@@ -89,11 +92,10 @@ export default function Lightbox({
           role="dialog"
           aria-modal="true"
           aria-label={current.alt}
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 sm:p-8"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 sm:p-8"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          animate={{ opacity: 1, transition: { duration: 0.25, ease: EASE_OUT } }}
+          exit={{ opacity: 0, transition: { duration: 0.2, ease: EASE_OUT } }}
           onClick={onClose}
         >
           <button
@@ -153,9 +155,9 @@ export default function Lightbox({
           <motion.figure
             key={current.src}
             className="relative max-w-full max-h-full flex flex-col items-center"
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.22 }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1, transition: { duration: 0.25, ease: EASE_OUT } }}
+            exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.2, ease: EASE_OUT } }}
             onClick={(e) => e.stopPropagation()}
           >
             <Image

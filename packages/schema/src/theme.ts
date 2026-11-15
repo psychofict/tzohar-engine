@@ -245,9 +245,12 @@ export const MOTION_PRESETS: Record<MotionChoice, MotionPreset> = {
     entranceDistance: "22px",
     entranceBlur: "8px",
   },
+  // Expressive, not a default: the curve overshoots (y1 1.4), which is playful on a
+  // hero or a gallery and wrong on controls people use every day. The Studio picker
+  // says so; the engine's menus, tabs and drawers use their own fixed curves.
   kinetic: {
     label: "Kinetic",
-    vibe: "Snappy · springy",
+    vibe: "Expressive · overshoots, not the default",
     distance: "44px",
     duration: "520ms",
     ease: "cubic-bezier(0.34, 1.4, 0.64, 1)",
