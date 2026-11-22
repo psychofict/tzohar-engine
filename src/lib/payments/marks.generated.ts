@@ -9,7 +9,7 @@
 //   source: platform/accounts-hub/integration-kit/payments/marks.ts
 //   sync:   infra/scripts/sync-payment-ui.py
 //   check:  infra/scripts/sync-payment-ui.py --check
-//   sha256: 04a34e1689a2fd6c
+//   sha256: 7cdf5bb6c4404412
 // ──────────────────────────────────────────────────────────────────────────
 
 import type { MarkId } from "./rails.generated";
@@ -29,7 +29,7 @@ import type { MarkId } from "./rails.generated";
  * dark mode at all, so a light/dark artwork pair keyed off a selector cannot be
  * written once and be right everywhere. A white ground is the same value in
  * both themes. Measured on 17 September: on a dark ground Mastercard's wordmark
- * and O'mari's endorsement line disappear, and on a white ground the InnBucks
+ * and O’mari's endorsement line disappear, and on a white ground the InnBucks
  * reversed lockup disappears. On a white chip all seven read.
  */
 export type Mark = {
@@ -48,7 +48,7 @@ export const MARKS: Record<MarkId, Mark> = {
   visa: { file: "visa.svg", name: "Visa", w: 1000, h: 325, scale: 0.86 },
   mastercard: { file: "mastercard.svg", name: "Mastercard", w: 999, h: 776, scale: 1 },
   zimswitch: { file: "zimswitch.svg", name: "ZimSwitch", w: 117, h: 58, scale: 1 },
-  omari: { file: "omari.png", name: "O'mari", w: 281, h: 117, scale: 0.92 },
+  omari: { file: "omari.png", name: "O’mari", w: 281, h: 117, scale: 0.92 },
   ecocash: { file: "ecocash.png", name: "EcoCash", w: 225, h: 76, scale: 0.84 },
   innbucks: { file: "innbucks.png", name: "InnBucks", w: 165, h: 164, scale: 1 },
   paynow: { file: "paynow.png", name: "Paynow", w: 200, h: 200, scale: 0.94 },

@@ -9,7 +9,7 @@
 //   source: platform/accounts-hub/integration-kit/payments/rails.ts
 //   sync:   infra/scripts/sync-payment-ui.py
 //   check:  infra/scripts/sync-payment-ui.py --check
-//   sha256: 48aeed6fd618d459
+//   sha256: fb667c3f600e89d4
 // ──────────────────────────────────────────────────────────────────────────
 
 /**
@@ -84,7 +84,7 @@ export const DENIED: Record<string, string> = {
   onemoney:
     "The merchant account offers OneMoney in Zimbabwe dollars only. The fleet prices and settles in US dollars, so a OneMoney push could never pay for anything. See src/lib/paynow-client.ts.",
   telecash: "Not on the live checkout. Paynow's own marketing strip still carries it; that is not evidence.",
-  paygo: "Ticked on the integration, but checkout renders O'mari instead. The integration checkboxes are not the source of truth.",
+  paygo: "Ticked on the integration, but checkout renders O’mari instead. The integration checkboxes are not the source of truth.",
   paypal: "No integration exists anywhere in the fleet.",
   stripe: "Retired company-wide on 2 September 2026.",
   paystack: "Dormant, never live.",
