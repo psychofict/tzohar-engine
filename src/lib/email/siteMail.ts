@@ -113,7 +113,7 @@ export function siteMail(
     unsubscribeUrl: o.unsubscribeUrl,
     sentWith: {
       name: TZOHAR.name,
-      // The block carries the joint stamp of Ebenworks and Statotech Systems (SO-39), which names the makers.
+      // Tzohar Sites carries the Ebenworks product stamp in this footer block.
       line: `The ${site.name} website is built with Tzohar Sites.`,
       linkLabel: "Get a site like this",
       href: TZOHAR.url,

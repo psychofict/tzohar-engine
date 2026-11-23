@@ -290,8 +290,7 @@ export default function Footer() {
               className="text-ink-3 hover:text-ink underline decoration-line underline-offset-2 transition-colors"
             >
               Ebenworks
-            </a>{" "}
-            with Statotech Systems.
+            </a>.
           </p>
         </div>
       </div>

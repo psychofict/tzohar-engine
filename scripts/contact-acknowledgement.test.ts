@@ -17,7 +17,7 @@ import { POST } from "../src/app/api/contact/route";
 import { mailPictureUrl } from "../src/lib/email/blocks.generated";
 import { site } from "../src/config/site";
 
-const STAMP = mailPictureUrl("ebenworks-joint-stamp");
+const STAMP = mailPictureUrl("ebenworks-stamp");
 const count = (html: string, s: string) => html.split(s).length - 1;
 
 let fails = 0;
@@ -69,11 +69,11 @@ async function main() {
   check("the client's name heads the text", c.text.startsWith("KOPJE LIGHT CERAMICS\n"), c.text.split("\n")[0]);
   check("the footer block names Tzohar Sites once", (c.text.match(/Tzohar Sites/g) ?? []).length === 1 && c.html.includes("The Kopje Light Ceramics website is built with Tzohar Sites"));
   check("no Ebenworks wordmark or strip", !/EBEN<\/span>WORKS|ebenworks-email-strip/.test(c.html));
-  // SO-39: the joint stamp, once, inside the footer block and in the text part.
-  check("the joint stamp once, in the footer block", count(c.html, STAMP) === 1
+  // SO-39: the Ebenworks product stamp, once, inside the footer block and in the text part.
+  check("the Ebenworks product stamp once, in the footer block", count(c.html, STAMP) === 1
     && c.html.indexOf(STAMP) > c.html.indexOf("Get a site like this")
-    && c.text.includes("A joint product of Ebenworks and Statotech Systems: https://ebenworks.co")
-    && !c.html.includes(mailPictureUrl("ebenworks-stamp")) && !c.html.includes("an Ebenworks product"));
+    && c.text.includes("An Ebenworks product: https://ebenworks.co")
+    && !c.html.includes(mailPictureUrl("ebenworks-joint-stamp")) && !c.text.includes("Statotech"));
   check("says what arrived", c.text.replace(/\s+/g, " ").includes("We've received your booking enquiry"));
   check("sendsAsEbenworks", sendsAsEbenworks("x@ebenworks.co") && sendsAsEbenworks(" X@EBENWORKS.CO ") && !sendsAsEbenworks("x@ebenworks.co.evil.example"));
 

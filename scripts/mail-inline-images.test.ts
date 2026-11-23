@@ -2,7 +2,7 @@
  * Visitor mail links its pictures from the mail picture host and carries none inside the message
  * (EBE-9568, Eben 5 Nov 2026). The Gmail iPhone app never fetched a nameless inline picture and lists
  * a named one as an attachment, so the contact acknowledgement, the sign-up confirm mails and the
- * newsletter and Inner Circle welcomes send no attachments: the joint stamp and the Tzohar Sites logo
+ * newsletter and Inner Circle welcomes send no attachments: the Ebenworks product stamp and the Tzohar Sites logo
  * are https pictures on the host (mailPictureUrl in blocks.generated.ts), each with a pixel width and
  * height, its brand words as alt text, and a font size and colour for a client that holds pictures back.
  * The file keeps its old name so a client repo's copy is replaced, not left beside a new one.
@@ -37,7 +37,7 @@ const post = (path: string, body: Record<string, unknown>, ip: string) =>
     body: JSON.stringify(body),
   });
 
-const STAMP = mailPictureUrl("ebenworks-joint-stamp");
+const STAMP = mailPictureUrl("ebenworks-stamp");
 const LOGO = mailPictureUrl("tzohar-logo");
 const attr = (tag: string, name: string) => tag.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1];
 
@@ -52,7 +52,7 @@ function checkLinked(label: string, mail: Record<string, unknown> | undefined) {
   check(`${label}: no cid: picture`, !html.includes("cid:"));
   check(`${label}: every picture is on the mail picture host`,
     imgs.length > 0 && srcs.every((s) => s.startsWith(`${MAIL_PICTURE_BASE}/`)), JSON.stringify(srcs));
-  check(`${label}: shows the joint stamp and the Tzohar Sites logo`,
+  check(`${label}: shows the Ebenworks product stamp and the Tzohar Sites logo`,
     JSON.stringify([...new Set(srcs)].sort()) === JSON.stringify([STAMP, LOGO].sort()), JSON.stringify(srcs));
   check(`${label}: no picture under ebenworks.co stays linked`, !/<img[^>]+src="https?:\/\/[^"]*ebenworks\.co\//.test(html));
 
@@ -60,7 +60,7 @@ function checkLinked(label: string, mail: Record<string, unknown> | undefined) {
     const src = attr(tag, "src");
     const w = Number(attr(tag, "width")), h = Number(attr(tag, "height"));
     const alt = attr(tag, "alt"), style = attr(tag, "style") ?? "";
-    const name = src === STAMP ? "joint stamp" : src === LOGO ? "logo" : String(src);
+    const name = src === STAMP ? "Ebenworks product stamp" : src === LOGO ? "logo" : String(src);
     check(`${label}: ${name} has a pixel width and height`, w > 0 && h > 0, tag);
     // Gmail draws a linked picture that does not load as a box about as tall as it is wide when its CSS
     // height is auto (EBE-4879), so a CSS height, where there is one, is the attribute's in pixels.
@@ -69,8 +69,8 @@ function checkLinked(label: string, mail: Record<string, unknown> | undefined) {
     check(`${label}: ${name} has a font size and a colour for a held-back picture`,
       /font-size:\s*\d+px/.test(style) && /(^|;)\s*color:/.test(style), style);
     if (src === STAMP) {
-      check(`${label}: joint stamp at ${STAMPS.joint.width}x${STAMPS.joint.height}, alt word for word`,
-        w === STAMPS.joint.width && h === STAMPS.joint.height && alt === STAMPS.joint.alt, tag);
+      check(`${label}: Ebenworks product stamp at ${STAMPS.product.width}x${STAMPS.product.height}, alt word for word`,
+        w === STAMPS.product.width && h === STAMPS.product.height && alt === STAMPS.product.alt, tag);
     } else if (src === LOGO) {
       const f = MAIL_PICTURES["tzohar-logo"];
       check(`${label}: logo drawn at the host file's shape (${w}x${h}), alt "${f.alt}"`,

@@ -1,13 +1,16 @@
 {
-  "version": "2.8.33",
-  "name": "Readable hero buttons",
-  "released": "2026-11-16",
+  "version": "2.8.34",
+  "name": "Ebenworks credit",
+  "released": "2026-11-23",
   "highlights": [
-    "On a page whose top band is a photograph, a second or third button next to the main one (the music page's \"Browse discography\", the AI page's portfolio, Scholar and GitHub links) was white on a light page in light mode, so it could not be read. These buttons now take the page's ink and line colours and read in both light and dark. Nothing is asked of you; a site that sets its own buttons looks the same."
+    "Site footers and visitor emails credit Ebenworks as the maker of Tzohar Sites."
   ],
   "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.33": [
+      "On a page whose top band is a photograph, a second or third button next to the main one (the music page's \"Browse discography\", the AI page's portfolio, Scholar and GitHub links) was white on a light page in light mode, so it could not be read. These buttons now take the page's ink and line colours and read in both light and dark. Nothing is asked of you; a site that sets its own buttons looks the same."
+    ],
     "2.8.32": [
       "Menus, dialogs and tabs now leave as well as arrive. The navigation dropdown grows from its tab and the phone menu slides in from the top, the photo viewer scales in from 96%, and each one leaves about 20% faster than it came. Tabs on the contact, research and engagements pages overlap the old and new panel, and the active tab's pill slides to the next one.",
       "A visitor whose phone or computer asks for less motion now gets it everywhere on your site: movement is dropped and the fades stay. Before, those visitors still saw every slide and scale.",
@@ -23,7 +26,7 @@
       "In an email written in Korean, the opt-out link in the footer now reads 수신 거부 instead of \"Unsubscribe\". English emails are unchanged."
     ],
     "2.8.29": [
-      "The emails your site sends to visitors (the contact-form reply, the sign-up confirmation and the newsletter and Inner Circle welcomes) now show the Tzohar Sites logo and the Ebenworks and Statotech Systems stamp as linked pictures, instead of carrying them inside the message. Some mail apps, the Gmail app on iPhone among them, showed those pictures as broken or listed them as attachments; a linked picture shows as an ordinary image. Your own name, colours and wording in these emails are unchanged."
+      "The emails your site sends to visitors (the contact-form reply, the sign-up confirmation and the newsletter and Inner Circle welcomes) now show the Tzohar Sites logo and the product stamp as linked pictures, instead of carrying them inside the message. Some mail apps, the Gmail app on iPhone among them, showed those pictures as broken or listed them as attachments; a linked picture shows as an ordinary image. Your own name, colours and wording in these emails are unchanged."
     ],
     "2.8.28": [
       "Every route that reads a request body now counts the bytes as they arrive and stops at a limit set for that route: the CRM's page, post, settings, sign-in and image-upload routes, the checkout route and the member profile route. Before, a body sent in pieces with no declared length was read whole before any size check, and a site run with next start has no platform limit in front of a route, so one oversized request could fill its memory. Normal use is unaffected: the limits are 1 MB for a page or a post, 64 KB for settings, 8 KB for sign-in, 4 KB for checkout, 32 KB for a profile (the Accounts Hub's own limit) and 26 MB for an image upload (the 25 MB file limit is unchanged).",
@@ -40,7 +43,7 @@
       "The Influence page's stats bar now shows your own audience figures: followers, social views and brand partners, set in Studio's Influence section. A figure you leave empty is hidden, and the bar is left out when none is set. Before, every site with the Influence page showed the engine's sample figures (200K+, 15M+ and 50+) as its own."
     ],
     "2.8.24": [
-      "The footer credit on every site now gives the product's full name and its maker: \"A Tzohar Sites site, built by Ebenworks with Statotech Systems.\""
+      "The footer credit on every site now gives the product's full name and its maker: \"A Tzohar Sites site, built by Ebenworks.\""
     ],
     "2.8.23": [
       "A site with the CRM, membership or the members' Vault switched off now passes its type check and build: the engine's own checks skip the parts for features your site does not use, instead of stopping the build. With a feature switched on, every check runs as before."
@@ -194,7 +197,7 @@
       "The light hero wash is rebalanced. At 97% paper it was legible but the photograph was gone; it now sits at a tested middle where the image reads as colour and place and dark ink keeps a comfortable margin. All four scrims (light/dark × wide/narrow) live in one shared module, because these numbers had already been wrong twice in two components.",
       "A hero's fact row (Based in / Field / Affiliation) is hidden below the sm breakpoint. On a phone it became ~200px of stacked label/value pairs that pushed the affiliations marquee — the thing that establishes credibility at a glance — entirely below the fold. Still in the DOM for crawlers and screen readers, still on desktop.",
       "Pillar cards take an optional photograph, so the set where a reader decides which domain is theirs isn't three blocks of text.",
-      "The footer credits the build (\"A Tzohar site — built by Ebenworks & Statotech\") and no longer prints the subject's birthplace as if it were an address; that fact still feeds the about page and the schema.org Person."
+      "The footer credits the build (\"A Tzohar site — built by Ebenworks\") and no longer prints the subject's birthplace as if it were an address; that fact still feeds the about page and the schema.org Person."
     ],
     "2.1.1": [
       "Light-mode heroes were unreadable on a phone: the narrow white wash mirrored the dark ramp's opacities, and the mobile crop was shared between two different photographs, putting a face directly behind the title.",

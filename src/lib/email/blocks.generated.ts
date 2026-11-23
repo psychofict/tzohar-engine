@@ -10,7 +10,7 @@
 //   colours: platform/accounts-hub/integration-kit/theme/tokens.json
 //   sync:   infra/scripts/sync-email-kit.py
 //   check:  infra/scripts/sync-email-kit.py --check
-//   sha256: a3676aaed9a97934
+//   sha256: b542f10127432fb3
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -444,7 +444,7 @@ export const STAMPS = {
 
 export const STAMP_OF: Record<IdentityKey, keyof typeof STAMPS | null> = {
   ebenworks: null, accounts: "product", imali: "product", chingu: "product", phila: "product", bidwright: "product",
-  izwi: "product", tzohar: "joint", statosports: "joint", azdates: "product", esotericones: null, diaspry: "joint",
+  izwi: "product", tzohar: "product", statosports: "joint", azdates: "product", esotericones: null, diaspry: "joint",
 };
 
 /** A sender's stamp as both parts, linked to the company site; null where its mail carries none. */
