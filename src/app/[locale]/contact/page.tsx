@@ -11,6 +11,7 @@ import JsonLd from "@/components/JsonLd";
 import { getFAQSchema } from "@/lib/structured-data";
 import PageHero from "@/components/ui/PageHero";
 import { isPreviewBuild } from "@/lib/preview-build";
+import { pageHeroPosition } from "@/lib/hero-focal";
 
 /**
  * The note a preview build shows in place of the form. The key is optional: a client's
@@ -342,9 +343,9 @@ export default function ContactPage() {
         backgroundImage={heroImage}
         backgroundImageLight={site.brand.heroImageLight}
         backgroundAlt={site.name}
-        imagePosition="74% 16%"
+        imagePosition={pageHeroPosition}
         /*
-         * The dark plate's crop is tuned for a portrait; the light plate is a
+         * The dark plate takes the configured focal point; the light plate is a
          * different photograph, so it takes the frame's own centre rather than
          * inheriting a number chosen for another image.
          */
@@ -381,7 +382,7 @@ export default function ContactPage() {
                  * that would fail or mail an inbox nobody reads before launch.
                  */
                 <div className="rounded-[var(--radius-card)] border border-line-strong bg-elevated p-5 sm:p-8">
-                  <h2 className="text-xl font-semibold mb-4 text-ink">{t("contactLabel")}</h2>
+                  <h2 className="type-display text-ink mb-4 text-[calc(1.5rem*var(--display-scale))] leading-tight">{t("contactLabel")}</h2>
                   <p className="text-base text-ink-2 leading-relaxed">
                     {t.has(PREVIEW_NOTE_KEY) ? t(PREVIEW_NOTE_KEY) : PREVIEW_NOTE_FALLBACK}
                   </p>
@@ -447,7 +448,7 @@ export default function ContactPage() {
                   exit={{ opacity: 0, y: -4, transition: { duration: 0.16, ease: [0.23, 1, 0.32, 1] } }}
                   className="rounded-[var(--radius-card)] border border-line-strong bg-elevated p-5 sm:p-8"
                 >
-                  <h2 className="text-xl font-semibold mb-6 text-ink">{t(activeTab)}</h2>
+                  <h2 className="type-display text-ink mb-6 text-[calc(1.5rem*var(--display-scale))] leading-tight">{t(activeTab)}</h2>
                   <ActiveForm />
                 </motion.div>
               </AnimatePresence>

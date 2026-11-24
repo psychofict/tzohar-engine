@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { site, canonicalUrl } from "@/config/site";
-import { clampDescription, fitTitle } from "@/lib/route-meta";
+import { clampDescription, fitTitle, pageOpenGraph } from "@/lib/route-meta";
 import { requireModule } from "@/lib/modules";
 import { getComposedPage, routedPages } from "@/data/pages";
 import { postCategories, posts, postSummaries } from "@/data/posts";
@@ -43,20 +43,24 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug } = await params;
   const custom = getCustomPage(slug);
-  if (custom) {
+  /*
+   * A page's own share card. Without `openGraph` here a shared /studio link carried the home
+   * page's title, description and address, since the layout's object is the only one left.
+   */
+  const meta = (title: string, text: string | undefined): Metadata => {
+    const fitted = fitTitle(title, site.name);
+    const description = clampDescription(text ?? site.description);
     return {
-      title: fitTitle(custom.title, site.name),
-      description: clampDescription(custom.description ?? site.description),
+      title: fitted,
+      description,
       alternates: alternatesFor(locale, slug),
+      openGraph: pageOpenGraph({ title: fitted.absolute, description, path: `/${slug}`, locale }),
     };
-  }
+  };
+  if (custom) return meta(custom.title, custom.description);
   const page = getComposedPage(slug);
   if (!page) return {};
-  return {
-    title: fitTitle(page.seo?.title ?? page.title, site.name),
-    description: clampDescription(page.seo?.description ?? site.description),
-    alternates: alternatesFor(locale, slug),
-  };
+  return meta(page.seo?.title ?? page.title, page.seo?.description);
 }
 
 export default async function ComposedPageRoute({

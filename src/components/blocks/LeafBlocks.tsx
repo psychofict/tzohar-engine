@@ -917,7 +917,7 @@ export function IconListBlock({ block }: { block: z.infer<typeof iconListBlockSc
           <li key={i} className="flex items-start gap-4">
             <Marker icon={item.icon} marker={item.marker} />
             <div className="pt-0.5">
-              <h3 className="text-ink text-[15.5px] font-semibold leading-snug">{item.title}</h3>
+              <h3 className="type-display text-ink text-[1.05rem] leading-snug">{item.title}</h3>
               {item.body && <p className="text-ink-2 measure mt-1.5 text-[14px] leading-[1.6]">{item.body}</p>}
             </div>
           </li>
@@ -960,7 +960,14 @@ export function MediaTextBlock({ block }: { block: z.infer<typeof mediaTextBlock
         </div>
         {block.image && !sheet && !wide && (
           <div className={clsx("lg:justify-self-end", block.flip && "lg:order-1")}>
-            <Plate src={block.image} alt={block.imageAlt ?? ""} />
+            {/*
+              Full column width below lg. The plate sizes itself from its height cap
+              (20rem on a phone), so a square or upright photo came out 320px wide
+              beside landscape ones at the full 348px, and the right edges of the
+              pictures down a page did not line up (Kopje Light demo, 390px). The cap
+              still holds; an upright frame is cropped to it instead of narrowed.
+            */}
+            <Plate src={block.image} alt={block.imageAlt ?? ""} className="max-lg:w-full max-lg:object-cover" />
           </div>
         )}
       </div>
@@ -1042,7 +1049,8 @@ export function TimelineBlock({ block }: { block: z.infer<typeof timelineBlockSc
       key: String(i),
       title: m.title,
       place: m.location,
-      note: m.note ?? m.detail,
+      note: m.note,
+      detail: m.detail,
       photo: m.image,
     }));
     return (
@@ -1089,7 +1097,7 @@ export function TimelineBlock({ block }: { block: z.infer<typeof timelineBlockSc
                 )}
                 <span className="min-w-0 flex-1">
                   <span className="type-label text-ink-3 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
-                  <span className="text-ink mt-1.5 block text-[15px] font-semibold leading-snug">{m.title}</span>
+                  <span className="type-display text-ink mt-1.5 block text-[1.05rem] leading-snug">{m.title}</span>
                   {m.location && <span className="type-record text-ink-3 mt-1 block">{m.location}</span>}
                   {m.note && <span className="text-ink-2 mt-2 block text-[13.5px] leading-[1.55]">{m.note}</span>}
                 </span>

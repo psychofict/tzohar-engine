@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { site, canonicalUrl } from "@/config/site";
-import { fitTitle } from "@/lib/route-meta";
+import { clampDescription, fitTitle, pageOpenGraph, routeAlternates } from "@/lib/route-meta";
+import { optionalMessage } from "@/lib/optional-message";
 
 export async function generateMetadata({
   params,
@@ -11,25 +13,23 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const path = "/contact";
-  const canonical = canonicalUrl(locale, path);
-  const description = `Get in touch with ${site.name} — speaking invitations, research collaboration, press, and general inquiries.`;
 
+  /*
+   * The site's own words, from the `metadata` namespace (Copy field `metadata.contactDescription`),
+   * as /about reads its own. This was a fixed sentence written for a researcher ("speaking
+   * invitations, research collaboration, press"), which a ceramics studio's contact page then
+   * published to search engines.
+   */
+  const t = await getTranslations({ locale, namespace: "metadata" });
+  const title = optionalMessage(t, "contactTitle", "Contact");
+  const description = clampDescription(optionalMessage(t, "contactDescription", `Get in touch with ${site.name}.`));
+
+  const fitted = fitTitle(title, site.name);
   return {
-    title: fitTitle("Contact", site.name),
+    title: fitted,
     description,
-    alternates: {
-      canonical,
-      languages: Object.fromEntries([
-        ...site.locales.enabled.map((l) => [l, canonicalUrl(l, path)]),
-        ["x-default", canonicalUrl(site.locales.default, path)],
-      ]),
-    },
-    openGraph: {
-      title: `Contact — ${site.name}`,
-      description,
-      url: canonical,
-      images: [{ url: site.brand.ogImage, width: 1200, height: 630, alt: site.name }],
-    },
+    alternates: routeAlternates(path, locale),
+    openGraph: pageOpenGraph({ title: fitted.absolute, description, path, locale }),
   };
 }
 

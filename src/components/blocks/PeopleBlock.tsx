@@ -55,7 +55,7 @@ export default function PeopleBlock({ block }: { block: z.infer<typeof peopleBlo
                   <li className="flex gap-4">
                     <Portrait member={m} round={round} />
                     <div className="min-w-0 pt-0.5">
-                      <h4 className="text-ink text-[15px] leading-snug font-semibold">{m.name}</h4>
+                      <h4 className="type-display text-ink text-[1.05rem] leading-snug">{m.name}</h4>
                       {m.role && <p className="text-ocean mt-0.5 text-[13px] leading-snug">{m.role}</p>}
                       {m.period && (
                         <p className="text-ink-3 mt-1 font-mono text-[11px] tracking-wide">{m.period}</p>

@@ -8,6 +8,7 @@ import { site, hasModule } from "@/config/site";
 import { homeStats, credibilityLogos, rolePanels, spotlight, latestRelease } from "@/data/home";
 import { getComposedPage } from "@/data/pages";
 import PreviewablePage from "@/components/preview/PreviewablePage";
+import type { BlockData } from "@/components/blocks/BlockRenderer";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -20,10 +21,13 @@ import RolePanels, { type RolePanel } from "@/components/home/RolePanels";
 import StatsStrip from "@/components/home/StatsStrip";
 import type { HeroStat } from "@/components/home/heroShared";
 
-export default function HomePage() {
-  // A composed "home" page (pages module) replaces the default composition.
+export default function HomePage({ postData }: { postData?: BlockData }) {
+  // A composed "home" page (pages module) replaces the default composition. `postData` comes from the
+  // server route: this is a client component and must not import the posts store itself, which would
+  // ship every post body, drafts included, to the browser. Without it, a postList block on the home
+  // page always read "Nothing published here yet" (found 24 Nov 2026 on the Kopje Light demo).
   const composedHome = hasModule("pages") ? getComposedPage("home") : undefined;
-  if (composedHome) return <PreviewablePage slug="home" page={composedHome} />;
+  if (composedHome) return <PreviewablePage slug="home" page={composedHome} data={postData} />;
   return <DefaultHome />;
 }
 

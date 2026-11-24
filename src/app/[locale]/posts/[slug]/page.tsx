@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { site, canonicalUrl } from "@/config/site";
-import { clampDescription, fitTitle } from "@/lib/route-meta";
+import { clampDescription, fitTitle, pageOpenGraph } from "@/lib/route-meta";
+import { optionalMessage } from "@/lib/optional-message";
+import { postsIndexPath } from "@/lib/posts-index";
+import { absoluteUrl } from "@/lib/absolute-url";
+import { personRef } from "@/lib/structured-data";
 import { allPosts, categoryLabel, getPost, posts, postSummaries } from "@/data/posts";
 import { formatPostDate } from "@/lib/posts-format";
 import { getBlurDataURL } from "@/lib/image-blur";
@@ -40,16 +45,22 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const post = getPost(slug);
   if (!post) return {};
+  const description = clampDescription(post.excerpt ?? site.description);
   return {
     title: fitTitle(post.title, site.name),
-    description: clampDescription(post.excerpt ?? site.description),
+    description,
     alternates: { canonical: canonicalUrl(locale, `/posts/${slug}`) },
     openGraph: {
+      ...pageOpenGraph({
+        title: post.title,
+        description,
+        path: `/posts/${slug}`,
+        locale,
+        image: post.coverImage ? absoluteUrl(post.coverImage, site.url) : undefined,
+        imageAlt: post.coverAlt,
+      }),
       type: "article",
-      title: post.title,
-      description: clampDescription(post.excerpt ?? site.description),
       publishedTime: post.date,
-      images: post.coverImage ? [{ url: post.coverImage }] : undefined,
     },
     // A draft is reachable by link for review; it must not be indexed. Only a draft sets the key: an
     // undefined robots would replace the layout's (a preview build's noindex included).
@@ -62,9 +73,19 @@ export default async function PostRoute({
 }: {
   params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const post = getPost(slug);
   if (!post) notFound();
+
+  /*
+   * The way back to the index and the label over related posts are the site's own: the index may
+   * live on a composed page (`site.posts.indexPath`, e.g. /journal) and be called something else
+   * (`site.posts.indexLabel`, then the Copy field `posts.backLabel`). Both were fixed to "Posts"
+   * and /posts, and "More writing".
+   */
+  const t = await getTranslations({ locale, namespace: "posts" });
+  const backLabel = site.posts?.indexLabel ?? optionalMessage(t, "backLabel", "Posts");
+  const moreHeading = optionalMessage(t, "moreHeading", "More writing");
 
   const label = categoryLabel(post.category);
   const related = postSummaries(posts.filter((p) => p.slug !== post.slug)).slice(0, 3);
@@ -78,9 +99,11 @@ export default async function PostRoute({
           headline: post.title,
           datePublished: post.date,
           description: post.excerpt,
-          image: post.coverImage ? `${site.url}${post.coverImage}` : undefined,
-          author: { "@type": "Person", name: site.legalName ?? site.name },
-          mainEntityOfPage: `${site.url}/posts/${post.slug}`,
+          // A Cloudinary cover is already a full address; only a path gets the site in front.
+          image: post.coverImage ? absoluteUrl(post.coverImage, site.url) : undefined,
+          // The person the site is about, the same node the layout's Person carries.
+          author: personRef(),
+          mainEntityOfPage: canonicalUrl(site.locales.default, `/posts/${post.slug}`),
         }}
       />
 
@@ -88,11 +111,11 @@ export default async function PostRoute({
         <header className="band band-top-hero band-bottom-tight">
           <Container size="xl">
             <Link
-              href="/posts"
+              href={postsIndexPath as "/"}
               className="type-label text-ink-3 hover:text-ink mb-8 inline-flex items-center gap-2 transition-colors"
             >
               <ArrowLeft size={13} aria-hidden />
-              Publications &amp; Blog
+              {backLabel}
             </Link>
             <div className="measure-lg">
               <p className="type-label text-ink-3 flex flex-wrap items-center gap-x-2.5 gap-y-1">
@@ -177,7 +200,7 @@ export default async function PostRoute({
       {related.length > 0 && (
         <section className="bg-surface band mt-16">
           <PostListBlock
-            block={{ type: "postList", columns: 3, header: { eyebrow: "More writing" } }}
+            block={{ type: "postList", columns: 3, header: { eyebrow: moreHeading } }}
             posts={related}
             categories={postCategories}
           />

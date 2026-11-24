@@ -15,6 +15,8 @@ export interface TimelineItem {
   place?: string;
   /** A sensitive/personal aside shown alongside the milestone. */
   note?: string;
+  /** A longer line under the note: what happened. Shown in the vertical layout. */
+  detail?: string;
   photo?: string;
   bullets?: readonly string[];
   current?: boolean;
@@ -85,7 +87,7 @@ function VerticalTimeline({ items, numbered, className }: Omit<TimelineProps, "o
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-0.5">
-                    <h3 className="text-base sm:text-lg font-semibold text-ink">{item.title}</h3>
+                    <h3 className="type-display text-ink text-[1.125rem] sm:text-[1.25rem] leading-snug">{item.title}</h3>
                     {item.current && (
                       <span className="text-[10px] font-bold bg-emerald/10 text-emerald px-2 py-0.5 rounded-pill">
                         Current
@@ -109,7 +111,8 @@ function VerticalTimeline({ items, numbered, className }: Omit<TimelineProps, "o
                       {[item.period, item.place].filter(Boolean).join(" · ")}
                     </p>
                   )}
-                  {item.note && <p className="text-sm text-ink-2 italic mb-3">{item.note}</p>}
+                  {item.note && <p className={clsx("text-sm text-ink-2 italic", item.detail ? "mb-1.5" : "mb-3")}>{item.note}</p>}
+                  {item.detail && <p className="text-sm text-ink-2 mb-3 leading-relaxed">{item.detail}</p>}
                   {item.bullets && item.bullets.length > 0 && (
                     <ul className="space-y-1.5">
                       {item.bullets.map((bullet) => (
@@ -148,7 +151,7 @@ function HorizontalTimeline({ items, numbered, className }: Omit<TimelineProps, 
                 <span className="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-ocean text-on-accent text-xs font-bold">
                   {numbered ? i + 1 : ""}
                 </span>
-                <h3 className="text-sm font-semibold text-ink leading-tight">{item.title}</h3>
+                <h3 className="type-display text-ink text-[0.95rem] leading-tight">{item.title}</h3>
               </div>
               {item.place && <p className="text-xs text-ink-3">{item.place}</p>}
               {item.period && <p className="text-xs text-ink-3">{item.period}</p>}

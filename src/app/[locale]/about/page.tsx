@@ -11,7 +11,8 @@ import { fadeUp } from "@/lib/animations";
 import PageHero from "@/components/ui/PageHero";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
-import Eyebrow from "@/components/ui/Eyebrow";
+import { optionalMessage } from "@/lib/optional-message";
+import { pageHeroPosition } from "@/lib/hero-focal";
 
 const MOBILE_PREVIEW = 2;
 
@@ -19,7 +20,11 @@ export default function AboutPage() {
   const t = useTranslations("about");
   const tc = useTranslations("common");
   const heroImage = site.brand.heroImage ?? site.brand.ogImage;
-  const ctaBackdrop = site.brand.heroImage ?? site.brand.ogImage;
+  /*
+   * The closing band's picture is the site's own hero photograph, or none. It used to fall back to
+   * the 1200x630 sharing image, which a phone-height band stretched to about twice its size.
+   */
+  const ctaBackdrop = site.brand.heroImage;
   const bioParagraphs = t("bioIntro").split("\n\n");
   const [bioExpanded, setBioExpanded] = useState(false);
   const previewParagraphs = bioParagraphs.slice(0, MOBILE_PREVIEW);
@@ -31,11 +36,16 @@ export default function AboutPage() {
         eyebrow={t("theStory")}
         title={`${t("aboutTitle")} ${site.name}`}
         subtitle={site.tagline}
-        meta={<>{site.location?.from} · {t("basedIn", { location: site.location?.based ?? "" })}</>}
+        meta={
+          // Either place may be unset; a lone "·" or an empty "Based in" reads as a fault.
+          [site.location?.from, site.location?.based ? t("basedIn", { location: site.location.based }) : ""]
+            .filter(Boolean)
+            .join(" · ") || undefined
+        }
         accent="ocean"
         backgroundImage={heroImage}
         backgroundAlt={site.name}
-        imagePosition="74% 16%"
+        imagePosition={pageHeroPosition}
       />
 
       {/* Portrait + bio */}
@@ -52,16 +62,22 @@ export default function AboutPage() {
                   sizes="(max-width: 1024px) 100vw, 300px"
                 />
               </div>
-              <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-line pt-5">
-                <div>
-                  <dt className="type-label text-ink-3">From</dt>
-                  <dd className="type-record text-ink mt-1.5">{site.location?.from}</dd>
-                </div>
-                <div>
-                  <dt className="type-label text-ink-3">Based</dt>
-                  <dd className="type-record text-ink mt-1.5">{site.location?.based}</dd>
-                </div>
-              </dl>
+              {(site.location?.from || site.location?.based) && (
+                <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-line pt-5">
+                  {site.location?.from && (
+                    <div>
+                      <dt className="type-label text-ink-3">{optionalMessage(t, "fromLabel", "From")}</dt>
+                      <dd className="type-record text-ink mt-1.5">{site.location.from}</dd>
+                    </div>
+                  )}
+                  {site.location?.based && (
+                    <div>
+                      <dt className="type-label text-ink-3">{optionalMessage(t, "basedLabel", "Based")}</dt>
+                      <dd className="type-record text-ink mt-1.5">{site.location.based}</dd>
+                    </div>
+                  )}
+                </dl>
+              )}
             </div>
 
             <motion.div
@@ -70,11 +86,7 @@ export default function AboutPage() {
               viewport={{ once: true }}
               variants={{ visible: { transition: { staggerChildren: 0.06 } } }}
             >
-              <div className="mb-6 flex items-center gap-3.5">
-                <span className="accent-rule" aria-hidden />
-                <Eyebrow>{t("theStory")}</Eyebrow>
-                <span className="bg-line h-px flex-1" aria-hidden />
-              </div>
+              {/* No second "The story" label here: the hero above already carries it. */}
               <h2 className="type-display text-ink text-balance leading-[1.14] text-[calc(clamp(1.625rem,3vw,2.5rem)*var(--display-scale))]">
                 {t("aboutHeading")}
               </h2>
@@ -132,42 +144,43 @@ export default function AboutPage() {
         </Container>
       </Section>
 
-      {/* CTA — same closing band as the composed pages */}
-      <div className="section-invert">
-        <section className="band relative overflow-hidden bg-bg">
-          <div className="absolute inset-0" aria-hidden="true">
-            {/*
-              Whatever this build calls its hero plate. This was pointed at one
-              client's file, so on every other site the closing band rendered a
-              404'd image behind the scrim (or, worse, that client's photograph).
-            */}
-            <Image src={ctaBackdrop} alt="" fill sizes="100vw" className="object-cover" />
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(0deg, color-mix(in oklab, #06070B 74%, transparent), color-mix(in oklab, #06070B 58%, transparent))",
-              }}
-            />
+      {/* CTA: the closing band, on the site's own theme (a light wash in light mode, dark only in the dark option) */}
+      <section className="band relative overflow-hidden bg-bg">
+        <div className="absolute inset-0" aria-hidden="true">
+          {/*
+            Whatever this build calls its hero plate. This was pointed at one
+            client's file, so on every other site the closing band rendered a
+            404'd image behind the scrim (or, worse, that client's photograph).
+            The wash comes from the theme's own `--color-bg` token. It was a fixed
+            near-black scrim inside `.section-invert`, so every light site ended
+            its About page on a dark band (found 24 Nov 2026 on the Kopje Light demo).
+          */}
+          {ctaBackdrop && <Image src={ctaBackdrop} alt="" fill sizes="100vw" className="object-cover" />}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(0deg, color-mix(in oklab, var(--color-bg) 88%, transparent), color-mix(in oklab, var(--color-bg) 78%, transparent))",
+            }}
+          />
+        </div>
+        <Container size="xl" className="relative">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="accent-rule mx-auto mb-8" aria-hidden />
+            <h2 className="type-display text-ink text-balance leading-[1.14] text-[calc(clamp(1.75rem,3.4vw,2.625rem)*var(--display-scale))]">
+              {t("letsBuildTitle")}
+            </h2>
+            <p className="text-ink-2 mx-auto mt-5 max-w-xl text-[17px] leading-relaxed">{t("letsBuildDesc")}</p>
+            <Link
+              href="/contact"
+              className="bg-ocean text-on-accent hover:bg-ocean-strong mt-9 inline-flex h-12 items-center gap-2 rounded-[var(--radius-pill)] px-7 font-semibold transition-colors"
+            >
+              {tc("getInTouch")}
+              <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            </Link>
           </div>
-          <Container size="xl" className="relative">
-            <div className="mx-auto max-w-2xl text-center">
-              <span className="accent-rule mx-auto mb-8" aria-hidden />
-              <h2 className="type-display text-ink text-balance leading-[1.14] text-[calc(clamp(1.75rem,3.4vw,2.625rem)*var(--display-scale))]">
-                {t("letsBuildTitle")}
-              </h2>
-              <p className="text-ink-2 mx-auto mt-5 max-w-xl text-[17px] leading-relaxed">{t("letsBuildDesc")}</p>
-              <Link
-                href="/contact"
-                className="bg-ocean text-on-accent hover:bg-ocean-strong mt-9 inline-flex h-12 items-center gap-2 rounded-[var(--radius-pill)] px-7 font-semibold transition-colors"
-              >
-                {tc("getInTouch")}
-                <ArrowRight className="h-5 w-5" aria-hidden="true" />
-              </Link>
-            </div>
-          </Container>
-        </section>
-      </div>
+        </Container>
+      </section>
     </main>
   );
 }

@@ -1,5 +1,35 @@
 import { site, allSameAs, canonicalUrl } from "@/config/site";
 import { routedPages } from "@/data/pages";
+import { absoluteUrl } from "@/lib/absolute-url";
+
+/**
+ * The person the site is about, by their own name: `person.givenName` and `person.familyName`
+ * when the config has them. The Person used to carry the SITE's name, so the Kopje Light demo
+ * declared a person called "Kopje Light Ceramics". Without a given or family name, a person or
+ * musician site falls back to `legalName` (their legal name), and any other site to its name.
+ */
+export function personName(): string {
+  const p = site.person;
+  const full = [p?.givenName, p?.familyName].map((s) => s?.trim()).filter(Boolean).join(" ");
+  if (full) return full;
+  if ((site.kind === "person" || site.kind === "musician") && site.legalName?.trim()) return site.legalName.trim();
+  return site.name;
+}
+
+/**
+ * Other names for that person. On a person or musician site the site's name is the person's
+ * public name (a stage name), so it is one of them; a studio's or a business's name is not.
+ */
+function personAlternateNames(name: string): string[] | undefined {
+  const stage = site.kind === "person" || site.kind === "musician" ? [site.name] : [];
+  const names = [...new Set([...stage, ...(site.alternateNames ?? [])])].filter((n) => n && n !== name);
+  return names.length ? names : undefined;
+}
+
+/** The Person node a page can point at instead of repeating it (posts name their author this way). */
+export function personRef() {
+  return { "@type": "Person", "@id": `${site.url}/#person`, name: personName() };
+}
 
 /**
  * schema.org Person, built from `site.person` rather than from constants in this
@@ -21,18 +51,19 @@ export function getPersonSchema() {
     return c ? { "@type": "Country", name: c } : undefined;
   };
 
+  const name = personName();
   return prune({
     "@context": "https://schema.org",
     "@type": "Person",
     "@id": `${site.url}/#person`,
-    name: site.name,
-    alternateName: site.alternateNames,
+    name,
+    alternateName: personAlternateNames(name),
     givenName: p.givenName,
     familyName: p.familyName,
     url: site.url,
     image: {
       "@type": "ImageObject",
-      url: `${site.url}${site.brand.ogImage}`,
+      url: absoluteUrl(site.brand.ogImage, site.url),
       width: 1200,
       height: 630,
       caption: p.imageCaption ?? `${site.name} — ${site.tagline}`,
@@ -240,13 +271,13 @@ export function getEbenworksOrganizationSchema() {
       addressCountry: "ZW",
     },
     description:
-      "Ebenworks builds AI for company groups and their supplier networks, for health systems from district offices to hospitals, for families caring for a parent across borders, for firms that bid for public contracts, and for record labels and distributors.",
+      "Ebenworks builds AI products and researches computer vision, working to expand opportunity in Africa and serve people worldwide.",
     founder: {
       "@type": "Person",
       "@id": `${site.url}/#person`,
       // The person behind the group: their legal name if config gives one, else
       // the site's own name. This was a hardcoded literal.
-      name: [site.person?.givenName, site.person?.familyName].filter(Boolean).join(" ") || site.name,
+      name: personName(),
       url: site.url,
     },
     subOrganization: [

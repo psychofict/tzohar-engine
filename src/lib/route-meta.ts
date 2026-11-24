@@ -1,4 +1,5 @@
 import { site, canonicalUrl } from "@/config/site";
+import { localeToOgLocale, type Locale } from "@/i18n/config";
 
 /**
  * Per-route canonical + hreflang, from config.
@@ -84,4 +85,54 @@ export function clampDescription(text: string | undefined | null, max = MAX_DESC
 
   const space = cut.lastIndexOf(" ");
   return `${(space > 0 ? cut.slice(0, space) : cut).replace(/[\s,;:\u2014-]+$/, "")}\u2026`;
+}
+
+/**
+ * The Open Graph locale tags: this page's locale, and as alternates only the other locales the
+ * site actually ships. The layout listed every locale the engine knows, so an English-only site
+ * told link previews it also came in Korean, Chinese, French and Japanese.
+ */
+export function ogLocales(locale: string): { locale: string; alternateLocale: string[] } {
+  const og = (l: string) => localeToOgLocale[l as Locale] ?? "en_US";
+  return {
+    locale: og(locale),
+    alternateLocale: site.locales.enabled.filter((l) => l !== locale).map(og),
+  };
+}
+
+/**
+ * A page's whole `openGraph` object.
+ *
+ * Next replaces the layout's `openGraph` with a page's own rather than merging the two, so a page
+ * that set only a title lost the site name, the locale and the share picture. Every route builds
+ * its object here instead, with the site's sharing image unless the page names a better one.
+ */
+export function pageOpenGraph({
+  title,
+  description,
+  path,
+  locale,
+  image,
+  imageAlt,
+}: {
+  title: string;
+  description: string;
+  path: string;
+  locale: string;
+  /** A page picture (absolute address or a path under the site). Defaults to the sharing image. */
+  image?: string;
+  imageAlt?: string;
+}) {
+  return {
+    title,
+    description,
+    url: canonicalUrl(locale, path),
+    siteName: site.name,
+    // A post overrides this with "article" and its date (spread the result, then set both).
+    type: "website" as const,
+    ...ogLocales(locale),
+    images: image
+      ? [{ url: image, alt: imageAlt ?? title }]
+      : [{ url: site.brand.ogImage, width: 1200, height: 630, alt: imageAlt ?? site.name }],
+  };
 }

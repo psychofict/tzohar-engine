@@ -3,7 +3,8 @@ import { getTranslations } from "next-intl/server";
 import JsonLd from "@/components/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/structured-data";
 import { site, canonicalUrl } from "@/config/site";
-import { clampDescription, fitTitle } from "@/lib/route-meta";
+import { clampDescription, fitTitle, pageOpenGraph } from "@/lib/route-meta";
+import { optionalMessage } from "@/lib/optional-message";
 
 export async function generateMetadata({
   params,
@@ -23,8 +24,10 @@ export async function generateMetadata({
    * one working.
    */
   const t = await getTranslations({ locale, namespace: "metadata" });
-  const title = t.has("aboutTitle") ? t("aboutTitle") : "About";
-  const description = t.has("aboutDescription") ? t("aboutDescription") : site.description;
+  const title = optionalMessage(t, "aboutTitle", "About");
+  // Copy field `metadata.aboutDescription`.
+  const description = optionalMessage(t, "aboutDescription", site.description);
+  const fitted = fitTitle(title, site.name);
 
   return {
     /*
@@ -34,7 +37,7 @@ export async function generateMetadata({
      * and appends the name to one that does not, so the engine's own "About"
      * fallback still gets it.
      */
-    title: fitTitle(title, site.name),
+    title: fitted,
     description: clampDescription(description),
     alternates: {
       canonical,
@@ -43,12 +46,7 @@ export async function generateMetadata({
         ["x-default", canonicalUrl(site.locales.default, path)],
       ]),
     },
-    openGraph: {
-      title: `${title} — ${site.name}`,
-      description,
-      url: canonical,
-      images: [{ url: site.brand.ogImage, width: 1200, height: 630, alt: site.name }],
-    },
+    openGraph: pageOpenGraph({ title: fitted.absolute, description: clampDescription(description), path, locale }),
   };
 }
 

@@ -13,6 +13,7 @@ import { BlockHeaderRow } from "./LeafBlocks";
 import { getBlurDataURL } from "@/lib/image-blur";
 import { formatPostDate } from "@/lib/posts-format";
 import type { PostSummary } from "@/data/posts";
+import { postsIndexHref } from "@/lib/posts-index";
 
 type PostListBlockType = z.infer<typeof postListBlockSchema>;
 type Category = { key: string; label: string };
@@ -105,7 +106,9 @@ export default function PostListBlock({
       {block.viewAllHref && (
         <div className="mt-10">
           <Link
-            href={block.viewAllHref as "/"}
+            // "/posts" follows the site's own index (`site.posts.indexPath`), so the link does not
+            // land on a redirect.
+            href={postsIndexHref(block.viewAllHref) as "/"}
             className="text-ink hover:text-ocean-strong inline-flex items-center gap-2 text-[14.5px] font-semibold transition-colors"
           >
             {block.viewAllLabel ?? "All posts"}

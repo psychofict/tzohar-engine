@@ -440,6 +440,9 @@ export const MODULE_NAMESPACES: Record<string, readonly string[]> = {
     "music",
     "release"
   ],
+  "posts": [
+    "posts"
+  ],
   "research": [
     "research"
   ],

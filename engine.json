@@ -1,13 +1,33 @@
 {
-  "version": "2.8.34",
-  "name": "Ebenworks credit",
-  "released": "2026-11-23",
+  "version": "2.8.39",
+  "name": "Timeline detail text",
+  "released": "2026-11-24",
   "highlights": [
-    "Site footers and visitor emails credit Ebenworks as the maker of Tzohar Sites."
+    "A timeline written as a vertical list now shows each milestone's longer text under its short note. Before, a milestone with both showed only the note and the longer text was dropped without a warning. A milestone with only the longer text still shows it, now in plain type instead of italics. Nothing is asked of you."
   ],
   "breaking": [],
   "addsModules": [],
   "previous": {
+    "2.8.38": [
+      "The privacy notice now names your business as the one responsible for visitors' data, and Ebenworks Systems (Private) Limited as the company that builds and hosts the site for you. A contact form, newsletter or outside service appears in it only when your site has one. Fill in Who runs the site in Studio's Identity section; blank fields use your site name and contact email.",
+      "Three new settings. Search engines (Identity section) keeps a live site out of Google and the sitemap while its forms keep working. Site icon (Brand section) sets the browser tab and home-screen icon. Index page path (Posts section) moves the post index to a page of your own, such as /journal, and /posts then sends visitors there.",
+      "The footer no longer adds Worldwide after the place you are based in. If you want it, write it in Studio's Copy section under Footer reach line. The Contact and About page headings and the post index wording can be written there too.",
+      "Smaller fixes: the footer credit and the header button are dark enough to read on every theme, headings use your display font everywhere, pictures beside text line up on phones, the 404 page uses your site's fonts and names the site in the tab, and each page shares its own title and picture when a link is posted."
+    ],
+    "2.8.37": [
+      "The availability line beside your contact details, which release 2.8.36 listed in Studio's Copy section, now changes the page. In 2.8.36 a line written there was saved but the page kept reading Available worldwide. Nothing is asked of you; write the line if you want one."
+    ],
+    "2.8.36": [
+      "The post index and the back link on each post no longer carry another site's wording. They now say Posts and use your site's own name and description. Before, they read Publications & Blog and described a science blog, in the page's search description too. Nothing is asked of you.",
+      "The four questions on your Contact page can now be written in Studio's Copy section. Until you write them, a visitor who opens a question reads the template's note to you, such as Set expectations on lead time here. Write all four before you launch."
+    ],
+    "2.8.35": [
+      "A home page that lists your latest posts now shows them. Before, the list always said nothing was published, even when posts existed.",
+      "The About page's closing band follows your theme: a light site no longer ends on a dark band, and the From and Based lines appear only when you have filled them in. Nothing is asked of you."
+    ],
+    "2.8.34": [
+      "Site footers and visitor emails credit Ebenworks as the maker of Tzohar Sites."
+    ],
     "2.8.33": [
       "On a page whose top band is a photograph, a second or third button next to the main one (the music page's \"Browse discography\", the AI page's portfolio, Scholar and GitHub links) was white on a light page in light mode, so it could not be read. These buttons now take the page's ink and line colours and read in both light and dark. Nothing is asked of you; a site that sets its own buttons looks the same."
     ],

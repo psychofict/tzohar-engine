@@ -61,6 +61,26 @@
   --shadow-card-hover: 0 1px 2px rgba(21,18,28,0.04), 0 24px 48px -20px rgba(21,18,28,0.18);
 }
 
+/*
+ * Accent-coloured small text: `text-accent-ink`.
+ *
+ * `text-ocean` is the accent as a fill colour, and a fill is allowed to be bright: the rose preset
+ * on the sand paper measured 3.93:1 as the header's outline button text, under the 4.5:1 small
+ * text needs (Kopje Light demo, 24 Nov 2026). `--color-ocean-strong` alone is not enough for every
+ * preset either (sunset's is 3.61:1 on sand). Mixing the strong accent a fifth of the way toward
+ * the ink moves it away from the page in both modes, since the ink is the colour furthest from
+ * the page: the worst preset and paper pair then measures 4.98:1 in light mode and 9.7:1 in dark.
+ * A custom accent's strong value is already held at 4.5:1 or better (resolveAccents), so the mix
+ * only adds to it.
+ *
+ * `inline`, so the utility carries the color-mix itself and resolves on the element that uses it:
+ * a variable declared on :root would be worked out once with the root's colours, and inside a
+ * `.section-invert` band it would keep the light theme's values.
+ */
+@theme inline {
+  --color-accent-ink: color-mix(in oklab, var(--color-ocean-strong) 80%, var(--color-ink));
+}
+
 /* ─────────────────────────────────────────────────────────
    APPEARANCE TOKENS (non-utility) — defaults for the knobs
    `appearanceStyle()` in @tzohar/schema overrides per site:

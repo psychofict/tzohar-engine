@@ -2,26 +2,61 @@ import { Link } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
 import { site, hasModule } from "@/config/site";
 import { analyticsTools, joinWithAnd } from "@/lib/analytics";
+import {
+  BUILDER,
+  HOST,
+  operator,
+  operatorCountry,
+  privacyEmail,
+  takesNewsletter,
+  takesFreeSignups,
+  takesMessages,
+  sendsEmail,
+  offersThemeChoice,
+  offersLanguageChoice,
+  usesCloudinary,
+} from "@/lib/privacy-facts";
 
 // Single-language legal page (matches the hub's legal pages, which are English-only).
 const HUB = (process.env.NEXT_PUBLIC_ACCOUNTS_URL || "https://accounts.ebenworks.co").replace(/\/+$/, "");
 const SITE_HOST = new URL(site.url).host;
 
+// Headings in the site's display face, as on every other page (they were bold body type).
+const H2 = "type-display text-ink text-[calc(1.25rem*var(--display-scale))] leading-snug";
+
+/**
+ * The site's privacy notice. The site's operator (the client) is the one responsible for the data;
+ * Ebenworks builds and hosts the site for them. Each item below appears only when the site has the
+ * thing it describes (src/lib/privacy-facts.ts), and the analytics come from the one list in
+ * src/lib/analytics.ts.
+ */
 export default function PrivacyPage() {
   const membership = hasModule("membership");
   // Exactly the analytics this site loads (src/lib/analytics.ts, decision EBE-7056).
   const analytics = analyticsTools();
+  const signups = takesNewsletter || takesFreeSignups;
+  const signupName =
+    takesNewsletter && takesFreeSignups ? "Newsletter and free sign-ups" : takesNewsletter ? "Newsletter sign-ups" : "Free sign-ups";
+  const browserChoices = [
+    offersThemeChoice ? "Your light or dark choice is kept in your browser." : "",
+    offersLanguageChoice ? "Your language choice is part of the page address, and nothing is stored for it." : "",
+  ].filter(Boolean);
+
   return (
     <main id="main-content" className="min-h-screen bg-bg text-ink">
       <Container size="sm" className="pt-28 sm:pt-32 pb-20">
-        <h1 className="font-bold tracking-tight text-[clamp(1.9rem,4vw,2.75rem)]">Privacy Policy</h1>
-        <p className="mt-2 text-sm text-ink-3">Last updated: 9 November 2026</p>
+        <h1 className="type-display text-ink text-balance leading-[1.08] text-[calc(clamp(1.9rem,4vw,2.75rem)*var(--display-scale))]">
+          Privacy Policy
+        </h1>
+        <p className="mt-2 text-sm text-ink-3">Last updated: 24 November 2026</p>
 
-        <div className="mt-8 flex flex-col gap-6 text-[15px] leading-relaxed text-ink-2 [&_h2]:mt-4 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-ink [&_a]:text-ocean-strong [&_a:hover]:underline [&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-2 [&_ul]:pl-5">
+        <div className="mt-8 flex flex-col gap-6 text-[15px] leading-relaxed text-ink-2 [&_h2]:mt-4 [&_a]:text-ocean-strong [&_a:hover]:underline [&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-2 [&_ul]:pl-5">
           <p>
-            This notice covers personal data that <strong>{SITE_HOST}</strong> — the {site.name}{" "}
-            website, operated by <strong>Ebenworks Systems (Pvt) Ltd</strong> (incorporated in Zimbabwe) —
-            collects directly.
+            This notice covers the personal data that <strong>{SITE_HOST}</strong>, the {site.name} website,
+            collects directly. The site is run by <strong>{operator}</strong>
+            {operatorCountry ? ` (${operatorCountry})` : ""}, who is responsible for that data. {BUILDER} builds
+            the site and hosts it for {operator} through Tzohar Sites, and handles the data only on{" "}
+            {operator}&rsquo;s instructions. In this notice, &ldquo;we&rdquo; means {operator}.
             {membership && (
               <>
                 {" "}Your account, sign-in and billing data is handled by{" "}
@@ -33,37 +68,40 @@ export default function PrivacyPage() {
           </p>
 
           <section>
-            <h2>What this site collects</h2>
+            <h2 className={H2}>What this site collects</h2>
             <ul>
-              <li>
-                <strong>Newsletter sign-ups</strong> — your email address. Used to send news and
-                updates from {site.name} through our own mail service in Seoul, which sends it
-                through <strong>Amazon Web Services</strong> (Amazon SES). You can unsubscribe from any email at any time.
-              </li>
-              <li>
-                <strong>Contact form</strong> — your name, email and message, used only to respond to you
-                (delivered through the same mail service).
-              </li>
+              {signups && (
+                <li>
+                  <strong>{signupName}</strong>: your email address. We ask you to confirm it by email, then use it
+                  to send news and updates from {site.name}. You can unsubscribe from any email at any time.
+                </li>
+              )}
+              {takesMessages && (
+                <li>
+                  <strong>Contact form</strong>: your name, your email address and your message, used only to reply
+                  to you.
+                </li>
+              )}
               {membership && (
                 <>
                   <li>
-                    <strong>Membership</strong> — when you subscribe, sign-in and payment run through
-                    Ebenworks Accounts, with <strong>Paynow</strong> as the payment processor and Ebenworks
-                    Systems (Pvt) Ltd as the merchant of record. Charges are in US dollars. This site only
-                    ever sees whether you are signed in, your display name and your plan status.
+                    <strong>Membership</strong>: when you subscribe, sign-in and payment run through Ebenworks
+                    Accounts, with <strong>Paynow</strong> as the payment processor and {BUILDER} as the merchant of
+                    record. Charges are in US dollars. This site only ever sees whether you are signed in, your
+                    display name and your plan status.
                   </li>
                   <li>
-                    <strong>Your profile</strong> — a display name and notification preferences you set on
+                    <strong>Your profile</strong>: a display name and notification preferences you set on
                     your <Link href="/account">account</Link>, stored with your Ebenworks account.
                   </li>
                 </>
               )}
               <li>
-                <strong>Analytics &amp; cookies</strong> — we use {joinWithAnd(analytics.map((a) => a.name))}{" "}
-                to understand traffic (pages viewed, device, approximate location). Your theme and
-                language choices are stored in your browser. We do <strong>not</strong> sell your data or
-                use it for third-party advertising.
+                <strong>Analytics</strong>: we use {joinWithAnd(analytics.map((a) => a.name))} to understand
+                traffic (pages viewed, device, approximate location). We do <strong>not</strong> sell your data or
+                use it for third-party advertising.{browserChoices.length > 0 ? ` ${browserChoices.join(" ")}` : ""}
               </li>
+              {sendsEmail && (
               <li>
                 <strong>Pictures in our emails:</strong> when you open one of our emails with pictures shown, your mail app
                 fetches them from our mail picture host, which logs the requesting IP address (your mail service&rsquo;s, if
@@ -72,43 +110,52 @@ export default function PrivacyPage() {
                 United States and deleted after 35 days. To stop it, set your mail app not to load pictures; our emails
                 still read in full.
               </li>
-            </ul>
-          </section>
-
-          <section>
-            <h2>Why we process it</h2>
-            <ul>
-              <li>To send the updates you asked for (consent — you can withdraw anytime).</li>
-              <li>To respond to your enquiries (legitimate interest).</li>
-              <li>To operate, secure and improve the site (legitimate interest).</li>
-              {membership && (
-                <li>To provide membership — handled via Ebenworks Accounts, with Paynow as payment processor.</li>
               )}
             </ul>
           </section>
 
           <section>
-            <h2>Who we share it with</h2>
+            <h2 className={H2}>Why we process it</h2>
             <ul>
-              <li><strong>Amazon Web Services</strong> (Amazon SES, Seoul, South Korea) — email delivery (newsletter, contact), through our own mail service in Seoul.</li>
-              {membership && <li><strong>Ebenworks Accounts</strong> &amp; <strong>Paynow</strong> — account and billing.</li>}
-              <li><strong>{analytics.map((a) => a.company).join(", ")}</strong> — analytics.</li>
+              {signups && <li>To send the updates you asked for (your consent, which you can withdraw at any time).</li>}
+              {takesMessages && <li>To reply to your messages (our legitimate interest).</li>}
+              <li>To run, secure and improve the site (our legitimate interest).</li>
+              {membership && (
+                <li>To provide membership, through Ebenworks Accounts with Paynow as the payment processor.</li>
+              )}
+            </ul>
+          </section>
+
+          <section>
+            <h2 className={H2}>Who handles it for us</h2>
+            <ul>
+              <li><strong>{BUILDER}</strong>: builds, hosts and maintains the site for {operator}.</li>
+              <li><strong>{HOST}</strong>: runs the servers that deliver the site&rsquo;s pages.</li>
+              {sendsEmail && (
+                <li>
+                  <strong>Amazon Web Services</strong> (Amazon SES, Seoul, South Korea): delivers the site&rsquo;s
+                  emails, sent through the Ebenworks mail service in Seoul.
+                </li>
+              )}
+              {usesCloudinary && <li><strong>Cloudinary</strong>: stores the site&rsquo;s pictures and delivers them.</li>}
+              {membership && <li><strong>Ebenworks Accounts</strong> and <strong>Paynow</strong>: account and billing.</li>}
+              <li><strong>{analytics.map((a) => a.company).join(", ")}</strong>: analytics.</li>
             </ul>
             <p>We do not sell your personal information.</p>
           </section>
 
           <section>
-            <h2>Your rights &amp; contact</h2>
+            <h2 className={H2}>Your rights and how to reach us</h2>
             <p>
-              You can access, correct, delete or export your data, or withdraw consent — email{" "}
-              <a href="mailto:privacy@ebenworks.co">privacy@ebenworks.co</a>.
+              You can ask to see, correct, delete or export your data, or withdraw your consent, by writing to{" "}
+              <a href={`mailto:${privacyEmail}`}>{privacyEmail}</a>.
               {membership && " Requests about your account, identity or billing are handled through Ebenworks Accounts."}
             </p>
           </section>
 
           <section>
-            <h2>Changes</h2>
-            <p>We&apos;ll update this page and the date above when this notice changes.</p>
+            <h2 className={H2}>Changes</h2>
+            <p>We will update this page and the date above when this notice changes.</p>
           </section>
 
           {membership && (

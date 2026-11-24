@@ -178,7 +178,7 @@ export default function MasterDetailBlock({ block }: { block: z.infer<typeof mas
                 <li key={ri} className="relative">
                   <span className="bg-line-strong absolute -left-6 top-2.5 h-px w-3.5" aria-hidden />
                   <p className="type-label text-ink-3 tabular-nums">{String(ri + 1).padStart(2, "0")}</p>
-                  <p className="text-ink mt-1.5 text-[15px] font-semibold">{row.title}</p>
+                  <p className="type-display text-ink mt-1.5 text-[1.05rem] leading-snug">{row.title}</p>
                   <p className="text-ink-2 measure mt-2 text-[14.5px] leading-[1.68]">{row.body}</p>
                 </li>
               ))}

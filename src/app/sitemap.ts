@@ -5,6 +5,7 @@ import { routedPages } from "@/data/pages";
 import { customPageSlugs } from "@/lib/custom-pages";
 import { posts } from "@/data/posts";
 import { site, hasModule } from "@/config/site";
+import { postsIndexMoved } from "@/lib/posts-index";
 
 /**
  * Sitemap built from what this site actually serves.
@@ -65,6 +66,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   for (const m of modulePaths) {
+    // A post index moved to a composed page (`site.posts.indexPath`) is listed as that page;
+    // /posts itself only redirects there.
+    if (m.path === "/posts" && postsIndexMoved) continue;
     if (hasModule(m.module)) staticPaths.push({ path: m.path, freq: m.freq, priority: m.priority });
   }
 

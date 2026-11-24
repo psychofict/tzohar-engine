@@ -15,9 +15,7 @@ export const heroImageSrc = site.brand.heroImage ?? site.brand.ogImage;
 export const heroImageBlur = getBlurDataURL(heroImageSrc);
 
 /** Config-driven focal point → CSS object-position (undefined = per-hero default). */
-export const heroFocalPosition = site.brand.heroFocal
-  ? `${site.brand.heroFocal.x}% ${site.brand.heroFocal.y}%`
-  : undefined;
+export { heroFocalPosition } from "@/lib/hero-focal";
 
 /** Korean display name next to the latin brand name, from config (not hardcoded). */
 export function hangulAlternate(locale: string): string | undefined {

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/config/site";
-import { isPreviewBuild } from "@/lib/preview-build";
+import { siteIndexable } from "@/lib/search-index";
 
 /**
  * `site.url`, not a hardcoded host. This file named the reference build's host
@@ -9,10 +9,11 @@ import { isPreviewBuild } from "@/lib/preview-build";
  */
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = site.url;
-  // A preview build is shown to its owner by link only. Crawlers may fetch it, so they
-  // read its noindex tag and header (a URL blocked here can still be listed bare when
-  // something links to it); it names no sitemap.
-  if (isPreviewBuild) return { rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/admin"] }] };
+  // A site kept out of search (a preview build, or `seo.index: false`). Crawlers may still
+  // fetch its pages, so they read the noindex tag and header: a URL blocked here can still be
+  // listed bare when something links to it, because the crawler never sees the noindex. It
+  // names no sitemap.
+  if (!siteIndexable) return { rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/admin"] }] };
 
   return {
     rules: [

@@ -583,7 +583,9 @@ export default function Navbar() {
             {cta && (
               <Link
                 href={cta.href as Href}
-                className="border-ocean text-ocean hover:bg-ocean hover:text-on-accent ml-3 hidden h-9 items-center gap-1.5 rounded-[var(--radius-pill)] border px-4 text-[13px] font-semibold transition-colors sm:inline-flex"
+                // `text-accent-ink`, not `text-ocean`: 13px text needs 4.5:1, and the accent as a
+                // fill measured 3.93:1 on the Kopje Light demo (rose on sand). See globals.css.
+                className="border-ocean text-accent-ink hover:bg-ocean hover:text-on-accent ml-3 hidden h-9 items-center gap-1.5 rounded-[var(--radius-pill)] border px-4 text-[13px] font-semibold transition-colors sm:inline-flex"
               >
                 {cta.label}
                 <ArrowRight size={14} aria-hidden />
@@ -631,7 +633,7 @@ export default function Navbar() {
                     <Link
                       href={cta.href as Href}
                       onClick={() => setMobileOpen(false)}
-                      className="text-ocean flex items-center gap-2 py-4 text-xl font-semibold"
+                      className="text-accent-ink flex items-center gap-2 py-4 text-xl font-semibold"
                     >
                       {cta.label}
                       <ArrowRight size={18} aria-hidden />

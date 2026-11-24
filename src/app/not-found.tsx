@@ -1,28 +1,17 @@
 import Link from "next/link";
-import { Inter, Fraunces, IBM_Plex_Mono } from "next/font/google";
 import { site } from "@/config/site";
 import { appearanceStyle } from "@tzohar/schema";
 import { scriptJson } from "@/lib/json-ld";
+import { siteFontVariables } from "@/lib/site-fonts";
+import { fontVarStyle } from "@/lib/font-vars";
 
 /*
  * This route renders its own document, so it also has to load its own faces:
- * the next/font variable classes live on `[locale]/layout.tsx`'s <body>, which
- * never wraps this page. Without them `.type-display` and `.type-label` fell
- * through to system-ui, so the 404 was correctly themed in color but set in the
- * wrong typeface. next/font dedupes by config, so declaring the same three
- * faces here reuses the already-emitted files rather than shipping copies.
- *
- * Kept in sync with `site.appearance.font` — currently the `fraunces` pairing
- * (Inter body, Fraunces display) plus the sitewide mono label face.
+ * the next/font variable classes live on `[locale]/layout.tsx`'s <html>, which
+ * never wraps this page. It takes the same faces and the same pairing switch as
+ * the layout (src/lib/site-fonts.ts), so the 404 is set in the site's own type.
+ * It declared Inter, Fraunces and IBM Plex Mono itself, which suited one site.
  */
-const body = Inter({ variable: "--nf-body", subsets: ["latin"], display: "swap" });
-const display = Fraunces({ variable: "--nf-display", subsets: ["latin"], display: "swap" });
-const label = IBM_Plex_Mono({
-  variable: "--nf-label",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  display: "swap",
-});
 
 /**
  * 404 for requests that never matched the `[locale]` segment (a bad locale
@@ -49,17 +38,13 @@ export default function RootNotFound() {
       // Same reason as [locale]/layout.tsx: globals.css's `@theme` tokens
       // reference these variables from `:root`, so they must be defined here and
       // not on <body>, or `--font-sans` / `--font-mono` resolve to nothing.
-      className={`${body.variable} ${display.variable} ${label.variable}`}
-      style={
-        {
-          "--font-body": "var(--nf-body)",
-          "--font-display": "var(--nf-display)",
-          "--font-label": "var(--nf-label)",
-        } as React.CSSProperties
-      }
+      className={siteFontVariables}
+      style={(fontVarStyle(site.appearance?.font) ?? undefined) as React.CSSProperties | undefined}
       suppressHydrationWarning
     >
       <head>
+        {/* This document has no metadata of its own, so the tab read the bare address. */}
+        <title>{`Page not found | ${site.name}`}</title>
         <script
           dangerouslySetInnerHTML={{
             // Same precedence as the root layout: a stored choice wins only when a

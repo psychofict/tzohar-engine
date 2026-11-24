@@ -72,6 +72,12 @@ export const EXCLUDED_PREFIXES = [
    */
   "scripts/deploy-prod.sh",
   /**
+   * Its sibling, which refreshes the standby copy of Studio on our Seoul fleet. It was
+   * classed as engine code, so every template refresh and engine sync would have put
+   * our server release script in a client's repository. Found in the 24 Nov 2026 audit.
+   */
+  "scripts/deploy-fleet.sh",
+  /**
    * Our documents, not the client's. `CLAUDE.md` describes this framework and
    * carries fleet-wide operational context; `PRODUCTIZATION.md` is the business
    * model and price list. Both were seeded into client repos by the template —

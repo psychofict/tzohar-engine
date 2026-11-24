@@ -252,6 +252,39 @@ export const crmSchema = z.object({
   supportEmail: z.email().optional(),
 });
 
+// ── Legal — who runs the site, for the privacy notice ─────────────────────
+/**
+ * The site's operator: the client, not the studio that built it (Eben, 24 Nov 2026). The privacy
+ * notice at /privacy names this operator as the one responsible for visitors' data, and names
+ * Ebenworks Systems (Private) Limited as the company that builds and hosts the site for them.
+ * Every field is optional so a site that sets none still gets a correct notice.
+ */
+export const legalSchema = z.object({
+  /** The person or business that runs the site. Defaults to `legalName`, then `name`. */
+  operator: z.string().trim().min(1).optional(),
+  /** Where the operator is established, e.g. "Zimbabwe". Printed after the operator's name. */
+  country: z.string().trim().min(1).optional(),
+  /** Where privacy requests go. Defaults to the site's contact `email`. */
+  privacyEmail: z.email().optional(),
+});
+
+// ── Posts — where the post index lives ─────────────────────────────────────
+/** A path on the site: lowercase words joined by hyphens, one or more segments, e.g. "/journal". */
+const SITE_PATH_RE = /^\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/;
+
+/**
+ * The posts module's index. By default the engine serves it at /posts. A site whose writing has
+ * its own composed page (a "Journal" page with a postList block) names that page here: a post's
+ * back link and every "All posts" link go to it, and /posts redirects there (308) so an old link
+ * still lands. Post pages themselves stay at /posts/<slug>.
+ */
+export const postsSettingsSchema = z.object({
+  /** The index page's path. Default "/posts". */
+  indexPath: z.string().regex(SITE_PATH_RE, 'Use a path on this site, e.g. "/journal"').optional(),
+  /** What the index is called, e.g. "Journal". Used for the back link on a post. Literal text. */
+  indexLabel: z.string().trim().min(1).optional(),
+});
+
 export const socialLinkSchema = z.object({
   name: z.string().min(1),
   url: socialUrlSchema,
@@ -303,6 +336,13 @@ export const configSchema = z.object({
     heroFocal: z
       .object({ x: z.number().min(0).max(100), y: z.number().min(0).max(100) })
       .optional(),
+    /**
+     * The site's icon: an absolute https address of a square picture, at least 512 px a side.
+     * When set, the browser tab icon, the home-screen icon and the web app manifest use it (a
+     * Cloudinary address is cut to each size by the image service). When unset, the site keeps
+     * the icon files in its own `public/` folder.
+     */
+    icon: z.url({ protocol: /^https$/, error: "Use a picture address starting with https://" }).optional(),
   }),
   /** Accent color preset (see globals.css THEME PRESETS). Defaults to "default". */
   theme: themeSchema.optional(),
@@ -313,7 +353,17 @@ export const configSchema = z.object({
   /** Languages this site ships. */
   locales: z.object({ default: localeSchema, enabled: z.array(localeSchema).min(1) }),
   /** SEO. `titleDefault` is the homepage <title>; other pages use the template. */
-  seo: z.object({ titleDefault: z.string(), keywords: z.array(z.string()).optional() }),
+  seo: z.object({
+    titleDefault: z.string(),
+    keywords: z.array(z.string()).optional(),
+    /**
+     * Whether search engines may list the site. Default true. `false` keeps a live site out of
+     * search (a noindex, nofollow robots tag, an X-Robots-Tag header and no sitemap in robots.txt)
+     * while its contact form and sign-ups stay open. A preview build (TZOHAR_PREVIEW=1) is always
+     * kept out of search, whatever this says.
+     */
+    index: z.boolean().optional(),
+  }),
   /** @handle for X/Twitter cards (include the @). */
   twitter: z.string().optional(),
   /** Social links — also feed schema.org sameAs. */
@@ -330,6 +380,10 @@ export const configSchema = z.object({
   person: personSchema.optional(),
   /** The client-facing CMS at /admin (also needs the `crm` module enabled). */
   crm: crmSchema.optional(),
+  /** Who runs the site, as the privacy notice names them. */
+  legal: legalSchema.optional(),
+  /** Where the posts module's index lives. */
+  posts: postsSettingsSchema.optional(),
 });
 
 // ── Canonical types — the engine re-exports these from src/config/site.ts ──
@@ -344,6 +398,8 @@ export type SiteContact = z.infer<typeof contactSchema>;
 export type SiteCta = z.infer<typeof ctaSchema>;
 export type SitePerson = z.infer<typeof personSchema>;
 export type SiteCrm = z.infer<typeof crmSchema>;
+export type SiteLegal = z.infer<typeof legalSchema>;
+export type SitePostsSettings = z.infer<typeof postsSettingsSchema>;
 export type InquiryChoice = (typeof INQUIRY_CHOICES)[number];
 export type SiteLayout = z.infer<typeof layoutSchema>;
 export type HeroChoice = (typeof HERO_CHOICES)[number];

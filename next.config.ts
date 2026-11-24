@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 import createNextIntlPlugin from "next-intl/plugin";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -78,6 +80,41 @@ const contentSecurityPolicyReportOnly = (devServer: boolean) => [
   "report-uri /api/csp-report",
 ].join("; ");
 
+/**
+ * The few site settings this file needs, read straight from the site's config JSON (the app
+ * validates it; this file runs before the app and only reads three optional values). Unreadable,
+ * it reads as "nothing set": no posts redirect, and indexing decided by TZOHAR_PREVIEW alone (the
+ * pages' own robots tag still follows the config).
+ */
+type SiteSettings = { locales?: { default?: string }; seo?: { index?: boolean }; posts?: { indexPath?: string } };
+function readSiteSettings(): SiteSettings {
+  try {
+    return JSON.parse(readFileSync(join(process.cwd(), "src/config/site.values.json"), "utf8")) as SiteSettings;
+  } catch {
+    return {};
+  }
+}
+const siteSettings = readSiteSettings();
+
+/** Kept out of search: a preview build always, a live site when its config says `seo.index: false`. */
+const noIndex = process.env.TZOHAR_PREVIEW === "1" || siteSettings.seo?.index === false;
+
+/**
+ * `site.posts.indexPath`: the post index lives on another page (e.g. a composed /journal), so
+ * /posts, and its copy under each other locale's prefix, answers 308 to it. Post pages
+ * (/posts/<slug>) are left alone. Same path rule as the schema, so a bad value adds nothing.
+ */
+function postsIndexRedirects() {
+  const target = siteSettings.posts?.indexPath;
+  if (!target || target === "/posts" || !/^\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/.test(target)) return [];
+  const defaultLocale = siteSettings.locales?.default ?? "en";
+  const prefixed = ["en", "ko", "zh", "fr", "ja"].filter((l) => l !== defaultLocale).join("|");
+  return [
+    { source: "/posts", destination: target, permanent: true },
+    { source: `/:locale(${prefixed})/posts`, destination: `/:locale${target}`, permanent: true },
+  ];
+}
+
 // A function of the phase, so each load's headers() reads its own phase, never shared state.
 const nextConfigFor = (devServer: boolean): NextConfig => ({
   // Built into the browser code too, so the contact page, the footer and the join page (client
@@ -130,6 +167,7 @@ const nextConfigFor = (devServer: boolean): NextConfig => ({
       { source: "/:locale(ko|zh|fr|ja)/blog", destination: "/:locale", permanent: true },
       { source: "/blog/:slug", destination: "/", permanent: true },
       { source: "/:locale(ko|zh|fr|ja)/blog/:slug", destination: "/:locale", permanent: true },
+      ...postsIndexRedirects(),
     ];
   },
   async headers() {
@@ -160,8 +198,9 @@ const nextConfigFor = (devServer: boolean): NextConfig => ({
             value: "max-age=63072000; includeSubDomains; preload",
           },
           { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicyReportOnly(devServer) },
-          // A preview build (TZOHAR_PREVIEW=1) keeps every response out of search indexes.
-          ...(process.env.TZOHAR_PREVIEW === "1" ? [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] : []),
+          // A preview build (TZOHAR_PREVIEW=1), or a site whose config sets `seo.index: false`,
+          // keeps every response out of search indexes.
+          ...(noIndex ? [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] : []),
         ],
       },
     ];

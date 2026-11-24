@@ -11,6 +11,7 @@ import { socialIconMap } from "./ui/SocialIcons";
 import { useFormSubmit } from "@/lib/useFormSubmit";
 import LegalConsent from "./LegalConsent";
 import { isPreviewBuild } from "@/lib/preview-build";
+import { optionalMessageOrEmpty } from "@/lib/optional-message";
 
 // All in-site routes the footer links to (incl. hash anchors at runtime).
 type FooterHref =
@@ -248,7 +249,12 @@ export default function Footer() {
             an address, and a birthplace is not one. The config value is
             untouched; only this line stopped printing it.
           */}
-          <p className="text-[12px] text-ink-3 text-center sm:text-right">{[site.location?.based, "Worldwide"].filter(Boolean).join(" · ")}</p>
+          {/*
+            The second half is the site's own words (Copy field `footer.reach`). It was a
+            hardcoded "Worldwide", which a ceramics studio that posts within Zimbabwe could not
+            change. A messages file without the key, or with it blank, prints the place alone.
+          */}
+          <p className="text-[12px] text-ink-3 text-center sm:text-right">{[site.location?.based, optionalMessageOrEmpty(t, "reach")].filter(Boolean).join(" · ")}</p>
         </div>
       </div>
 
@@ -272,13 +278,18 @@ export default function Footer() {
       */}
       <div className="border-t border-line">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 pt-4 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-[calc(1rem+env(safe-area-inset-bottom))]">
-          <p className="text-[11px] text-ink-3/80 text-center tracking-wide">
+          {/*
+            `text-ink-2`, at full strength. This was `text-ink-3/80`: 11px text needs 4.5:1, and ink-3
+            at 80% measured 3.27:1 on the Kopje Light demo's footer (sand paper), and lower on the
+            engine's default paper. ink-2 clears 6:1 on the footer band of every paper preset.
+          */}
+          <p className="text-[11px] text-ink-2 text-center tracking-wide">
             A{" "}
             <a
               href="https://tzohar-sites.ebenworks.co"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-ink-3 hover:text-ink underline decoration-line underline-offset-2 transition-colors"
+              className="text-ink-2 hover:text-ink underline decoration-line underline-offset-2 transition-colors"
             >
               Tzohar Sites
             </a>{" "}
@@ -287,7 +298,7 @@ export default function Footer() {
               href="https://ebenworks.co"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-ink-3 hover:text-ink underline decoration-line underline-offset-2 transition-colors"
+              className="text-ink-2 hover:text-ink underline decoration-line underline-offset-2 transition-colors"
             >
               Ebenworks
             </a>.

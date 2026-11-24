@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/config/site";
+import { manifestIcons } from "@/lib/site-icon";
 
 /**
  * The web app manifest, generated from config.
@@ -34,9 +35,7 @@ export default function manifest(): MetadataRoute.Manifest {
     // which is what made an installed light-themed site open on a dark splash.
     background_color: dark ? "#0E0E10" : "#FFFFFF",
     theme_color: dark ? "#0E0E10" : "#FFFFFF",
-    icons: [
-      { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
-    ],
+    // `brand.icon` when the site names one, else the files in public/ (src/lib/site-icon.ts).
+    icons: manifestIcons(),
   };
 }

@@ -288,7 +288,9 @@ export default function PageHero({
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
           {eyebrow && <Eyebrow tone={accent === "ink" ? "ink" : "label"}>{eyebrow}</Eyebrow>}
-          <h1 className="font-bold tracking-tight text-ink text-balance leading-[1.05] text-[clamp(2.25rem,5.2vw,4.25rem)] max-w-3xl">
+          {/* The display face and the site's type scale, as the photo hero above uses. This was
+              bold body type, so a plain hero did not match the rest of the site's headings. */}
+          <h1 className="type-display text-ink text-balance leading-[1.05] text-[calc(clamp(2.25rem,5.2vw,4.25rem)*var(--display-scale))] max-w-3xl">
             {title}
           </h1>
           {subtitle && (
