@@ -284,7 +284,7 @@ export function getEbenworksOrganizationSchema() {
       {
         "@type": "Organization",
         name: "Imali AI",
-        url: "https://imali-ai.ebenworks.co",
+        url: "https://imaliai.co.za",
         description: "Africa's smartest AI Business OS.",
       },
       {
