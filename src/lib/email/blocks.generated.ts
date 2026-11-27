@@ -10,7 +10,7 @@
 //   colours: platform/accounts-hub/integration-kit/theme/tokens.json
 //   sync:   infra/scripts/sync-email-kit.py
 //   check:  infra/scripts/sync-email-kit.py --check
-//   sha256: b542f10127432fb3
+//   sha256: 853ad91351978f50
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -72,7 +72,7 @@ export type IdentityKey =
 export const IDENTITIES: Record<IdentityKey, { name: string; accent: string; accentText: string; site: string }> = {
   ebenworks: { name: "Ebenworks", accent: "#fc5f00", accentText: "#b23700", site: "ebenworks.co" },
   accounts: { name: "Ebenworks Accounts", accent: "#fc5f00", accentText: "#b23700", site: "accounts.ebenworks.co" },
-  imali: { name: "Imali AI", accent: "#00a651", accentText: "#008842", site: "imali-ai.ebenworks.co" },
+  imali: { name: "Imali AI", accent: "#00a651", accentText: "#008842", site: "imaliai.co.za" },
   chingu: { name: "Chingu Care AI", accent: "#c4613a", accentText: "#b85b37", site: "chingu-ai.ebenworks.co" },
   phila: { name: "Phila Health Ecosystem", accent: "#2f8f5b", accentText: "#2c8656", site: "phila-health.ebenworks.co" },
   bidwright: { name: "BidWright Tender AI", accent: "#2563eb", accentText: "#2563eb", site: "bidwright-ai.ebenworks.co" },
